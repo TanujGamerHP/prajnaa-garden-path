@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { LayoutDashboard, Package, Boxes, ShoppingBag, IndianRupee, User, Loader2, AlertCircle } from "lucide-react";
+import { LayoutDashboard, Package, Boxes, ShoppingBag, IndianRupee, User, Loader2, AlertCircle, ShieldCheck } from "lucide-react";
 import { DashboardShell, type NavItem } from "@/components/dashboard/shell";
 import { useAuth } from "@/hooks/use-auth";
 import { useFarmerProfile } from "@/lib/farmer/use-farmer";
@@ -8,6 +8,7 @@ import { MarketingLayout } from "@/components/marketing/layout";
 
 const nav: NavItem[] = [
   { to: "/farmer-portal/dashboard", label: "Dashboard", icon: <LayoutDashboard className="h-4 w-4" /> },
+  { to: "/farmer-portal/kyc", label: "KYC verification", icon: <ShieldCheck className="h-4 w-4" /> },
   { to: "/farmer-portal/products", label: "Products", icon: <Package className="h-4 w-4" /> },
   { to: "/farmer-portal/inventory", label: "Inventory", icon: <Boxes className="h-4 w-4" /> },
   { to: "/farmer-portal/orders", label: "Orders", icon: <ShoppingBag className="h-4 w-4" /> },
