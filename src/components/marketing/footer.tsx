@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { Instagram, Twitter, Youtube, Mail } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 
 export function MarketingFooter() {
@@ -13,7 +14,25 @@ export function MarketingFooter() {
           <p className="font-subhead mt-6 text-xs uppercase tracking-[0.16em] text-muted-foreground">
             shop.prajnaa.in
           </p>
+          <div className="mt-6 flex items-center gap-2">
+            {[
+              { Icon: Instagram, href: "#", label: "Instagram" },
+              { Icon: Twitter, href: "#", label: "Twitter" },
+              { Icon: Youtube, href: "#", label: "YouTube" },
+              { Icon: Mail, href: "mailto:hello@prajnaa.in", label: "Email" },
+            ].map(({ Icon, href, label }) => (
+              <a
+                key={label}
+                href={href}
+                aria-label={label}
+                className="grid h-9 w-9 place-items-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:bg-primary hover:text-primary-foreground hover:border-primary"
+              >
+                <Icon className="h-4 w-4" />
+              </a>
+            ))}
+          </div>
         </div>
+
         <FooterCol
           title="Shop"
           links={[
@@ -21,7 +40,8 @@ export function MarketingFooter() {
             { to: "/category/dry-fruits", label: "Dry fruits" },
             { to: "/category/spices", label: "Spices" },
             { to: "/category/pickles", label: "Pickles" },
-            { to: "/category/masalas", label: "Masalas" },
+            { to: "/wishlist", label: "Wishlist" },
+            { to: "/track-order", label: "Track order" },
           ]}
         />
         <FooterCol
@@ -29,6 +49,7 @@ export function MarketingFooter() {
           links={[
             { to: "/farmers", label: "Meet the farmers" },
             { to: "/become-a-seller", label: "Become a seller" },
+            { to: "/sustainability", label: "Sustainability" },
             { to: "/farmer-portal/dashboard", label: "Farmer login" },
           ]}
         />
@@ -36,23 +57,33 @@ export function MarketingFooter() {
           title="Company"
           links={[
             { to: "/about", label: "About us" },
+            { to: "/blog", label: "The Journal" },
+            { to: "/press", label: "Press" },
+            { to: "/careers", label: "Careers" },
             { to: "/contact", label: "Contact" },
-            { to: "/admin/dashboard", label: "Admin" },
           ]}
         />
         <FooterCol
           title="Help"
           links={[
+            { to: "/faq", label: "FAQ" },
+            { to: "/shipping", label: "Shipping" },
+            { to: "/returns", label: "Returns & refunds" },
             { to: "/account", label: "My account" },
             { to: "/contact", label: "Support" },
-            { to: "/about", label: "FAQ" },
           ]}
         />
       </div>
       <div className="border-t border-border">
         <div className="container-prj flex flex-col items-start justify-between gap-3 py-6 text-xs text-muted-foreground md:flex-row md:items-center">
           <p>© {new Date().getFullYear()} Prajnaa Farm. All rights reserved.</p>
-          <p>Made with care in India.</p>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
+            <Link to="/terms" className="hover:text-foreground">Terms</Link>
+            <Link to="/shipping" className="hover:text-foreground">Shipping</Link>
+            <Link to="/returns" className="hover:text-foreground">Returns</Link>
+            <span>· Made with care in India.</span>
+          </div>
         </div>
       </div>
     </footer>
