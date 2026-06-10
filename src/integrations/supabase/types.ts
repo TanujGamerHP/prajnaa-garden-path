@@ -116,6 +116,13 @@ export type Database = {
             referencedRelation: "farmer_profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "farmer_documents_farmer_id_fkey"
+            columns: ["farmer_id"]
+            isOneToOne: false
+            referencedRelation: "public_farmer_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       farmer_payouts: {
@@ -167,6 +174,13 @@ export type Database = {
             columns: ["farmer_id"]
             isOneToOne: false
             referencedRelation: "farmer_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "farmer_payouts_farmer_id_fkey"
+            columns: ["farmer_id"]
+            isOneToOne: false
+            referencedRelation: "public_farmer_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -235,6 +249,13 @@ export type Database = {
             columns: ["farmer_id"]
             isOneToOne: false
             referencedRelation: "farmer_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "farmer_products_farmer_id_fkey"
+            columns: ["farmer_id"]
+            isOneToOne: false
+            referencedRelation: "public_farmer_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -556,7 +577,75 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_farmer_profiles: {
+        Row: {
+          approved_at: string | null
+          cover_image_url: string | null
+          created_at: string | null
+          crops: string[] | null
+          district: string | null
+          farm_name: string | null
+          farm_size_acres: number | null
+          farming_method: string | null
+          full_name: string | null
+          headline: string | null
+          id: string | null
+          pincode: string | null
+          portrait_url: string | null
+          slug: string | null
+          state: string | null
+          status: Database["public"]["Enums"]["farmer_status"] | null
+          story: string | null
+          updated_at: string | null
+          village: string | null
+          years_farming: number | null
+        }
+        Insert: {
+          approved_at?: string | null
+          cover_image_url?: string | null
+          created_at?: string | null
+          crops?: string[] | null
+          district?: string | null
+          farm_name?: string | null
+          farm_size_acres?: number | null
+          farming_method?: string | null
+          full_name?: string | null
+          headline?: string | null
+          id?: string | null
+          pincode?: string | null
+          portrait_url?: string | null
+          slug?: string | null
+          state?: string | null
+          status?: Database["public"]["Enums"]["farmer_status"] | null
+          story?: string | null
+          updated_at?: string | null
+          village?: string | null
+          years_farming?: number | null
+        }
+        Update: {
+          approved_at?: string | null
+          cover_image_url?: string | null
+          created_at?: string | null
+          crops?: string[] | null
+          district?: string | null
+          farm_name?: string | null
+          farm_size_acres?: number | null
+          farming_method?: string | null
+          full_name?: string | null
+          headline?: string | null
+          id?: string | null
+          pincode?: string | null
+          portrait_url?: string | null
+          slug?: string | null
+          state?: string | null
+          status?: Database["public"]["Enums"]["farmer_status"] | null
+          story?: string | null
+          updated_at?: string | null
+          village?: string | null
+          years_farming?: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       claim_first_admin: { Args: never; Returns: boolean }
