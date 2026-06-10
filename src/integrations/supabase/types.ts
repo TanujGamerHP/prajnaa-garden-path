@@ -65,6 +65,267 @@ export type Database = {
         }
         Relationships: []
       }
+      farmer_documents: {
+        Row: {
+          created_at: string
+          doc_type: string
+          farmer_id: string
+          file_url: string
+          id: string
+          label: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          doc_type: string
+          farmer_id: string
+          file_url: string
+          id?: string
+          label?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          doc_type?: string
+          farmer_id?: string
+          file_url?: string
+          id?: string
+          label?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "farmer_documents_farmer_id_fkey"
+            columns: ["farmer_id"]
+            isOneToOne: false
+            referencedRelation: "farmer_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      farmer_payouts: {
+        Row: {
+          created_at: string
+          farmer_id: string
+          fees: number
+          gross_amount: number
+          id: string
+          net_amount: number
+          period_end: string
+          period_start: string
+          reference: string | null
+          settled_at: string | null
+          status: Database["public"]["Enums"]["payout_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          farmer_id: string
+          fees?: number
+          gross_amount?: number
+          id?: string
+          net_amount?: number
+          period_end: string
+          period_start: string
+          reference?: string | null
+          settled_at?: string | null
+          status?: Database["public"]["Enums"]["payout_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          farmer_id?: string
+          fees?: number
+          gross_amount?: number
+          id?: string
+          net_amount?: number
+          period_end?: string
+          period_start?: string
+          reference?: string | null
+          settled_at?: string | null
+          status?: Database["public"]["Enums"]["payout_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "farmer_payouts_farmer_id_fkey"
+            columns: ["farmer_id"]
+            isOneToOne: false
+            referencedRelation: "farmer_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      farmer_products: {
+        Row: {
+          category: string
+          compare_at_price: number | null
+          created_at: string
+          description: string | null
+          farmer_id: string
+          featured: boolean
+          id: string
+          images: string[] | null
+          name: string
+          price: number
+          slug: string
+          status: Database["public"]["Enums"]["product_status"]
+          stock: number
+          unit: string
+          updated_at: string
+          user_id: string
+          weight_grams: number | null
+        }
+        Insert: {
+          category: string
+          compare_at_price?: number | null
+          created_at?: string
+          description?: string | null
+          farmer_id: string
+          featured?: boolean
+          id?: string
+          images?: string[] | null
+          name: string
+          price: number
+          slug: string
+          status?: Database["public"]["Enums"]["product_status"]
+          stock?: number
+          unit?: string
+          updated_at?: string
+          user_id: string
+          weight_grams?: number | null
+        }
+        Update: {
+          category?: string
+          compare_at_price?: number | null
+          created_at?: string
+          description?: string | null
+          farmer_id?: string
+          featured?: boolean
+          id?: string
+          images?: string[] | null
+          name?: string
+          price?: number
+          slug?: string
+          status?: Database["public"]["Enums"]["product_status"]
+          stock?: number
+          unit?: string
+          updated_at?: string
+          user_id?: string
+          weight_grams?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "farmer_products_farmer_id_fkey"
+            columns: ["farmer_id"]
+            isOneToOne: false
+            referencedRelation: "farmer_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      farmer_profiles: {
+        Row: {
+          aadhaar_last4: string | null
+          approved_at: string | null
+          bank_account_name: string | null
+          bank_account_number: string | null
+          bank_ifsc: string | null
+          bank_name: string | null
+          cover_image_url: string | null
+          created_at: string
+          crops: string[] | null
+          district: string | null
+          email: string | null
+          farm_name: string
+          farm_size_acres: number | null
+          farming_method: string | null
+          full_name: string
+          headline: string | null
+          id: string
+          pan_number: string | null
+          phone: string
+          pincode: string | null
+          portrait_url: string | null
+          rejection_reason: string | null
+          slug: string | null
+          state: string
+          status: Database["public"]["Enums"]["farmer_status"]
+          story: string | null
+          updated_at: string
+          upi_id: string | null
+          user_id: string
+          village: string
+          years_farming: number | null
+        }
+        Insert: {
+          aadhaar_last4?: string | null
+          approved_at?: string | null
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_ifsc?: string | null
+          bank_name?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          crops?: string[] | null
+          district?: string | null
+          email?: string | null
+          farm_name: string
+          farm_size_acres?: number | null
+          farming_method?: string | null
+          full_name: string
+          headline?: string | null
+          id?: string
+          pan_number?: string | null
+          phone: string
+          pincode?: string | null
+          portrait_url?: string | null
+          rejection_reason?: string | null
+          slug?: string | null
+          state: string
+          status?: Database["public"]["Enums"]["farmer_status"]
+          story?: string | null
+          updated_at?: string
+          upi_id?: string | null
+          user_id: string
+          village: string
+          years_farming?: number | null
+        }
+        Update: {
+          aadhaar_last4?: string | null
+          approved_at?: string | null
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_ifsc?: string | null
+          bank_name?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          crops?: string[] | null
+          district?: string | null
+          email?: string | null
+          farm_name?: string
+          farm_size_acres?: number | null
+          farming_method?: string | null
+          full_name?: string
+          headline?: string | null
+          id?: string
+          pan_number?: string | null
+          phone?: string
+          pincode?: string | null
+          portrait_url?: string | null
+          rejection_reason?: string | null
+          slug?: string | null
+          state?: string
+          status?: Database["public"]["Enums"]["farmer_status"]
+          story?: string | null
+          updated_at?: string
+          upi_id?: string | null
+          user_id?: string
+          village?: string
+          years_farming?: number | null
+        }
+        Relationships: []
+      }
       notification_preferences: {
         Row: {
           newsletter: boolean
@@ -236,6 +497,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       wishlist_items: {
         Row: {
           created_at: string
@@ -262,10 +544,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "customer" | "farmer" | "admin"
+      farmer_status: "draft" | "pending" | "approved" | "rejected" | "suspended"
+      payout_status: "scheduled" | "processing" | "paid" | "failed"
+      product_status:
+        | "draft"
+        | "pending"
+        | "published"
+        | "rejected"
+        | "archived"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -392,6 +688,11 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["customer", "farmer", "admin"],
+      farmer_status: ["draft", "pending", "approved", "rejected", "suspended"],
+      payout_status: ["scheduled", "processing", "paid", "failed"],
+      product_status: ["draft", "pending", "published", "rejected", "archived"],
+    },
   },
 } as const
