@@ -47,6 +47,7 @@ import { Route as FarmerPortalEarningsRouteImport } from './routes/farmer-portal
 import { Route as FarmerPortalDashboardRouteImport } from './routes/farmer-portal.dashboard'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
+import { Route as BecomeASellerRegisterRouteImport } from './routes/become-a-seller.register'
 import { Route as AuthRegisterRouteImport } from './routes/auth.register'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as AdminVendorsRouteImport } from './routes/admin.vendors'
@@ -257,6 +258,11 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
   path: '/blog/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BecomeASellerRegisterRoute = BecomeASellerRegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => BecomeASellerRoute,
+} as any)
 const AuthRegisterRoute = AuthRegisterRouteImport.update({
   id: '/auth/register',
   path: '/auth/register',
@@ -358,7 +364,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/account': typeof AccountRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
-  '/become-a-seller': typeof BecomeASellerRoute
+  '/become-a-seller': typeof BecomeASellerRouteWithChildren
   '/careers': typeof CareersRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
@@ -396,6 +402,7 @@ export interface FileRoutesByFullPath {
   '/admin/vendors': typeof AdminVendorsRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
+  '/become-a-seller/register': typeof BecomeASellerRegisterRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/category/$slug': typeof CategorySlugRoute
   '/farmer-portal/dashboard': typeof FarmerPortalDashboardRoute
@@ -415,7 +422,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/become-a-seller': typeof BecomeASellerRoute
+  '/become-a-seller': typeof BecomeASellerRouteWithChildren
   '/careers': typeof CareersRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
@@ -452,6 +459,7 @@ export interface FileRoutesByTo {
   '/admin/vendors': typeof AdminVendorsRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
+  '/become-a-seller/register': typeof BecomeASellerRegisterRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/category/$slug': typeof CategorySlugRoute
   '/farmer-portal/dashboard': typeof FarmerPortalDashboardRoute
@@ -474,7 +482,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/account': typeof AccountRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
-  '/become-a-seller': typeof BecomeASellerRoute
+  '/become-a-seller': typeof BecomeASellerRouteWithChildren
   '/careers': typeof CareersRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
@@ -512,6 +520,7 @@ export interface FileRoutesById {
   '/admin/vendors': typeof AdminVendorsRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
+  '/become-a-seller/register': typeof BecomeASellerRegisterRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/category/$slug': typeof CategorySlugRoute
   '/farmer-portal/dashboard': typeof FarmerPortalDashboardRoute
@@ -573,6 +582,7 @@ export interface FileRouteTypes {
     | '/admin/vendors'
     | '/auth/login'
     | '/auth/register'
+    | '/become-a-seller/register'
     | '/blog/$slug'
     | '/category/$slug'
     | '/farmer-portal/dashboard'
@@ -629,6 +639,7 @@ export interface FileRouteTypes {
     | '/admin/vendors'
     | '/auth/login'
     | '/auth/register'
+    | '/become-a-seller/register'
     | '/blog/$slug'
     | '/category/$slug'
     | '/farmer-portal/dashboard'
@@ -688,6 +699,7 @@ export interface FileRouteTypes {
     | '/admin/vendors'
     | '/auth/login'
     | '/auth/register'
+    | '/become-a-seller/register'
     | '/blog/$slug'
     | '/category/$slug'
     | '/farmer-portal/dashboard'
@@ -710,7 +722,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AccountRoute: typeof AccountRouteWithChildren
   AdminRoute: typeof AdminRouteWithChildren
-  BecomeASellerRoute: typeof BecomeASellerRoute
+  BecomeASellerRoute: typeof BecomeASellerRouteWithChildren
   CareersRoute: typeof CareersRoute
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRoute
@@ -1007,6 +1019,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/become-a-seller/register': {
+      id: '/become-a-seller/register'
+      path: '/register'
+      fullPath: '/become-a-seller/register'
+      preLoaderRoute: typeof BecomeASellerRegisterRouteImport
+      parentRoute: typeof BecomeASellerRoute
+    }
     '/auth/register': {
       id: '/auth/register'
       path: '/auth/register'
@@ -1198,6 +1217,18 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface BecomeASellerRouteChildren {
+  BecomeASellerRegisterRoute: typeof BecomeASellerRegisterRoute
+}
+
+const BecomeASellerRouteChildren: BecomeASellerRouteChildren = {
+  BecomeASellerRegisterRoute: BecomeASellerRegisterRoute,
+}
+
+const BecomeASellerRouteWithChildren = BecomeASellerRoute._addFileChildren(
+  BecomeASellerRouteChildren,
+)
+
 interface FarmerPortalRouteChildren {
   FarmerPortalDashboardRoute: typeof FarmerPortalDashboardRoute
   FarmerPortalEarningsRoute: typeof FarmerPortalEarningsRoute
@@ -1227,7 +1258,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AccountRoute: AccountRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
-  BecomeASellerRoute: BecomeASellerRoute,
+  BecomeASellerRoute: BecomeASellerRouteWithChildren,
   CareersRoute: CareersRoute,
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRoute,
