@@ -97,7 +97,7 @@ function Hero() {
                 { k: "9", v: "Categories" },
                 { k: "4.9", v: "Avg rating" },
               ].map((s, i) => (
-                <Reveal key={s.v} delay={i * 80}>
+                <Reveal key={s.v} delay={i * 80} inline>
                   <dt className="font-display text-2xl font-semibold">{s.k}</dt>
                   <dd className="font-subhead mt-1 text-xs uppercase tracking-[0.12em] text-muted-foreground">{s.v}</dd>
                 </Reveal>
@@ -506,19 +506,29 @@ function FAQ() {
       <div className="mt-10 mx-auto max-w-3xl divide-y divide-border rounded-3xl border border-border bg-background">
         {items.map((item, i) => {
           const isOpen = open === i;
+          const panelId = `faq-panel-${i}`;
+          const btnId = `faq-btn-${i}`;
           return (
             <div key={item.q}>
-              <button
-                onClick={() => setOpen(isOpen ? null : i)}
-                className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left transition-colors hover:bg-secondary/30"
-                aria-expanded={isOpen}
-              >
-                <span className="font-display text-base font-medium">{item.q}</span>
-                <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-full border border-border text-sm transition-transform ${isOpen ? "rotate-45 bg-primary text-primary-foreground border-primary" : ""}`}>+</span>
-              </button>
+              <h3 className="m-0">
+                <button
+                  id={btnId}
+                  onClick={() => setOpen(isOpen ? null : i)}
+                  className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left transition-colors hover:bg-secondary/30 focus-visible:bg-secondary/30"
+                  aria-expanded={isOpen}
+                  aria-controls={panelId}
+                >
+                  <span className="font-display text-base font-medium">{item.q}</span>
+                  <span aria-hidden className={`grid h-7 w-7 shrink-0 place-items-center rounded-full border border-border text-sm transition-transform ${isOpen ? "rotate-45 bg-primary text-primary-foreground border-primary" : ""}`}>+</span>
+                </button>
+              </h3>
               <div
+                id={panelId}
+                role="region"
+                aria-labelledby={btnId}
+                aria-hidden={!isOpen}
                 style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
-                className="grid transition-[grid-template-rows] duration-300 ease-out"
+                className="grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none"
               >
                 <div className="overflow-hidden">
                   <p className="px-6 pb-5 text-sm leading-relaxed text-muted-foreground">{item.a}</p>

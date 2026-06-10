@@ -168,6 +168,25 @@
   ::selection {
     background-color: oklch(0.34 0.06 156 / 0.15);
   }
+
+  /* Global accessible focus ring for any keyboard-focused element. */
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+}
+
+/* Reduced motion: kill ambient + entrance animations, keep semantic transitions snappy. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.001ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 @utility font-display {
@@ -227,14 +246,28 @@
 
 @utility animate-float-slow {
   animation: float-slow 7s ease-in-out infinite;
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 @utility animate-blob {
   animation: blob-drift 18s ease-in-out infinite;
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 @utility animate-marquee {
   animation: marquee 38s linear infinite;
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* On coarse pointers / small screens, slow the blob & drop heavy blur work — keeps it 60fps. */
+@media (max-width: 768px), (pointer: coarse) {
+  .animate-blob { animation-duration: 28s; }
+  .animate-marquee { animation-duration: 55s; }
 }
 
 @utility grain {
