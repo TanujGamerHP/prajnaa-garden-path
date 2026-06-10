@@ -210,6 +210,21 @@
   .container-prj { padding-inline: 2rem; }
 }
 
+@utility input-prj {
+  height: 2.75rem;
+  width: 100%;
+  border-radius: 9999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-background);
+  padding-inline: 1.1rem;
+  font-size: 0.875rem;
+  font-family: var(--font-subhead);
+  outline: none;
+  transition: border-color 150ms ease;
+}
+.input-prj:focus { border-color: var(--color-primary); }
+
+
 @utility lift {
   transition: transform 250ms cubic-bezier(0.2, 0.8, 0.2, 1),
               box-shadow 250ms cubic-bezier(0.2, 0.8, 0.2, 1);
