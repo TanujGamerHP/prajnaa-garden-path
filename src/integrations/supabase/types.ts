@@ -73,7 +73,12 @@ export type Database = {
           file_url: string
           id: string
           label: string | null
+          notes: string | null
+          status: Database["public"]["Enums"]["doc_status"]
+          updated_at: string
           user_id: string
+          verified_at: string | null
+          verified_by: string | null
         }
         Insert: {
           created_at?: string
@@ -82,7 +87,12 @@ export type Database = {
           file_url: string
           id?: string
           label?: string | null
+          notes?: string | null
+          status?: Database["public"]["Enums"]["doc_status"]
+          updated_at?: string
           user_id: string
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Update: {
           created_at?: string
@@ -91,7 +101,12 @@ export type Database = {
           file_url?: string
           id?: string
           label?: string | null
+          notes?: string | null
+          status?: Database["public"]["Enums"]["doc_status"]
+          updated_at?: string
           user_id?: string
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Relationships: [
           {
@@ -554,6 +569,7 @@ export type Database = {
     }
     Enums: {
       app_role: "customer" | "farmer" | "admin"
+      doc_status: "pending" | "verified" | "rejected"
       farmer_status: "draft" | "pending" | "approved" | "rejected" | "suspended"
       payout_status: "scheduled" | "processing" | "paid" | "failed"
       product_status:
@@ -690,6 +706,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["customer", "farmer", "admin"],
+      doc_status: ["pending", "verified", "rejected"],
       farmer_status: ["draft", "pending", "approved", "rejected", "suspended"],
       payout_status: ["scheduled", "processing", "paid", "failed"],
       product_status: ["draft", "pending", "published", "rejected", "archived"],

@@ -155,11 +155,17 @@ function RegisterPage() {
                 ? "Welcome aboard. Head to your farmer portal to start listing produce."
                 : "We're reviewing your application. We'll email you within 48 hours."}
             </p>
-            <div className="mt-6 flex gap-3">
+            <div className="mt-6 flex flex-wrap gap-3">
               <Link to="/farmer-portal/dashboard" className="font-subhead inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground">
                 Go to portal <ArrowRight className="h-4 w-4" />
               </Link>
+              <Link to="/farmer-portal/kyc" className="font-subhead inline-flex items-center gap-2 rounded-full border border-border px-5 py-2.5 text-sm hover:bg-secondary">
+                Upload KYC documents
+              </Link>
             </div>
+            <p className="mt-4 text-xs text-muted-foreground">
+              Tip: Upload your Aadhaar, PAN, bank passbook and land proof in the portal to speed up verification.
+            </p>
           </div>
         </div>
       </MarketingLayout>

@@ -42,6 +42,7 @@ import { Route as FarmerSlugRouteImport } from './routes/farmer.$slug'
 import { Route as FarmerPortalProfileRouteImport } from './routes/farmer-portal.profile'
 import { Route as FarmerPortalProductsRouteImport } from './routes/farmer-portal.products'
 import { Route as FarmerPortalOrdersRouteImport } from './routes/farmer-portal.orders'
+import { Route as FarmerPortalKycRouteImport } from './routes/farmer-portal.kyc'
 import { Route as FarmerPortalInventoryRouteImport } from './routes/farmer-portal.inventory'
 import { Route as FarmerPortalEarningsRouteImport } from './routes/farmer-portal.earnings'
 import { Route as FarmerPortalDashboardRouteImport } from './routes/farmer-portal.dashboard'
@@ -233,6 +234,11 @@ const FarmerPortalOrdersRoute = FarmerPortalOrdersRouteImport.update({
   path: '/orders',
   getParentRoute: () => FarmerPortalRoute,
 } as any)
+const FarmerPortalKycRoute = FarmerPortalKycRouteImport.update({
+  id: '/kyc',
+  path: '/kyc',
+  getParentRoute: () => FarmerPortalRoute,
+} as any)
 const FarmerPortalInventoryRoute = FarmerPortalInventoryRouteImport.update({
   id: '/inventory',
   path: '/inventory',
@@ -407,6 +413,7 @@ export interface FileRoutesByFullPath {
   '/farmer-portal/dashboard': typeof FarmerPortalDashboardRoute
   '/farmer-portal/earnings': typeof FarmerPortalEarningsRoute
   '/farmer-portal/inventory': typeof FarmerPortalInventoryRoute
+  '/farmer-portal/kyc': typeof FarmerPortalKycRoute
   '/farmer-portal/orders': typeof FarmerPortalOrdersRoute
   '/farmer-portal/products': typeof FarmerPortalProductsRoute
   '/farmer-portal/profile': typeof FarmerPortalProfileRoute
@@ -464,6 +471,7 @@ export interface FileRoutesByTo {
   '/farmer-portal/dashboard': typeof FarmerPortalDashboardRoute
   '/farmer-portal/earnings': typeof FarmerPortalEarningsRoute
   '/farmer-portal/inventory': typeof FarmerPortalInventoryRoute
+  '/farmer-portal/kyc': typeof FarmerPortalKycRoute
   '/farmer-portal/orders': typeof FarmerPortalOrdersRoute
   '/farmer-portal/products': typeof FarmerPortalProductsRoute
   '/farmer-portal/profile': typeof FarmerPortalProfileRoute
@@ -525,6 +533,7 @@ export interface FileRoutesById {
   '/farmer-portal/dashboard': typeof FarmerPortalDashboardRoute
   '/farmer-portal/earnings': typeof FarmerPortalEarningsRoute
   '/farmer-portal/inventory': typeof FarmerPortalInventoryRoute
+  '/farmer-portal/kyc': typeof FarmerPortalKycRoute
   '/farmer-portal/orders': typeof FarmerPortalOrdersRoute
   '/farmer-portal/products': typeof FarmerPortalProductsRoute
   '/farmer-portal/profile': typeof FarmerPortalProfileRoute
@@ -587,6 +596,7 @@ export interface FileRouteTypes {
     | '/farmer-portal/dashboard'
     | '/farmer-portal/earnings'
     | '/farmer-portal/inventory'
+    | '/farmer-portal/kyc'
     | '/farmer-portal/orders'
     | '/farmer-portal/products'
     | '/farmer-portal/profile'
@@ -644,6 +654,7 @@ export interface FileRouteTypes {
     | '/farmer-portal/dashboard'
     | '/farmer-portal/earnings'
     | '/farmer-portal/inventory'
+    | '/farmer-portal/kyc'
     | '/farmer-portal/orders'
     | '/farmer-portal/products'
     | '/farmer-portal/profile'
@@ -704,6 +715,7 @@ export interface FileRouteTypes {
     | '/farmer-portal/dashboard'
     | '/farmer-portal/earnings'
     | '/farmer-portal/inventory'
+    | '/farmer-portal/kyc'
     | '/farmer-portal/orders'
     | '/farmer-portal/products'
     | '/farmer-portal/profile'
@@ -985,6 +997,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FarmerPortalOrdersRouteImport
       parentRoute: typeof FarmerPortalRoute
     }
+    '/farmer-portal/kyc': {
+      id: '/farmer-portal/kyc'
+      path: '/kyc'
+      fullPath: '/farmer-portal/kyc'
+      preLoaderRoute: typeof FarmerPortalKycRouteImport
+      parentRoute: typeof FarmerPortalRoute
+    }
     '/farmer-portal/inventory': {
       id: '/farmer-portal/inventory'
       path: '/inventory'
@@ -1222,6 +1241,7 @@ interface FarmerPortalRouteChildren {
   FarmerPortalDashboardRoute: typeof FarmerPortalDashboardRoute
   FarmerPortalEarningsRoute: typeof FarmerPortalEarningsRoute
   FarmerPortalInventoryRoute: typeof FarmerPortalInventoryRoute
+  FarmerPortalKycRoute: typeof FarmerPortalKycRoute
   FarmerPortalOrdersRoute: typeof FarmerPortalOrdersRoute
   FarmerPortalProductsRoute: typeof FarmerPortalProductsRoute
   FarmerPortalProfileRoute: typeof FarmerPortalProfileRoute
@@ -1232,6 +1252,7 @@ const FarmerPortalRouteChildren: FarmerPortalRouteChildren = {
   FarmerPortalDashboardRoute: FarmerPortalDashboardRoute,
   FarmerPortalEarningsRoute: FarmerPortalEarningsRoute,
   FarmerPortalInventoryRoute: FarmerPortalInventoryRoute,
+  FarmerPortalKycRoute: FarmerPortalKycRoute,
   FarmerPortalOrdersRoute: FarmerPortalOrdersRoute,
   FarmerPortalProductsRoute: FarmerPortalProductsRoute,
   FarmerPortalProfileRoute: FarmerPortalProfileRoute,
@@ -1279,3 +1300,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
