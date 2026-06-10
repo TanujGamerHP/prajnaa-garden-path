@@ -1,39 +1,99 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { productsByFarmer } from "@/lib/mock/products";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { Loader2, Save } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useFarmerProfile } from "@/lib/farmer/use-farmer";
 
-export const Route = createFileRoute("/farmer-portal/inventory")({
-  component: FarmerInventory,
-});
+export const Route = createFileRoute("/farmer-portal/inventory")({ component: InventoryPage });
 
-function FarmerInventory() {
-  const items = productsByFarmer("asha-patel");
+function InventoryPage() {
+  const { data: farmer } = useFarmerProfile();
+  const qc = useQueryClient();
+  const [draft, setDraft] = useState<Record<string, number>>({});
+
+  const { data: products = [], isLoading } = useQuery({
+    enabled: !!farmer?.id,
+    queryKey: ["farmer-products", farmer?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("farmer_products").select("id,name,stock,unit,status").eq("farmer_id", farmer!.id).order("name");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  useEffect(() => {
+    const map: Record<string, number> = {};
+    products.forEach((p) => { map[p.id] = p.stock; });
+    setDraft(map);
+  }, [products]);
+
+  const saveMut = useMutation({
+    mutationFn: async () => {
+      const changes = products.filter((p) => draft[p.id] !== p.stock);
+      for (const p of changes) {
+        const { error } = await supabase.from("farmer_products").update({ stock: draft[p.id] }).eq("id", p.id);
+        if (error) throw error;
+      }
+      return changes.length;
+    },
+    onSuccess: (n) => { toast.success(`Updated ${n} item${n === 1 ? "" : "s"}`); qc.invalidateQueries({ queryKey: ["farmer-products", farmer?.id] }); },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Save failed"),
+  });
+
+  const dirty = products.some((p) => draft[p.id] !== p.stock);
+
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="font-display text-3xl font-semibold">Inventory</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Update stock levels. Changes go live instantly.</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="font-display text-2xl font-semibold">Inventory</h2>
+          <p className="text-sm text-muted-foreground">Bulk-update stock for all your listings.</p>
+        </div>
+        <button onClick={() => saveMut.mutate()} disabled={!dirty || saveMut.isPending} className="font-subhead inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50">
+          {saveMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save changes
+        </button>
       </div>
-      <div className="space-y-3">
-        {items.map((p) => (
-          <div key={p.slug} className="flex items-center gap-4 rounded-2xl border border-border bg-background p-4">
-            <img src={p.image} alt={p.name} className="h-14 w-14 rounded-xl object-cover" />
-            <div className="flex-1">
-              <p className="font-display text-base font-medium">{p.name}</p>
-              <p className="font-subhead text-xs text-muted-foreground">{p.weight}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <input
-                type="number"
-                defaultValue={p.stock}
-                className="font-subhead h-10 w-24 rounded-xl border border-border bg-background px-3 text-right text-sm outline-none focus:border-primary"
-              />
-              <span className="font-subhead text-xs text-muted-foreground">in stock</span>
-            </div>
-            <button className="font-subhead rounded-full bg-primary px-4 py-2 text-xs font-medium text-primary-foreground hover:opacity-90">
-              Save
-            </button>
-          </div>
-        ))}
+
+      <div className="rounded-2xl border border-border bg-background">
+        {isLoading ? (
+          <div className="grid place-items-center py-16"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+        ) : products.length === 0 ? (
+          <p className="py-16 text-center text-sm text-muted-foreground">No products to manage.</p>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="font-subhead text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+                <th className="px-5 py-3 text-left">Product</th>
+                <th className="text-left">Status</th>
+                <th className="text-right">Current</th>
+                <th className="px-5 text-right">New stock</th>
+              </tr>
+            </thead>
+            <tbody>
+              {products.map((p) => {
+                const current = p.stock;
+                const next = draft[p.id] ?? current;
+                const changed = next !== current;
+                return (
+                  <tr key={p.id} className={`border-t border-border ${changed ? "bg-warning/5" : ""}`}>
+                    <td className="px-5 py-3 font-medium">{p.name}</td>
+                    <td className="capitalize text-muted-foreground">{p.status}</td>
+                    <td className="text-right text-muted-foreground">{current} {p.unit}</td>
+                    <td className="px-5 py-3 text-right">
+                      <input
+                        type="number" min={0} value={next}
+                        onChange={(e) => setDraft({ ...draft, [p.id]: Math.max(0, parseInt(e.target.value || "0", 10)) })}
+                        className="font-subhead w-24 rounded-lg border border-border bg-background px-2 py-1.5 text-right text-sm outline-none focus:border-primary"
+                      />
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );
