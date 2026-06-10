@@ -161,7 +161,7 @@ function OrderDetailPage() {
           <div className="rounded-3xl border border-border bg-background p-8">
             <h2 className="font-display text-xl font-semibold">Items</h2>
             <ul className="mt-5 space-y-4">
-              {order.items.map((it) => {
+              {order.items.map((it: Order["items"][number]) => {
                 const p = allProducts.find((x) => x.slug === it.productSlug);
                 return (
                   <li key={it.productSlug} className="flex items-center gap-3">
