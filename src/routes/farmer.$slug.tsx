@@ -27,7 +27,9 @@ function FarmerPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("farmer_profiles")
-        .select("*")
+        .select(
+          "id,user_id,slug,full_name,farm_name,village,district,state,pincode,farm_size_acres,years_farming,farming_method,crops,headline,story,cover_image_url,portrait_url,status,approved_at,created_at,updated_at",
+        )
         .eq("slug", slug)
         .eq("status", "approved")
         .maybeSingle();
