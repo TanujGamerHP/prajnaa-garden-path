@@ -526,7 +526,7 @@ function FAQ() {
                 id={panelId}
                 role="region"
                 aria-labelledby={btnId}
-                hidden={!isOpen}
+                aria-hidden={!isOpen}
                 style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
                 className="grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none"
               >
