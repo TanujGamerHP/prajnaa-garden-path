@@ -62,7 +62,7 @@ function PostPage() {
         </Reveal>
 
         <div className="container-prj mx-auto mt-14 max-w-3xl space-y-6 pb-20 text-[17px] leading-[1.75] text-foreground/90">
-          {post.body.map((p, i) => (
+          {post.body.map((p: string, i: number) => (
             <Reveal key={i} inline delay={i * 50}>
               <p>{p}</p>
             </Reveal>
