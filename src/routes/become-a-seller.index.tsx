@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
-import { toast } from "sonner";
+
 import { MarketingLayout } from "@/components/marketing/layout";
 
 export const Route = createFileRoute("/become-a-seller/")({
@@ -89,14 +89,5 @@ function BecomeSellerPage() {
         </ol>
       </section>
     </MarketingLayout>
-  );
-}
-
-function Field({ label, ...rest }: React.InputHTMLAttributes<HTMLInputElement> & { label: string }) {
-  return (
-    <label className="block">
-      <span className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{label}</span>
-      <input {...rest} className="font-subhead mt-1.5 h-11 w-full rounded-xl border border-border bg-background px-3.5 text-sm outline-none focus:border-primary" />
-    </label>
   );
 }
