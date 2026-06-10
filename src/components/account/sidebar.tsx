@@ -16,7 +16,9 @@ import { useAuth } from "@/hooks/use-auth";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 
-export const accountNav = [
+type NavItem = { to: string; label: string; icon: typeof LayoutDashboard; exact?: boolean };
+
+export const accountNav: NavItem[] = [
   { to: "/account", label: "Overview", icon: LayoutDashboard, exact: true },
   { to: "/account/orders", label: "Your orders", icon: ShoppingBag },
   { to: "/account/wishlist", label: "Wishlist", icon: Heart },
@@ -27,7 +29,7 @@ export const accountNav = [
   { to: "/account/notifications", label: "Notifications", icon: Bell },
   { to: "/account/recently-viewed", label: "Recently viewed", icon: Clock },
   { to: "/account/reviews", label: "Your reviews", icon: Star },
-] as const;
+];
 
 export function AccountSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
