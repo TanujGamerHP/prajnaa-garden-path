@@ -1,55 +1,72 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
 import { StatCard } from "@/components/dashboard/shell";
+import { supabase } from "@/integrations/supabase/client";
+import { useFarmerProfile } from "@/lib/farmer/use-farmer";
 import { inr } from "@/lib/format";
 
-export const Route = createFileRoute("/farmer-portal/earnings")({
-  component: FarmerEarnings,
-});
+export const Route = createFileRoute("/farmer-portal/earnings")({ component: EarningsPage });
 
-const months = [
-  { m: "June 2026", gross: 52400, fees: 3768, net: 48632, status: "Pending settlement" },
-  { m: "May 2026", gross: 47820, fees: 3438, net: 44382, status: "Paid · Jun 8" },
-  { m: "April 2026", gross: 41250, fees: 2966, net: 38284, status: "Paid · May 9" },
-  { m: "March 2026", gross: 38900, fees: 2796, net: 36104, status: "Paid · Apr 10" },
-];
+function EarningsPage() {
+  const { data: farmer } = useFarmerProfile();
+  const { data: payouts = [], isLoading } = useQuery({
+    enabled: !!farmer?.id,
+    queryKey: ["farmer-payouts", farmer?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("farmer_payouts").select("*").eq("farmer_id", farmer!.id).order("period_end", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
 
-function FarmerEarnings() {
+  const lifetime = payouts.filter((p) => p.status === "paid").reduce((s, p) => s + Number(p.net_amount), 0);
+  const pending = payouts.filter((p) => p.status !== "paid").reduce((s, p) => s + Number(p.net_amount), 0);
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
-        <h2 className="font-display text-3xl font-semibold">Earnings</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Settlements run between the 7th and 10th of every month.</p>
+        <h2 className="font-display text-2xl font-semibold">Earnings</h2>
+        <p className="text-sm text-muted-foreground">Settlements are credited between the 7th and 10th each month.</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="This month (gross)" value={inr(52400)} delta="+9.6% vs last month" />
-        <StatCard label="Platform fees" value={inr(3768)} />
-        <StatCard label="Net payable" value={inr(48632)} />
+        <StatCard label="Lifetime earned" value={inr(lifetime)} />
+        <StatCard label="Pending payouts" value={inr(pending)} />
+        <StatCard label="Bank account" value={farmer?.bank_account_number ? `•••• ${farmer.bank_account_number.slice(-4)}` : "—"} delta={farmer?.bank_name ?? undefined} />
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-border bg-background">
-        <table className="w-full text-sm">
-          <thead className="bg-secondary/40">
-            <tr className="font-subhead text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
-              <th className="px-5 py-3 text-left">Month</th>
-              <th className="text-right">Gross</th>
-              <th className="text-right">Fees</th>
-              <th className="text-right">Net</th>
-              <th className="px-5 text-right">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {months.map((r) => (
-              <tr key={r.m} className="border-t border-border">
-                <td className="px-5 py-4 font-medium">{r.m}</td>
-                <td className="text-right">{inr(r.gross)}</td>
-                <td className="text-right text-muted-foreground">{inr(r.fees)}</td>
-                <td className="text-right font-medium">{inr(r.net)}</td>
-                <td className="px-5 text-right text-xs text-muted-foreground">{r.status}</td>
+      <div className="rounded-2xl border border-border bg-background">
+        {isLoading ? (
+          <div className="grid place-items-center py-16"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+        ) : payouts.length === 0 ? (
+          <p className="py-16 text-center text-sm text-muted-foreground">No payouts yet. Once you make sales, monthly settlements will appear here.</p>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="font-subhead text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+                <th className="px-5 py-3 text-left">Period</th>
+                <th className="text-right">Gross</th>
+                <th className="text-right">Fees</th>
+                <th className="text-right">Net</th>
+                <th className="text-left">Status</th>
+                <th className="px-5 text-right">Settled</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {payouts.map((p) => (
+                <tr key={p.id} className="border-t border-border">
+                  <td className="px-5 py-3">{new Date(p.period_start).toLocaleDateString()} – {new Date(p.period_end).toLocaleDateString()}</td>
+                  <td className="text-right">{inr(Number(p.gross_amount))}</td>
+                  <td className="text-right text-muted-foreground">{inr(Number(p.fees))}</td>
+                  <td className="text-right font-medium">{inr(Number(p.net_amount))}</td>
+                  <td className="capitalize text-muted-foreground">{p.status}</td>
+                  <td className="px-5 py-3 text-right text-muted-foreground">{p.settled_at ? new Date(p.settled_at).toLocaleDateString() : "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

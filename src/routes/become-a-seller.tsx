@@ -55,25 +55,20 @@ function BecomeSellerPage() {
               </Link>
             </div>
           </div>
-          <form
-            onSubmit={(e) => { e.preventDefault(); toast.success("Application received. We'll be in touch within 48 hours."); }}
-            className="rounded-3xl border border-border bg-secondary/40 p-6 md:p-8"
-          >
+          <div className="rounded-3xl border border-border bg-secondary/40 p-6 md:p-8">
             <h2 className="font-display text-2xl font-semibold">Apply to sell</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Tell us a little about your farm.</p>
-            <div className="mt-6 space-y-3">
-              <Field label="Your name" required />
-              <Field label="Phone" type="tel" required />
-              <Field label="Farm location (village, state)" required />
-              <Field label="Years of farming" type="number" />
-              <Field label="What do you grow?" placeholder="e.g. turmeric, millet, mango" />
-              <label className="block">
-                <span className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Tell us your story</span>
-                <textarea rows={4} className="font-subhead mt-1.5 w-full rounded-xl border border-border bg-background p-3.5 text-sm outline-none focus:border-primary" />
-              </label>
-              <button className="font-subhead mt-3 h-12 w-full rounded-full bg-primary text-sm font-medium text-primary-foreground hover:opacity-90">Submit application</button>
-            </div>
-          </form>
+            <p className="mt-1 text-sm text-muted-foreground">Full KYC + farm details. Takes ~5 minutes.</p>
+            <ul className="mt-5 space-y-2 text-sm text-muted-foreground">
+              <li>• Identity & PAN verification</li>
+              <li>• Farm location & crops</li>
+              <li>• Bank details for payouts</li>
+              <li>• Your story for the public page</li>
+            </ul>
+            <Link to="/become-a-seller/register" className="font-subhead mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-primary text-sm font-medium text-primary-foreground hover:opacity-90">
+              Start application <ArrowRight className="h-4 w-4" />
+            </Link>
+            <p className="mt-3 text-center text-xs text-muted-foreground">You'll need to sign in first.</p>
+          </div>
         </div>
       </section>
 
