@@ -3,7 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { MarketingLayout } from "@/components/marketing/layout";
 
-export const Route = createFileRoute("/become-a-seller")({
+export const Route = createFileRoute("/become-a-seller/")({
   head: () => ({
     meta: [
       { title: "Become a seller — Prajnaa Farm" },
