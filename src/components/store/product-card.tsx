@@ -10,7 +10,7 @@ export function ProductCard({ product }: { product: Product }) {
   const add = useCart((s) => s.add);
   const farmer = farmerBySlug(product.farmerSlug);
   return (
-    <div className="group flex h-full flex-col">
+    <div className="group flex h-full flex-col transition-transform duration-300 hover:-translate-y-1">
       <Link
         to="/product/$slug"
         params={{ slug: product.slug }}

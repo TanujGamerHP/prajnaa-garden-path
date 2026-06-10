@@ -1,15 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Leaf, ShieldCheck, Truck, Sprout, Star } from "lucide-react";
+import { ArrowRight, Leaf, ShieldCheck, Truck, Sprout, Star, MapPin, PackageCheck, HandHeart, Quote } from "lucide-react";
+import { useState } from "react";
 import heroImg from "@/assets/hero.jpg";
 import { MarketingLayout } from "@/components/marketing/layout";
 import { SectionHeader } from "@/components/store/section-header";
 import { CategoryTile } from "@/components/store/category-tile";
 import { FarmerCard } from "@/components/store/farmer-card";
 import { ProductCard } from "@/components/store/product-card";
+import { Reveal } from "@/components/reveal";
 import { categories } from "@/lib/mock/categories";
 import { farmers } from "@/lib/mock/farmers";
 import { trendingProducts, seasonalProducts } from "@/lib/mock/products";
 import { testimonials } from "@/lib/mock/reviews";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -28,86 +31,132 @@ function Index() {
   return (
     <MarketingLayout>
       <Hero />
+      <PressStrip />
       <WhyUs />
       <ShopByCategory />
+      <HowItWorks />
       <FeaturedFarmers />
       <Trending />
+      <ImpactStats />
       <Seasonal />
+      <SourcingMap />
       <BecomeSeller />
       <Testimonials />
+      <FAQ />
+      <Newsletter />
     </MarketingLayout>
   );
 }
 
 function Hero() {
   return (
-    <section className="container-prj pt-10 md:pt-16">
-      <div className="grid items-center gap-10 md:grid-cols-2 md:gap-14">
-        <div className="animate-fade-up">
-          <p className="font-subhead inline-flex items-center gap-2 rounded-full border border-border bg-secondary/60 px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-foreground/75">
-            <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-            Now serving across India
-          </p>
-          <h1 className="font-display mt-5 text-5xl font-semibold leading-[1.02] tracking-tight md:text-6xl lg:text-7xl">
-            From Soil to&nbsp;Soul,
-            <br />
-            <span className="text-primary">Naturally.</span>
-          </h1>
-          <p className="mt-5 max-w-md text-base text-muted-foreground md:text-lg">
-            Authentic farm produce sourced directly from trusted farmers. Every jar carries a name, a place, and a harvest date.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Link
-              to="/shop"
-              className="font-subhead group inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-all hover:opacity-90"
-            >
-              Shop now
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-            </Link>
-            <Link
-              to="/become-a-seller"
-              className="font-subhead inline-flex items-center gap-2 rounded-full border border-border bg-background px-6 py-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
-            >
-              Become a Farmer Partner
-            </Link>
-          </div>
-          <dl className="mt-10 grid grid-cols-3 gap-6 border-t border-border pt-8 md:max-w-md">
-            {[
-              { k: "120+", v: "Verified farmers" },
-              { k: "9", v: "Categories" },
-              { k: "4.9", v: "Avg rating" },
-            ].map((s) => (
-              <div key={s.v}>
-                <dt className="font-display text-2xl font-semibold">{s.k}</dt>
-                <dd className="font-subhead mt-1 text-xs uppercase tracking-[0.12em] text-muted-foreground">{s.v}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-        <div className="relative">
-          <div className="relative overflow-hidden rounded-[28px] bg-secondary">
-            <img
-              src={heroImg}
-              alt="Farmer hands holding fresh produce"
-              width={1600}
-              height={1200}
-              fetchPriority="high"
-              className="aspect-[5/6] h-full w-full object-cover md:aspect-[4/5]"
-            />
-            <div className="absolute bottom-5 left-5 right-5 flex items-center justify-between rounded-2xl bg-background/95 p-4 backdrop-blur">
-              <div>
-                <p className="font-subhead text-[11px] uppercase tracking-[0.16em] text-muted-foreground">Harvested by</p>
-                <p className="font-display text-base font-medium">Ramesh Singh · Hunza, Ladakh</p>
-              </div>
+    <section className="relative overflow-hidden">
+      {/* Ambient gradient blobs */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute -top-32 -left-24 h-[420px] w-[420px] rounded-full bg-primary/15 blur-3xl animate-blob" />
+        <div className="absolute top-20 -right-20 h-[360px] w-[360px] rounded-full bg-accent/25 blur-3xl animate-blob" style={{ animationDelay: "-6s" }} />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,oklch(0.965_0.012_80)_0%,transparent_60%)]" />
+      </div>
+
+      <div className="container-prj pt-10 md:pt-16">
+        <div className="grid items-center gap-10 md:grid-cols-2 md:gap-14">
+          <div className="animate-fade-up">
+            <p className="font-subhead inline-flex items-center gap-2 rounded-full border border-border bg-background/70 px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-foreground/75 backdrop-blur">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-accent" />
+              </span>
+              Now serving across India
+            </p>
+            <h1 className="font-display mt-5 text-5xl font-semibold leading-[1.02] tracking-tight md:text-6xl lg:text-7xl">
+              From Soil to&nbsp;Soul,
+              <br />
+              <span className="bg-gradient-to-r from-primary via-primary to-accent bg-clip-text text-transparent">Naturally.</span>
+            </h1>
+            <p className="mt-5 max-w-md text-base text-muted-foreground md:text-lg">
+              Authentic farm produce sourced directly from trusted farmers. Every jar carries a name, a place, and a harvest date.
+            </p>
+            <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link
-                to="/farmer/$slug"
-                params={{ slug: "ramesh-singh" }}
-                className="font-subhead inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground"
+                to="/shop"
+                className="font-subhead group inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-all hover:opacity-90 hover:shadow-lg hover:-translate-y-0.5"
               >
-                Story <ArrowRight className="h-3 w-3" />
+                Shop now
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              </Link>
+              <Link
+                to="/become-a-seller"
+                className="font-subhead inline-flex items-center gap-2 rounded-full border border-border bg-background px-6 py-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+              >
+                Become a Farmer Partner
               </Link>
             </div>
+            <dl className="mt-10 grid grid-cols-3 gap-6 border-t border-border pt-8 md:max-w-md">
+              {[
+                { k: "120+", v: "Verified farmers" },
+                { k: "9", v: "Categories" },
+                { k: "4.9", v: "Avg rating" },
+              ].map((s, i) => (
+                <Reveal key={s.v} delay={i * 80}>
+                  <dt className="font-display text-2xl font-semibold">{s.k}</dt>
+                  <dd className="font-subhead mt-1 text-xs uppercase tracking-[0.12em] text-muted-foreground">{s.v}</dd>
+                </Reveal>
+              ))}
+            </dl>
           </div>
+          <Reveal delay={120} y={20} className="relative">
+            <div className="absolute -inset-3 rounded-[32px] bg-gradient-to-br from-primary/20 via-transparent to-accent/30 blur-2xl" />
+            <div className="relative overflow-hidden rounded-[28px] bg-secondary shadow-[0_30px_80px_-30px_oklch(0.34_0.06_156_/_0.45)]">
+              <img
+                src={heroImg}
+                alt="Farmer hands holding fresh produce"
+                width={1600}
+                height={1200}
+                fetchPriority="high"
+                className="aspect-[5/6] h-full w-full object-cover md:aspect-[4/5]"
+              />
+              {/* Floating badge */}
+              <div className="absolute left-5 top-5 animate-float-slow">
+                <div className="flex items-center gap-2 rounded-full bg-background/95 px-3 py-1.5 text-[11px] font-medium shadow-lg backdrop-blur">
+                  <ShieldCheck className="h-3.5 w-3.5 text-success" />
+                  Lab-verified batch · 2026/04
+                </div>
+              </div>
+              <div className="absolute bottom-5 left-5 right-5 flex items-center justify-between rounded-2xl bg-background/95 p-4 backdrop-blur shadow-lg">
+                <div>
+                  <p className="font-subhead text-[11px] uppercase tracking-[0.16em] text-muted-foreground">Harvested by</p>
+                  <p className="font-display text-base font-medium">Ramesh Singh · Hunza, Ladakh</p>
+                </div>
+                <Link
+                  to="/farmer/$slug"
+                  params={{ slug: "ramesh-singh" }}
+                  className="font-subhead inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-transform hover:scale-105"
+                >
+                  Story <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function PressStrip() {
+  const items = ["The Hindu", "Vogue India", "Mint Lounge", "YourStory", "Forbes India", "Conde Nast Traveller", "LBB", "Architectural Digest"];
+  const row = [...items, ...items];
+  return (
+    <section className="mt-20 border-y border-border bg-secondary/40 py-6">
+      <div className="container-prj mb-3 flex items-center justify-between">
+        <p className="font-subhead text-[11px] uppercase tracking-[0.18em] text-muted-foreground">As featured in</p>
+        <p className="font-subhead text-[11px] uppercase tracking-[0.18em] text-muted-foreground hidden sm:block">2024 · 2025 · 2026</p>
+      </div>
+      <div className="relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
+        <div className="flex w-max gap-14 animate-marquee whitespace-nowrap pr-14">
+          {row.map((p, i) => (
+            <span key={i} className="font-display text-xl font-medium text-foreground/55">{p}</span>
+          ))}
         </div>
       </div>
     </section>
@@ -124,12 +173,19 @@ function WhyUs() {
   return (
     <section className="container-prj mt-24">
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {items.map(({ icon: Icon, t, d }) => (
-          <div key={t} className="rounded-2xl border border-border bg-background p-6">
-            <Icon className="h-5 w-5 text-primary" />
-            <h3 className="font-display mt-4 text-lg font-medium">{t}</h3>
-            <p className="mt-1.5 text-sm text-muted-foreground">{d}</p>
-          </div>
+        {items.map(({ icon: Icon, t, d }, i) => (
+          <Reveal key={t} delay={i * 90}>
+            <div className="group relative h-full overflow-hidden rounded-2xl border border-border bg-background p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_-20px_oklch(0.34_0.06_156_/_0.35)]">
+              <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-primary/5 transition-transform duration-500 group-hover:scale-125" />
+              <div className="relative">
+                <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <h3 className="font-display mt-4 text-lg font-medium">{t}</h3>
+                <p className="mt-1.5 text-sm text-muted-foreground">{d}</p>
+              </div>
+            </div>
+          </Reveal>
         ))}
       </div>
     </section>
@@ -139,19 +195,51 @@ function WhyUs() {
 function ShopByCategory() {
   return (
     <section className="container-prj mt-24">
-      <SectionHeader
-        eyebrow="Categories"
-        title="Shop by category"
-        subtitle="Nine carefully curated families of produce. Each one sourced from a farmer with a name."
-        action={
-          <Link to="/shop" className="font-subhead inline-flex items-center gap-1 text-sm font-medium text-primary hover:opacity-80">
-            View all <ArrowRight className="h-4 w-4" />
-          </Link>
-        }
-      />
+      <Reveal>
+        <SectionHeader
+          eyebrow="Categories"
+          title="Shop by category"
+          subtitle="Nine carefully curated families of produce. Each one sourced from a farmer with a name."
+          action={
+            <Link to="/shop" className="font-subhead inline-flex items-center gap-1 text-sm font-medium text-primary hover:opacity-80">
+              View all <ArrowRight className="h-4 w-4" />
+            </Link>
+          }
+        />
+      </Reveal>
       <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-        {categories.map((c) => (
-          <CategoryTile key={c.slug} category={c} />
+        {categories.map((c, i) => (
+          <Reveal key={c.slug} delay={(i % 5) * 60}>
+            <CategoryTile category={c} />
+          </Reveal>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function HowItWorks() {
+  const steps = [
+    { n: "01", icon: MapPin, t: "We find the farmer", d: "We travel to remote villages and meet growers with generational expertise." },
+    { n: "02", icon: ShieldCheck, t: "Verify & lab-test", d: "Soil, water, and product samples are tested before a single jar ships." },
+    { n: "03", icon: PackageCheck, t: "Carefully packed", d: "Sealed at source. Each pack carries the farmer's name, batch, and harvest date." },
+    { n: "04", icon: HandHeart, t: "Delivered to you", d: "Tracked logistics across India. From a Himalayan field to your kitchen." },
+  ];
+  return (
+    <section className="container-prj mt-24">
+      <Reveal>
+        <SectionHeader eyebrow="How it works" title="Soil to soul, in four steps." />
+      </Reveal>
+      <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {steps.map((s, i) => (
+          <Reveal key={s.n} delay={i * 100}>
+            <div className="relative h-full rounded-2xl border border-border bg-background p-6">
+              <span className="font-display absolute right-5 top-5 text-3xl font-semibold text-primary/15">{s.n}</span>
+              <s.icon className="h-5 w-5 text-primary" />
+              <h3 className="font-display mt-4 text-lg font-medium">{s.t}</h3>
+              <p className="mt-1.5 text-sm text-muted-foreground">{s.d}</p>
+            </div>
+          </Reveal>
         ))}
       </div>
     </section>
@@ -161,19 +249,23 @@ function ShopByCategory() {
 function FeaturedFarmers() {
   return (
     <section className="container-prj mt-24">
-      <SectionHeader
-        eyebrow="Featured farmers"
-        title="The people behind your produce."
-        subtitle="Real farmers, real stories, real fields. Tap any portrait to read theirs."
-        action={
-          <Link to="/farmers" className="font-subhead inline-flex items-center gap-1 text-sm font-medium text-primary hover:opacity-80">
-            Meet all farmers <ArrowRight className="h-4 w-4" />
-          </Link>
-        }
-      />
+      <Reveal>
+        <SectionHeader
+          eyebrow="Featured farmers"
+          title="The people behind your produce."
+          subtitle="Real farmers, real stories, real fields. Tap any portrait to read theirs."
+          action={
+            <Link to="/farmers" className="font-subhead inline-flex items-center gap-1 text-sm font-medium text-primary hover:opacity-80">
+              Meet all farmers <ArrowRight className="h-4 w-4" />
+            </Link>
+          }
+        />
+      </Reveal>
       <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {farmers.map((f) => (
-          <FarmerCard key={f.slug} farmer={f} />
+        {farmers.map((f, i) => (
+          <Reveal key={f.slug} delay={(i % 4) * 90}>
+            <FarmerCard farmer={f} />
+          </Reveal>
         ))}
       </div>
     </section>
@@ -184,20 +276,61 @@ function Trending() {
   const items = trendingProducts();
   return (
     <section className="container-prj mt-24">
-      <SectionHeader
-        eyebrow="Trending"
-        title="What people are buying."
-        action={
-          <Link to="/shop" className="font-subhead inline-flex items-center gap-1 text-sm font-medium text-primary hover:opacity-80">
-            Shop all <ArrowRight className="h-4 w-4" />
-          </Link>
-        }
-      />
+      <Reveal>
+        <SectionHeader
+          eyebrow="Trending"
+          title="What people are buying."
+          action={
+            <Link to="/shop" className="font-subhead inline-flex items-center gap-1 text-sm font-medium text-primary hover:opacity-80">
+              Shop all <ArrowRight className="h-4 w-4" />
+            </Link>
+          }
+        />
+      </Reveal>
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {items.map((p) => (
-          <ProductCard key={p.slug} product={p} />
+        {items.map((p, i) => (
+          <Reveal key={p.slug} delay={(i % 4) * 90}>
+            <ProductCard product={p} />
+          </Reveal>
         ))}
       </div>
+    </section>
+  );
+}
+
+function ImpactStats() {
+  const stats = [
+    { k: "₹3.2 Cr", v: "Paid directly to farmers" },
+    { k: "120+", v: "Verified farming partners" },
+    { k: "18", v: "States sourced from" },
+    { k: "42,000", v: "Happy households" },
+  ];
+  return (
+    <section className="container-prj mt-24">
+      <Reveal>
+        <div className="relative overflow-hidden rounded-3xl border border-border bg-secondary/50 p-8 md:p-14">
+          <div aria-hidden className="pointer-events-none absolute inset-0">
+            <div className="absolute -top-20 right-10 h-64 w-64 rounded-full bg-accent/15 blur-3xl" />
+            <div className="absolute bottom-0 left-10 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
+          </div>
+          <div className="relative grid items-end gap-10 md:grid-cols-[1fr_2fr]">
+            <div>
+              <p className="font-subhead text-xs uppercase tracking-[0.18em] text-primary">Our impact</p>
+              <h2 className="font-display mt-3 text-3xl font-semibold leading-[1.05] md:text-4xl">
+                Numbers that go back to the soil.
+              </h2>
+            </div>
+            <dl className="grid grid-cols-2 gap-y-8 md:grid-cols-4">
+              {stats.map((s, i) => (
+                <Reveal key={s.v} delay={i * 80}>
+                  <dt className="font-display text-3xl font-semibold md:text-4xl">{s.k}</dt>
+                  <dd className="font-subhead mt-1 text-xs uppercase tracking-[0.12em] text-muted-foreground">{s.v}</dd>
+                </Reveal>
+              ))}
+            </dl>
+          </div>
+        </div>
+      </Reveal>
     </section>
   );
 }
@@ -206,38 +339,80 @@ function Seasonal() {
   const items = seasonalProducts();
   return (
     <section className="container-prj mt-24">
-      <div className="overflow-hidden rounded-3xl bg-primary text-primary-foreground">
-        <div className="grid items-center gap-10 p-8 md:grid-cols-2 md:p-14">
-          <div>
-            <p className="font-subhead text-xs uppercase tracking-[0.18em] text-accent">In season now</p>
-            <h2 className="font-display mt-3 text-4xl font-semibold leading-[1.05] md:text-5xl">
-              Seasonal produce, at its&nbsp;peak.
-            </h2>
-            <p className="mt-3 max-w-md text-sm opacity-85">
-              Limited harvests, available only while they last. When the season ends, they're gone until next year.
-            </p>
-            <Link
-              to="/shop"
-              className="font-subhead mt-6 inline-flex items-center gap-2 rounded-full bg-background px-5 py-2.5 text-sm font-medium text-foreground transition-opacity hover:opacity-90"
-            >
-              Browse seasonal <ArrowRight className="h-4 w-4" />
-            </Link>
+      <Reveal>
+        <div className="relative overflow-hidden rounded-3xl bg-primary text-primary-foreground">
+          <div aria-hidden className="pointer-events-none absolute inset-0">
+            <div className="absolute -top-32 -right-20 h-96 w-96 rounded-full bg-accent/30 blur-3xl animate-blob" />
+            <div className="absolute -bottom-20 left-10 h-72 w-72 rounded-full bg-primary-foreground/10 blur-3xl animate-blob" style={{ animationDelay: "-8s" }} />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            {items.slice(0, 4).map((p) => (
+          <div className="relative grid items-center gap-10 p-8 md:grid-cols-2 md:p-14">
+            <div>
+              <p className="font-subhead text-xs uppercase tracking-[0.18em] text-accent">In season now</p>
+              <h2 className="font-display mt-3 text-4xl font-semibold leading-[1.05] md:text-5xl">
+                Seasonal produce, at its&nbsp;peak.
+              </h2>
+              <p className="mt-3 max-w-md text-sm opacity-85">
+                Limited harvests, available only while they last. When the season ends, they're gone until next year.
+              </p>
               <Link
-                key={p.slug}
-                to="/product/$slug"
-                params={{ slug: p.slug }}
-                className="group block overflow-hidden rounded-2xl bg-background/10"
+                to="/shop"
+                className="font-subhead mt-6 inline-flex items-center gap-2 rounded-full bg-background px-5 py-2.5 text-sm font-medium text-foreground transition-all hover:-translate-y-0.5 hover:shadow-lg"
               >
-                <div className="aspect-square overflow-hidden">
-                  <img src={p.image} alt={p.name} loading="lazy" width={400} height={400} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.05]" />
-                </div>
+                Browse seasonal <ArrowRight className="h-4 w-4" />
               </Link>
-            ))}
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              {items.slice(0, 4).map((p, i) => (
+                <Reveal key={p.slug} delay={i * 90}>
+                  <Link
+                    to="/product/$slug"
+                    params={{ slug: p.slug }}
+                    className="group block overflow-hidden rounded-2xl bg-background/10"
+                  >
+                    <div className="aspect-square overflow-hidden">
+                      <img src={p.image} alt={p.name} loading="lazy" width={400} height={400} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.08]" />
+                    </div>
+                  </Link>
+                </Reveal>
+              ))}
+            </div>
           </div>
         </div>
+      </Reveal>
+    </section>
+  );
+}
+
+function SourcingMap() {
+  const regions = [
+    { p: "Ladakh", c: "Apricots, salt" },
+    { p: "Himachal", c: "Apples, walnuts" },
+    { p: "Uttarakhand", c: "Honey, rajma" },
+    { p: "Rajasthan", c: "Mustard, millets" },
+    { p: "Gujarat", c: "Pickles, ghee" },
+    { p: "Maharashtra", c: "Turmeric, mangoes" },
+    { p: "Karnataka", c: "Coffee, spices" },
+    { p: "Kerala", c: "Black pepper, oils" },
+  ];
+  return (
+    <section className="container-prj mt-24">
+      <Reveal>
+        <SectionHeader eyebrow="Sourcing map" title="Where your jars come from." subtitle="From the Himalayas to the Western Ghats, traced to the village." />
+      </Reveal>
+      <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {regions.map((r, i) => (
+          <Reveal key={r.p} delay={(i % 4) * 70}>
+            <div className="flex items-center gap-3 rounded-2xl border border-border bg-background p-4 transition-colors hover:bg-secondary/50">
+              <span className="grid h-9 w-9 place-items-center rounded-full bg-accent/15 text-accent">
+                <MapPin className="h-4 w-4" />
+              </span>
+              <div>
+                <p className="font-display font-medium">{r.p}</p>
+                <p className="text-xs text-muted-foreground">{r.c}</p>
+              </div>
+            </div>
+          </Reveal>
+        ))}
       </div>
     </section>
   );
@@ -246,40 +421,42 @@ function Seasonal() {
 function BecomeSeller() {
   return (
     <section className="container-prj mt-24">
-      <div className="grid items-center gap-10 rounded-3xl border border-border bg-secondary/40 p-8 md:grid-cols-2 md:p-14">
-        <div>
-          <p className="font-subhead text-xs uppercase tracking-[0.18em] text-primary">For farmers</p>
-          <h2 className="font-display mt-3 text-3xl font-semibold leading-[1.05] md:text-4xl">
-            Sell directly to families across India.
-          </h2>
-          <p className="mt-3 max-w-md text-sm text-muted-foreground">
-            Keep more of every rupee. We handle the storefront, payments, and logistics. You focus on the soil.
-          </p>
-          <Link
-            to="/become-a-seller"
-            className="font-subhead mt-6 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:opacity-90"
-          >
-            Start onboarding <ArrowRight className="h-4 w-4" />
-          </Link>
+      <Reveal>
+        <div className="grid items-center gap-10 rounded-3xl border border-border bg-secondary/40 p-8 md:grid-cols-2 md:p-14">
+          <div>
+            <p className="font-subhead text-xs uppercase tracking-[0.18em] text-primary">For farmers</p>
+            <h2 className="font-display mt-3 text-3xl font-semibold leading-[1.05] md:text-4xl">
+              Sell directly to families across India.
+            </h2>
+            <p className="mt-3 max-w-md text-sm text-muted-foreground">
+              Keep more of every rupee. We handle the storefront, payments, and logistics. You focus on the soil.
+            </p>
+            <Link
+              to="/become-a-seller"
+              className="font-subhead mt-6 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-all hover:-translate-y-0.5 hover:shadow-lg"
+            >
+              Start onboarding <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+          <ul className="grid gap-3 sm:grid-cols-2">
+            {[
+              "Zero listing fees",
+              "Monthly settlements",
+              "Pan-India logistics",
+              "Marketing support",
+              "Farmer story page",
+              "Dedicated dashboard",
+            ].map((b, i) => (
+              <Reveal as="li" key={b} delay={i * 60} className="font-subhead flex items-center gap-2 rounded-xl bg-background p-3 text-sm">
+                <span className="grid h-5 w-5 place-items-center rounded-full bg-primary text-primary-foreground">
+                  <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12l5 5L20 7" /></svg>
+                </span>
+                {b}
+              </Reveal>
+            ))}
+          </ul>
         </div>
-        <ul className="grid gap-3 sm:grid-cols-2">
-          {[
-            "Zero listing fees",
-            "Monthly settlements",
-            "Pan-India logistics",
-            "Marketing support",
-            "Farmer story page",
-            "Dedicated dashboard",
-          ].map((b) => (
-            <li key={b} className="font-subhead flex items-center gap-2 rounded-xl bg-background p-3 text-sm">
-              <span className="grid h-5 w-5 place-items-center rounded-full bg-primary text-primary-foreground">
-                <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12l5 5L20 7" /></svg>
-              </span>
-              {b}
-            </li>
-          ))}
-        </ul>
-      </div>
+      </Reveal>
     </section>
   );
 }
@@ -287,22 +464,117 @@ function BecomeSeller() {
 function Testimonials() {
   return (
     <section className="container-prj mt-24">
-      <SectionHeader eyebrow="Customer love" title="What people say." align="center" />
+      <Reveal>
+        <SectionHeader eyebrow="Customer love" title="What people say." align="center" />
+      </Reveal>
       <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-        {testimonials.map((t) => (
-          <figure key={t.id} className="rounded-2xl border border-border bg-background p-6">
-            <div className="flex items-center gap-0.5 text-accent">
-              {Array.from({ length: t.rating }).map((_, i) => (
-                <Star key={i} className="h-4 w-4 fill-accent" />
-              ))}
-            </div>
-            <blockquote className="mt-4 text-sm leading-relaxed text-foreground/85">"{t.text}"</blockquote>
-            <figcaption className="font-subhead mt-5 text-xs uppercase tracking-[0.12em] text-muted-foreground">
-              {t.author} · {t.location}
-            </figcaption>
-          </figure>
+        {testimonials.map((t, i) => (
+          <Reveal key={t.id} delay={(i % 4) * 90}>
+            <figure className="relative h-full overflow-hidden rounded-2xl border border-border bg-background p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+              <Quote className="absolute right-4 top-4 h-8 w-8 text-primary/10" />
+              <div className="flex items-center gap-0.5 text-accent">
+                {Array.from({ length: t.rating }).map((_, i) => (
+                  <Star key={i} className="h-4 w-4 fill-accent" />
+                ))}
+              </div>
+              <blockquote className="mt-4 text-sm leading-relaxed text-foreground/85">"{t.text}"</blockquote>
+              <figcaption className="font-subhead mt-5 text-xs uppercase tracking-[0.12em] text-muted-foreground">
+                {t.author} · {t.location}
+              </figcaption>
+            </figure>
+          </Reveal>
         ))}
       </div>
+    </section>
+  );
+}
+
+function FAQ() {
+  const items = [
+    { q: "How do you verify farmers?", a: "Each farmer goes through a 4-step onboarding: site visit, document verification, soil/water reports, and lab-tested product samples before going live." },
+    { q: "Is everything organic?", a: "We source natural, chemical-free produce. Many products are certified organic; certifications are listed on each product page." },
+    { q: "Do you deliver across India?", a: "Yes. We deliver to 20,000+ pin codes via trusted logistics partners. Most orders ship within 48 hours of harvest packing." },
+    { q: "What if my order arrives damaged?", a: "We offer a 100% refund or replacement on damaged items, no questions asked. Just share a photo within 48 hours of delivery." },
+    { q: "Can I subscribe to monthly orders?", a: "Subscriptions are rolling out in our next release. Meanwhile, our 'Restock reminder' will email you when your favourites are back." },
+  ];
+  const [open, setOpen] = useState<number | null>(0);
+  return (
+    <section className="container-prj mt-24">
+      <Reveal>
+        <SectionHeader eyebrow="FAQ" title="Questions, answered." />
+      </Reveal>
+      <div className="mt-10 mx-auto max-w-3xl divide-y divide-border rounded-3xl border border-border bg-background">
+        {items.map((item, i) => {
+          const isOpen = open === i;
+          return (
+            <div key={item.q}>
+              <button
+                onClick={() => setOpen(isOpen ? null : i)}
+                className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left transition-colors hover:bg-secondary/30"
+                aria-expanded={isOpen}
+              >
+                <span className="font-display text-base font-medium">{item.q}</span>
+                <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-full border border-border text-sm transition-transform ${isOpen ? "rotate-45 bg-primary text-primary-foreground border-primary" : ""}`}>+</span>
+              </button>
+              <div
+                style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
+                className="grid transition-[grid-template-rows] duration-300 ease-out"
+              >
+                <div className="overflow-hidden">
+                  <p className="px-6 pb-5 text-sm leading-relaxed text-muted-foreground">{item.a}</p>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function Newsletter() {
+  const [email, setEmail] = useState("");
+  return (
+    <section className="container-prj my-24">
+      <Reveal>
+        <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-secondary/70 via-background to-secondary/40 p-10 md:p-14">
+          <div aria-hidden className="pointer-events-none absolute inset-0">
+            <div className="absolute -top-20 -left-10 h-64 w-64 rounded-full bg-primary/10 blur-3xl animate-blob" />
+            <div className="absolute -bottom-24 -right-10 h-72 w-72 rounded-full bg-accent/20 blur-3xl animate-blob" style={{ animationDelay: "-9s" }} />
+          </div>
+          <div className="relative mx-auto max-w-2xl text-center">
+            <p className="font-subhead text-xs uppercase tracking-[0.18em] text-primary">Stay in the loop</p>
+            <h2 className="font-display mt-3 text-3xl font-semibold leading-[1.1] md:text-4xl">
+              New harvests. Farmer stories. Quiet inbox.
+            </h2>
+            <p className="mt-3 text-sm text-muted-foreground">One thoughtful email a month. Unsubscribe anytime.</p>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!email) return;
+                toast.success("Welcome to the field. Check your inbox.");
+                setEmail("");
+              }}
+              className="mt-7 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-center"
+            >
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@harvest.in"
+                className="font-subhead w-full rounded-full border border-border bg-background px-5 py-3 text-sm outline-none transition-shadow focus:ring-2 focus:ring-ring sm:w-80"
+              />
+              <button
+                type="submit"
+                className="font-subhead inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-all hover:-translate-y-0.5 hover:shadow-lg"
+              >
+                Subscribe <ArrowRight className="h-4 w-4" />
+              </button>
+            </form>
+          </div>
+        </div>
+      </Reveal>
     </section>
   );
 }
