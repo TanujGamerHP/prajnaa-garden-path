@@ -12,6 +12,11 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/hooks/use-auth";
+import { initSentry, captureException } from "@/lib/sentry";
+
+if (typeof window !== "undefined") {
+  initSentry();
+}
 
 function NotFoundComponent() {
   return (
