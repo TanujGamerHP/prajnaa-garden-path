@@ -1,5 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
 import { Minus, Plus, Star, Truck, ShieldCheck, Sprout } from "lucide-react";
 import { toast } from "sonner";
 import { MarketingLayout } from "@/components/marketing/layout";
@@ -52,6 +54,17 @@ function ProductPage() {
   const { product, farmer, related } = Route.useLoaderData();
   const [qty, setQty] = useState(1);
   const add = useCart((s) => s.add);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (!user) return;
+    void supabase
+      .from("recently_viewed")
+      .upsert(
+        { user_id: user.id, product_slug: product.slug, viewed_at: new Date().toISOString() },
+        { onConflict: "user_id,product_slug" },
+      );
+  }, [user, product.slug]);
 
   return (
     <MarketingLayout>

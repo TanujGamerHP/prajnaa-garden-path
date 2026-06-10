@@ -35,6 +35,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as FarmerPortalIndexRouteImport } from './routes/farmer-portal.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AccountIndexRouteImport } from './routes/account.index'
 import { Route as ProductSlugRouteImport } from './routes/product.$slug'
 import { Route as OrdersIdRouteImport } from './routes/orders.$id'
 import { Route as FarmerSlugRouteImport } from './routes/farmer.$slug'
@@ -56,6 +57,15 @@ import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
 import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
 import { Route as AdminCouponsRouteImport } from './routes/admin.coupons'
 import { Route as AdminBannersRouteImport } from './routes/admin.banners'
+import { Route as AccountWishlistRouteImport } from './routes/account.wishlist'
+import { Route as AccountSecurityRouteImport } from './routes/account.security'
+import { Route as AccountReviewsRouteImport } from './routes/account.reviews'
+import { Route as AccountRecentlyViewedRouteImport } from './routes/account.recently-viewed'
+import { Route as AccountProfileRouteImport } from './routes/account.profile'
+import { Route as AccountPaymentsRouteImport } from './routes/account.payments'
+import { Route as AccountOrdersRouteImport } from './routes/account.orders'
+import { Route as AccountNotificationsRouteImport } from './routes/account.notifications'
+import { Route as AccountAddressesRouteImport } from './routes/account.addresses'
 
 const WishlistRoute = WishlistRouteImport.update({
   id: '/wishlist',
@@ -187,6 +197,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AccountIndexRoute = AccountIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AccountRoute,
+} as any)
 const ProductSlugRoute = ProductSlugRouteImport.update({
   id: '/product/$slug',
   path: '/product/$slug',
@@ -292,11 +307,56 @@ const AdminBannersRoute = AdminBannersRouteImport.update({
   path: '/banners',
   getParentRoute: () => AdminRoute,
 } as any)
+const AccountWishlistRoute = AccountWishlistRouteImport.update({
+  id: '/wishlist',
+  path: '/wishlist',
+  getParentRoute: () => AccountRoute,
+} as any)
+const AccountSecurityRoute = AccountSecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
+  getParentRoute: () => AccountRoute,
+} as any)
+const AccountReviewsRoute = AccountReviewsRouteImport.update({
+  id: '/reviews',
+  path: '/reviews',
+  getParentRoute: () => AccountRoute,
+} as any)
+const AccountRecentlyViewedRoute = AccountRecentlyViewedRouteImport.update({
+  id: '/recently-viewed',
+  path: '/recently-viewed',
+  getParentRoute: () => AccountRoute,
+} as any)
+const AccountProfileRoute = AccountProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AccountRoute,
+} as any)
+const AccountPaymentsRoute = AccountPaymentsRouteImport.update({
+  id: '/payments',
+  path: '/payments',
+  getParentRoute: () => AccountRoute,
+} as any)
+const AccountOrdersRoute = AccountOrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => AccountRoute,
+} as any)
+const AccountNotificationsRoute = AccountNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => AccountRoute,
+} as any)
+const AccountAddressesRoute = AccountAddressesRouteImport.update({
+  id: '/addresses',
+  path: '/addresses',
+  getParentRoute: () => AccountRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/account': typeof AccountRoute
+  '/account': typeof AccountRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
   '/become-a-seller': typeof BecomeASellerRoute
   '/careers': typeof CareersRoute
@@ -317,6 +377,15 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/track-order': typeof TrackOrderRoute
   '/wishlist': typeof WishlistRoute
+  '/account/addresses': typeof AccountAddressesRoute
+  '/account/notifications': typeof AccountNotificationsRoute
+  '/account/orders': typeof AccountOrdersRoute
+  '/account/payments': typeof AccountPaymentsRoute
+  '/account/profile': typeof AccountProfileRoute
+  '/account/recently-viewed': typeof AccountRecentlyViewedRoute
+  '/account/reviews': typeof AccountReviewsRoute
+  '/account/security': typeof AccountSecurityRoute
+  '/account/wishlist': typeof AccountWishlistRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/coupons': typeof AdminCouponsRoute
   '/admin/customers': typeof AdminCustomersRoute
@@ -338,6 +407,7 @@ export interface FileRoutesByFullPath {
   '/farmer/$slug': typeof FarmerSlugRoute
   '/orders/$id': typeof OrdersIdRoute
   '/product/$slug': typeof ProductSlugRoute
+  '/account/': typeof AccountIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/farmer-portal/': typeof FarmerPortalIndexRoute
@@ -345,7 +415,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/account': typeof AccountRoute
   '/become-a-seller': typeof BecomeASellerRoute
   '/careers': typeof CareersRoute
   '/cart': typeof CartRoute
@@ -364,6 +433,15 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/track-order': typeof TrackOrderRoute
   '/wishlist': typeof WishlistRoute
+  '/account/addresses': typeof AccountAddressesRoute
+  '/account/notifications': typeof AccountNotificationsRoute
+  '/account/orders': typeof AccountOrdersRoute
+  '/account/payments': typeof AccountPaymentsRoute
+  '/account/profile': typeof AccountProfileRoute
+  '/account/recently-viewed': typeof AccountRecentlyViewedRoute
+  '/account/reviews': typeof AccountReviewsRoute
+  '/account/security': typeof AccountSecurityRoute
+  '/account/wishlist': typeof AccountWishlistRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/coupons': typeof AdminCouponsRoute
   '/admin/customers': typeof AdminCustomersRoute
@@ -385,6 +463,7 @@ export interface FileRoutesByTo {
   '/farmer/$slug': typeof FarmerSlugRoute
   '/orders/$id': typeof OrdersIdRoute
   '/product/$slug': typeof ProductSlugRoute
+  '/account': typeof AccountIndexRoute
   '/admin': typeof AdminIndexRoute
   '/blog': typeof BlogIndexRoute
   '/farmer-portal': typeof FarmerPortalIndexRoute
@@ -393,7 +472,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/account': typeof AccountRoute
+  '/account': typeof AccountRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
   '/become-a-seller': typeof BecomeASellerRoute
   '/careers': typeof CareersRoute
@@ -414,6 +493,15 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/track-order': typeof TrackOrderRoute
   '/wishlist': typeof WishlistRoute
+  '/account/addresses': typeof AccountAddressesRoute
+  '/account/notifications': typeof AccountNotificationsRoute
+  '/account/orders': typeof AccountOrdersRoute
+  '/account/payments': typeof AccountPaymentsRoute
+  '/account/profile': typeof AccountProfileRoute
+  '/account/recently-viewed': typeof AccountRecentlyViewedRoute
+  '/account/reviews': typeof AccountReviewsRoute
+  '/account/security': typeof AccountSecurityRoute
+  '/account/wishlist': typeof AccountWishlistRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/coupons': typeof AdminCouponsRoute
   '/admin/customers': typeof AdminCustomersRoute
@@ -435,6 +523,7 @@ export interface FileRoutesById {
   '/farmer/$slug': typeof FarmerSlugRoute
   '/orders/$id': typeof OrdersIdRoute
   '/product/$slug': typeof ProductSlugRoute
+  '/account/': typeof AccountIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/farmer-portal/': typeof FarmerPortalIndexRoute
@@ -465,6 +554,15 @@ export interface FileRouteTypes {
     | '/terms'
     | '/track-order'
     | '/wishlist'
+    | '/account/addresses'
+    | '/account/notifications'
+    | '/account/orders'
+    | '/account/payments'
+    | '/account/profile'
+    | '/account/recently-viewed'
+    | '/account/reviews'
+    | '/account/security'
+    | '/account/wishlist'
     | '/admin/banners'
     | '/admin/coupons'
     | '/admin/customers'
@@ -486,6 +584,7 @@ export interface FileRouteTypes {
     | '/farmer/$slug'
     | '/orders/$id'
     | '/product/$slug'
+    | '/account/'
     | '/admin/'
     | '/blog/'
     | '/farmer-portal/'
@@ -493,7 +592,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
-    | '/account'
     | '/become-a-seller'
     | '/careers'
     | '/cart'
@@ -512,6 +610,15 @@ export interface FileRouteTypes {
     | '/terms'
     | '/track-order'
     | '/wishlist'
+    | '/account/addresses'
+    | '/account/notifications'
+    | '/account/orders'
+    | '/account/payments'
+    | '/account/profile'
+    | '/account/recently-viewed'
+    | '/account/reviews'
+    | '/account/security'
+    | '/account/wishlist'
     | '/admin/banners'
     | '/admin/coupons'
     | '/admin/customers'
@@ -533,6 +640,7 @@ export interface FileRouteTypes {
     | '/farmer/$slug'
     | '/orders/$id'
     | '/product/$slug'
+    | '/account'
     | '/admin'
     | '/blog'
     | '/farmer-portal'
@@ -561,6 +669,15 @@ export interface FileRouteTypes {
     | '/terms'
     | '/track-order'
     | '/wishlist'
+    | '/account/addresses'
+    | '/account/notifications'
+    | '/account/orders'
+    | '/account/payments'
+    | '/account/profile'
+    | '/account/recently-viewed'
+    | '/account/reviews'
+    | '/account/security'
+    | '/account/wishlist'
     | '/admin/banners'
     | '/admin/coupons'
     | '/admin/customers'
@@ -582,6 +699,7 @@ export interface FileRouteTypes {
     | '/farmer/$slug'
     | '/orders/$id'
     | '/product/$slug'
+    | '/account/'
     | '/admin/'
     | '/blog/'
     | '/farmer-portal/'
@@ -590,7 +708,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  AccountRoute: typeof AccountRoute
+  AccountRoute: typeof AccountRouteWithChildren
   AdminRoute: typeof AdminRouteWithChildren
   BecomeASellerRoute: typeof BecomeASellerRoute
   CareersRoute: typeof CareersRoute
@@ -805,6 +923,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/account/': {
+      id: '/account/'
+      path: '/'
+      fullPath: '/account/'
+      preLoaderRoute: typeof AccountIndexRouteImport
+      parentRoute: typeof AccountRoute
+    }
     '/product/$slug': {
       id: '/product/$slug'
       path: '/product/$slug'
@@ -952,8 +1077,100 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminBannersRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/account/wishlist': {
+      id: '/account/wishlist'
+      path: '/wishlist'
+      fullPath: '/account/wishlist'
+      preLoaderRoute: typeof AccountWishlistRouteImport
+      parentRoute: typeof AccountRoute
+    }
+    '/account/security': {
+      id: '/account/security'
+      path: '/security'
+      fullPath: '/account/security'
+      preLoaderRoute: typeof AccountSecurityRouteImport
+      parentRoute: typeof AccountRoute
+    }
+    '/account/reviews': {
+      id: '/account/reviews'
+      path: '/reviews'
+      fullPath: '/account/reviews'
+      preLoaderRoute: typeof AccountReviewsRouteImport
+      parentRoute: typeof AccountRoute
+    }
+    '/account/recently-viewed': {
+      id: '/account/recently-viewed'
+      path: '/recently-viewed'
+      fullPath: '/account/recently-viewed'
+      preLoaderRoute: typeof AccountRecentlyViewedRouteImport
+      parentRoute: typeof AccountRoute
+    }
+    '/account/profile': {
+      id: '/account/profile'
+      path: '/profile'
+      fullPath: '/account/profile'
+      preLoaderRoute: typeof AccountProfileRouteImport
+      parentRoute: typeof AccountRoute
+    }
+    '/account/payments': {
+      id: '/account/payments'
+      path: '/payments'
+      fullPath: '/account/payments'
+      preLoaderRoute: typeof AccountPaymentsRouteImport
+      parentRoute: typeof AccountRoute
+    }
+    '/account/orders': {
+      id: '/account/orders'
+      path: '/orders'
+      fullPath: '/account/orders'
+      preLoaderRoute: typeof AccountOrdersRouteImport
+      parentRoute: typeof AccountRoute
+    }
+    '/account/notifications': {
+      id: '/account/notifications'
+      path: '/notifications'
+      fullPath: '/account/notifications'
+      preLoaderRoute: typeof AccountNotificationsRouteImport
+      parentRoute: typeof AccountRoute
+    }
+    '/account/addresses': {
+      id: '/account/addresses'
+      path: '/addresses'
+      fullPath: '/account/addresses'
+      preLoaderRoute: typeof AccountAddressesRouteImport
+      parentRoute: typeof AccountRoute
+    }
   }
 }
+
+interface AccountRouteChildren {
+  AccountAddressesRoute: typeof AccountAddressesRoute
+  AccountNotificationsRoute: typeof AccountNotificationsRoute
+  AccountOrdersRoute: typeof AccountOrdersRoute
+  AccountPaymentsRoute: typeof AccountPaymentsRoute
+  AccountProfileRoute: typeof AccountProfileRoute
+  AccountRecentlyViewedRoute: typeof AccountRecentlyViewedRoute
+  AccountReviewsRoute: typeof AccountReviewsRoute
+  AccountSecurityRoute: typeof AccountSecurityRoute
+  AccountWishlistRoute: typeof AccountWishlistRoute
+  AccountIndexRoute: typeof AccountIndexRoute
+}
+
+const AccountRouteChildren: AccountRouteChildren = {
+  AccountAddressesRoute: AccountAddressesRoute,
+  AccountNotificationsRoute: AccountNotificationsRoute,
+  AccountOrdersRoute: AccountOrdersRoute,
+  AccountPaymentsRoute: AccountPaymentsRoute,
+  AccountProfileRoute: AccountProfileRoute,
+  AccountRecentlyViewedRoute: AccountRecentlyViewedRoute,
+  AccountReviewsRoute: AccountReviewsRoute,
+  AccountSecurityRoute: AccountSecurityRoute,
+  AccountWishlistRoute: AccountWishlistRoute,
+  AccountIndexRoute: AccountIndexRoute,
+}
+
+const AccountRouteWithChildren =
+  AccountRoute._addFileChildren(AccountRouteChildren)
 
 interface AdminRouteChildren {
   AdminBannersRoute: typeof AdminBannersRoute
@@ -1008,7 +1225,7 @@ const FarmerPortalRouteWithChildren = FarmerPortalRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  AccountRoute: AccountRoute,
+  AccountRoute: AccountRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
   BecomeASellerRoute: BecomeASellerRoute,
   CareersRoute: CareersRoute,

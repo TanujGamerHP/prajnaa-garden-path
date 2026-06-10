@@ -38,10 +38,10 @@ export function ProductCard({ product }: { product: Product }) {
           type="button"
           aria-label={saved ? `Remove ${product.name} from wishlist` : `Save ${product.name} to wishlist`}
           aria-pressed={saved}
-          onClick={(e) => {
+          onClick={async (e) => {
             e.preventDefault();
             e.stopPropagation();
-            const added = toggleWish({
+            const added = await toggleWish({
               slug: product.slug,
               name: product.name,
               image: product.image,
