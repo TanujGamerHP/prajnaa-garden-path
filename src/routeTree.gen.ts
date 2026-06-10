@@ -35,6 +35,7 @@ import { Route as FarmerPortalIndexRouteImport } from './routes/farmer-portal.in
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as ProductSlugRouteImport } from './routes/product.$slug'
+import { Route as OrdersIdRouteImport } from './routes/orders.$id'
 import { Route as FarmerSlugRouteImport } from './routes/farmer.$slug'
 import { Route as FarmerPortalProfileRouteImport } from './routes/farmer-portal.profile'
 import { Route as FarmerPortalProductsRouteImport } from './routes/farmer-portal.products'
@@ -185,6 +186,11 @@ const ProductSlugRoute = ProductSlugRouteImport.update({
   path: '/product/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OrdersIdRoute = OrdersIdRouteImport.update({
+  id: '/orders/$id',
+  path: '/orders/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FarmerSlugRoute = FarmerSlugRouteImport.update({
   id: '/farmer/$slug',
   path: '/farmer/$slug',
@@ -323,6 +329,7 @@ export interface FileRoutesByFullPath {
   '/farmer-portal/products': typeof FarmerPortalProductsRoute
   '/farmer-portal/profile': typeof FarmerPortalProfileRoute
   '/farmer/$slug': typeof FarmerSlugRoute
+  '/orders/$id': typeof OrdersIdRoute
   '/product/$slug': typeof ProductSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
@@ -368,6 +375,7 @@ export interface FileRoutesByTo {
   '/farmer-portal/products': typeof FarmerPortalProductsRoute
   '/farmer-portal/profile': typeof FarmerPortalProfileRoute
   '/farmer/$slug': typeof FarmerSlugRoute
+  '/orders/$id': typeof OrdersIdRoute
   '/product/$slug': typeof ProductSlugRoute
   '/admin': typeof AdminIndexRoute
   '/blog': typeof BlogIndexRoute
@@ -416,6 +424,7 @@ export interface FileRoutesById {
   '/farmer-portal/products': typeof FarmerPortalProductsRoute
   '/farmer-portal/profile': typeof FarmerPortalProfileRoute
   '/farmer/$slug': typeof FarmerSlugRoute
+  '/orders/$id': typeof OrdersIdRoute
   '/product/$slug': typeof ProductSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
@@ -465,6 +474,7 @@ export interface FileRouteTypes {
     | '/farmer-portal/products'
     | '/farmer-portal/profile'
     | '/farmer/$slug'
+    | '/orders/$id'
     | '/product/$slug'
     | '/admin/'
     | '/blog/'
@@ -510,6 +520,7 @@ export interface FileRouteTypes {
     | '/farmer-portal/products'
     | '/farmer-portal/profile'
     | '/farmer/$slug'
+    | '/orders/$id'
     | '/product/$slug'
     | '/admin'
     | '/blog'
@@ -557,6 +568,7 @@ export interface FileRouteTypes {
     | '/farmer-portal/products'
     | '/farmer-portal/profile'
     | '/farmer/$slug'
+    | '/orders/$id'
     | '/product/$slug'
     | '/admin/'
     | '/blog/'
@@ -591,6 +603,7 @@ export interface RootRouteChildren {
   BlogSlugRoute: typeof BlogSlugRoute
   CategorySlugRoute: typeof CategorySlugRoute
   FarmerSlugRoute: typeof FarmerSlugRoute
+  OrdersIdRoute: typeof OrdersIdRoute
   ProductSlugRoute: typeof ProductSlugRoute
   BlogIndexRoute: typeof BlogIndexRoute
 }
@@ -777,6 +790,13 @@ declare module '@tanstack/react-router' {
       path: '/product/$slug'
       fullPath: '/product/$slug'
       preLoaderRoute: typeof ProductSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orders/$id': {
+      id: '/orders/$id'
+      path: '/orders/$id'
+      fullPath: '/orders/$id'
+      preLoaderRoute: typeof OrdersIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/farmer/$slug': {
@@ -993,6 +1013,7 @@ const rootRouteChildren: RootRouteChildren = {
   BlogSlugRoute: BlogSlugRoute,
   CategorySlugRoute: CategorySlugRoute,
   FarmerSlugRoute: FarmerSlugRoute,
+  OrdersIdRoute: OrdersIdRoute,
   ProductSlugRoute: ProductSlugRoute,
   BlogIndexRoute: BlogIndexRoute,
 }

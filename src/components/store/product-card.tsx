@@ -1,13 +1,16 @@
 import { Link } from "@tanstack/react-router";
-import { Star } from "lucide-react";
+import { Heart, Star } from "lucide-react";
 import { toast } from "sonner";
 import type { Product } from "@/lib/mock/types";
 import { inr } from "@/lib/format";
 import { useCart } from "@/lib/cart-store";
+import { useWishlist } from "@/lib/wishlist-store";
 import { farmerBySlug } from "@/lib/mock/farmers";
 
 export function ProductCard({ product }: { product: Product }) {
   const add = useCart((s) => s.add);
+  const toggleWish = useWishlist((s) => s.toggle);
+  const saved = useWishlist((s) => s.items.some((i) => i.slug === product.slug));
   const farmer = farmerBySlug(product.farmerSlug);
   return (
     <div className="group flex h-full flex-col transition-transform duration-300 hover:-translate-y-1">
@@ -31,7 +34,28 @@ export function ProductCard({ product }: { product: Product }) {
             {product.badges[0]}
           </span>
         )}
+        <button
+          type="button"
+          aria-label={saved ? `Remove ${product.name} from wishlist` : `Save ${product.name} to wishlist`}
+          aria-pressed={saved}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const added = toggleWish({
+              slug: product.slug,
+              name: product.name,
+              image: product.image,
+              price: product.price,
+              weight: product.weight,
+            });
+            toast(added ? "Saved to wishlist" : "Removed from wishlist");
+          }}
+          className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-background/90 text-foreground/80 backdrop-blur transition-colors hover:text-primary"
+        >
+          <Heart className={`h-4 w-4 ${saved ? "fill-primary text-primary" : ""}`} />
+        </button>
       </Link>
+
       <div className="mt-4 flex flex-1 flex-col">
         {farmer && (
           <p className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
