@@ -22,15 +22,15 @@ export const Route = createFileRoute("/wishlist")({
 });
 
 function WishlistPage() {
-  const account = useWishlist((s) => s.accountId);
   const items = useWishlist((s) => s.items);
   const remove = useWishlist((s) => s.remove);
   const seed = useWishlist((s) => s.add);
+  const userId = useWishlist((s) => s.userId);
   const add = useCart((s) => s.add);
 
-  // First-visit seed so the demo isn't empty — only when there's nothing saved.
+  // First-visit seed for guests so the demo isn't empty.
   useEffect(() => {
-    if (items.length === 0) {
+    if (items.length === 0 && !userId) {
       const seeded = typeof window !== "undefined" && localStorage.getItem("prajnaa-wishlist-seeded");
       if (!seeded) {
         allProducts.slice(0, 4).forEach((p) =>
