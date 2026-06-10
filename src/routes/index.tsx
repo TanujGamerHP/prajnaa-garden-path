@@ -97,7 +97,7 @@ function Hero() {
                 { k: "9", v: "Categories" },
                 { k: "4.9", v: "Avg rating" },
               ].map((s, i) => (
-                <Reveal key={s.v} delay={i * 80}>
+                <Reveal key={s.v} delay={i * 80} inline>
                   <dt className="font-display text-2xl font-semibold">{s.k}</dt>
                   <dd className="font-subhead mt-1 text-xs uppercase tracking-[0.12em] text-muted-foreground">{s.v}</dd>
                 </Reveal>
