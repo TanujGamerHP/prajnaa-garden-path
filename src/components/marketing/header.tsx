@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { Search, ShoppingBag, User, Menu, X } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { useCart, cartTotals } from "@/lib/cart-store";
+import { useAuth } from "@/hooks/use-auth";
 
 const nav = [
   { to: "/shop", label: "Shop" },
@@ -15,6 +16,9 @@ export function MarketingHeader() {
   const [open, setOpen] = useState(false);
   const items = useCart((s) => s.items);
   const { count } = cartTotals(items);
+  const { user } = useAuth();
+  const accountHref = user ? "/account" : "/auth/login";
+
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur-md">
@@ -43,8 +47,8 @@ export function MarketingHeader() {
             <Search className="h-[18px] w-[18px]" />
           </Link>
           <Link
-            to="/auth/login"
-            aria-label="Account"
+            to={accountHref}
+            aria-label={user ? "Account" : "Sign in"}
             className="hidden h-10 w-10 items-center justify-center rounded-full text-foreground/70 transition-colors hover:bg-secondary hover:text-foreground sm:inline-flex"
           >
             <User className="h-[18px] w-[18px]" />
@@ -83,8 +87,8 @@ export function MarketingHeader() {
                 {n.label}
               </Link>
             ))}
-            <Link to="/auth/login" onClick={() => setOpen(false)} className="font-subhead py-3 text-[15px] text-foreground/85">
-              Sign in
+            <Link to={accountHref} onClick={() => setOpen(false)} className="font-subhead py-3 text-[15px] text-foreground/85">
+              {user ? "My account" : "Sign in"}
             </Link>
           </nav>
         </div>
