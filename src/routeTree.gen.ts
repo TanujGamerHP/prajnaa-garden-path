@@ -27,13 +27,13 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as CareersRouteImport } from './routes/careers'
-import { Route as BecomeASellerRouteImport } from './routes/become-a-seller'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as FarmerPortalIndexRouteImport } from './routes/farmer-portal.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
+import { Route as BecomeASellerIndexRouteImport } from './routes/become-a-seller.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AccountIndexRouteImport } from './routes/account.index'
 import { Route as ProductSlugRouteImport } from './routes/product.$slug'
@@ -158,11 +158,6 @@ const CareersRoute = CareersRouteImport.update({
   path: '/careers',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BecomeASellerRoute = BecomeASellerRouteImport.update({
-  id: '/become-a-seller',
-  path: '/become-a-seller',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -191,6 +186,11 @@ const FarmerPortalIndexRoute = FarmerPortalIndexRouteImport.update({
 const BlogIndexRoute = BlogIndexRouteImport.update({
   id: '/blog/',
   path: '/blog/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BecomeASellerIndexRoute = BecomeASellerIndexRouteImport.update({
+  id: '/become-a-seller/',
+  path: '/become-a-seller/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
@@ -364,7 +364,6 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/account': typeof AccountRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
-  '/become-a-seller': typeof BecomeASellerRouteWithChildren
   '/careers': typeof CareersRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
@@ -416,13 +415,13 @@ export interface FileRoutesByFullPath {
   '/product/$slug': typeof ProductSlugRoute
   '/account/': typeof AccountIndexRoute
   '/admin/': typeof AdminIndexRoute
+  '/become-a-seller/': typeof BecomeASellerIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/farmer-portal/': typeof FarmerPortalIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/become-a-seller': typeof BecomeASellerRouteWithChildren
   '/careers': typeof CareersRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
@@ -473,6 +472,7 @@ export interface FileRoutesByTo {
   '/product/$slug': typeof ProductSlugRoute
   '/account': typeof AccountIndexRoute
   '/admin': typeof AdminIndexRoute
+  '/become-a-seller': typeof BecomeASellerIndexRoute
   '/blog': typeof BlogIndexRoute
   '/farmer-portal': typeof FarmerPortalIndexRoute
 }
@@ -482,7 +482,6 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/account': typeof AccountRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
-  '/become-a-seller': typeof BecomeASellerRouteWithChildren
   '/careers': typeof CareersRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
@@ -534,6 +533,7 @@ export interface FileRoutesById {
   '/product/$slug': typeof ProductSlugRoute
   '/account/': typeof AccountIndexRoute
   '/admin/': typeof AdminIndexRoute
+  '/become-a-seller/': typeof BecomeASellerIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/farmer-portal/': typeof FarmerPortalIndexRoute
 }
@@ -544,7 +544,6 @@ export interface FileRouteTypes {
     | '/about'
     | '/account'
     | '/admin'
-    | '/become-a-seller'
     | '/careers'
     | '/cart'
     | '/checkout'
@@ -596,13 +595,13 @@ export interface FileRouteTypes {
     | '/product/$slug'
     | '/account/'
     | '/admin/'
+    | '/become-a-seller/'
     | '/blog/'
     | '/farmer-portal/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
-    | '/become-a-seller'
     | '/careers'
     | '/cart'
     | '/checkout'
@@ -653,6 +652,7 @@ export interface FileRouteTypes {
     | '/product/$slug'
     | '/account'
     | '/admin'
+    | '/become-a-seller'
     | '/blog'
     | '/farmer-portal'
   id:
@@ -661,7 +661,6 @@ export interface FileRouteTypes {
     | '/about'
     | '/account'
     | '/admin'
-    | '/become-a-seller'
     | '/careers'
     | '/cart'
     | '/checkout'
@@ -713,6 +712,7 @@ export interface FileRouteTypes {
     | '/product/$slug'
     | '/account/'
     | '/admin/'
+    | '/become-a-seller/'
     | '/blog/'
     | '/farmer-portal/'
   fileRoutesById: FileRoutesById
@@ -722,7 +722,6 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AccountRoute: typeof AccountRouteWithChildren
   AdminRoute: typeof AdminRouteWithChildren
-  BecomeASellerRoute: typeof BecomeASellerRouteWithChildren
   CareersRoute: typeof CareersRoute
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRoute
@@ -748,6 +747,7 @@ export interface RootRouteChildren {
   FarmerSlugRoute: typeof FarmerSlugRoute
   OrdersIdRoute: typeof OrdersIdRoute
   ProductSlugRoute: typeof ProductSlugRoute
+  BecomeASellerIndexRoute: typeof BecomeASellerIndexRoute
   BlogIndexRoute: typeof BlogIndexRoute
 }
 
@@ -879,13 +879,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CareersRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/become-a-seller': {
-      id: '/become-a-seller'
-      path: '/become-a-seller'
-      fullPath: '/become-a-seller'
-      preLoaderRoute: typeof BecomeASellerRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin': {
       id: '/admin'
       path: '/admin'
@@ -926,6 +919,13 @@ declare module '@tanstack/react-router' {
       path: '/blog'
       fullPath: '/blog/'
       preLoaderRoute: typeof BlogIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/become-a-seller/': {
+      id: '/become-a-seller/'
+      path: '/become-a-seller'
+      fullPath: '/become-a-seller/'
+      preLoaderRoute: typeof BecomeASellerIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/': {
@@ -1217,18 +1217,6 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
-interface BecomeASellerRouteChildren {
-  BecomeASellerRegisterRoute: typeof BecomeASellerRegisterRoute
-}
-
-const BecomeASellerRouteChildren: BecomeASellerRouteChildren = {
-  BecomeASellerRegisterRoute: BecomeASellerRegisterRoute,
-}
-
-const BecomeASellerRouteWithChildren = BecomeASellerRoute._addFileChildren(
-  BecomeASellerRouteChildren,
-)
-
 interface FarmerPortalRouteChildren {
   FarmerPortalDashboardRoute: typeof FarmerPortalDashboardRoute
   FarmerPortalEarningsRoute: typeof FarmerPortalEarningsRoute
@@ -1258,7 +1246,6 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AccountRoute: AccountRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
-  BecomeASellerRoute: BecomeASellerRouteWithChildren,
   CareersRoute: CareersRoute,
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRoute,
@@ -1284,8 +1271,19 @@ const rootRouteChildren: RootRouteChildren = {
   FarmerSlugRoute: FarmerSlugRoute,
   OrdersIdRoute: OrdersIdRoute,
   ProductSlugRoute: ProductSlugRoute,
+  BecomeASellerIndexRoute: BecomeASellerIndexRoute,
   BlogIndexRoute: BlogIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
