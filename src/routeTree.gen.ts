@@ -9,19 +9,30 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WishlistRouteImport } from './routes/wishlist'
+import { Route as TrackOrderRouteImport } from './routes/track-order'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as SustainabilityRouteImport } from './routes/sustainability'
 import { Route as ShopRouteImport } from './routes/shop'
+import { Route as ShippingRouteImport } from './routes/shipping'
+import { Route as ReturnsRouteImport } from './routes/returns'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as PressRouteImport } from './routes/press'
 import { Route as OrderConfirmationRouteImport } from './routes/order-confirmation'
 import { Route as FarmersRouteImport } from './routes/farmers'
 import { Route as FarmerPortalRouteImport } from './routes/farmer-portal'
+import { Route as FaqRouteImport } from './routes/faq'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as CartRouteImport } from './routes/cart'
+import { Route as CareersRouteImport } from './routes/careers'
 import { Route as BecomeASellerRouteImport } from './routes/become-a-seller'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as FarmerPortalIndexRouteImport } from './routes/farmer-portal.index'
+import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as ProductSlugRouteImport } from './routes/product.$slug'
 import { Route as FarmerSlugRouteImport } from './routes/farmer.$slug'
@@ -32,6 +43,7 @@ import { Route as FarmerPortalInventoryRouteImport } from './routes/farmer-porta
 import { Route as FarmerPortalEarningsRouteImport } from './routes/farmer-portal.earnings'
 import { Route as FarmerPortalDashboardRouteImport } from './routes/farmer-portal.dashboard'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
+import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AuthRegisterRouteImport } from './routes/auth.register'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as AdminVendorsRouteImport } from './routes/admin.vendors'
@@ -43,9 +55,49 @@ import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
 import { Route as AdminCouponsRouteImport } from './routes/admin.coupons'
 import { Route as AdminBannersRouteImport } from './routes/admin.banners'
 
+const WishlistRoute = WishlistRouteImport.update({
+  id: '/wishlist',
+  path: '/wishlist',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrackOrderRoute = TrackOrderRouteImport.update({
+  id: '/track-order',
+  path: '/track-order',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SustainabilityRoute = SustainabilityRouteImport.update({
+  id: '/sustainability',
+  path: '/sustainability',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ShopRoute = ShopRouteImport.update({
   id: '/shop',
   path: '/shop',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShippingRoute = ShippingRouteImport.update({
+  id: '/shipping',
+  path: '/shipping',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReturnsRoute = ReturnsRouteImport.update({
+  id: '/returns',
+  path: '/returns',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PressRoute = PressRouteImport.update({
+  id: '/press',
+  path: '/press',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OrderConfirmationRoute = OrderConfirmationRouteImport.update({
@@ -63,6 +115,11 @@ const FarmerPortalRoute = FarmerPortalRouteImport.update({
   path: '/farmer-portal',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
@@ -76,6 +133,11 @@ const CheckoutRoute = CheckoutRouteImport.update({
 const CartRoute = CartRouteImport.update({
   id: '/cart',
   path: '/cart',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CareersRoute = CareersRouteImport.update({
+  id: '/careers',
+  path: '/careers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BecomeASellerRoute = BecomeASellerRouteImport.update({
@@ -107,6 +169,11 @@ const FarmerPortalIndexRoute = FarmerPortalIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => FarmerPortalRoute,
+} as any)
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  id: '/blog/',
+  path: '/blog/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
@@ -156,6 +223,11 @@ const FarmerPortalDashboardRoute = FarmerPortalDashboardRouteImport.update({
 const CategorySlugRoute = CategorySlugRouteImport.update({
   id: '/category/$slug',
   path: '/category/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/blog/$slug',
+  path: '/blog/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRegisterRoute = AuthRegisterRouteImport.update({
@@ -215,13 +287,23 @@ export interface FileRoutesByFullPath {
   '/account': typeof AccountRoute
   '/admin': typeof AdminRouteWithChildren
   '/become-a-seller': typeof BecomeASellerRoute
+  '/careers': typeof CareersRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
+  '/faq': typeof FaqRoute
   '/farmer-portal': typeof FarmerPortalRouteWithChildren
   '/farmers': typeof FarmersRoute
   '/order-confirmation': typeof OrderConfirmationRoute
+  '/press': typeof PressRoute
+  '/privacy': typeof PrivacyRoute
+  '/returns': typeof ReturnsRoute
+  '/shipping': typeof ShippingRoute
   '/shop': typeof ShopRoute
+  '/sustainability': typeof SustainabilityRoute
+  '/terms': typeof TermsRoute
+  '/track-order': typeof TrackOrderRoute
+  '/wishlist': typeof WishlistRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/coupons': typeof AdminCouponsRoute
   '/admin/customers': typeof AdminCustomersRoute
@@ -232,6 +314,7 @@ export interface FileRoutesByFullPath {
   '/admin/vendors': typeof AdminVendorsRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/category/$slug': typeof CategorySlugRoute
   '/farmer-portal/dashboard': typeof FarmerPortalDashboardRoute
   '/farmer-portal/earnings': typeof FarmerPortalEarningsRoute
@@ -242,6 +325,7 @@ export interface FileRoutesByFullPath {
   '/farmer/$slug': typeof FarmerSlugRoute
   '/product/$slug': typeof ProductSlugRoute
   '/admin/': typeof AdminIndexRoute
+  '/blog/': typeof BlogIndexRoute
   '/farmer-portal/': typeof FarmerPortalIndexRoute
 }
 export interface FileRoutesByTo {
@@ -249,12 +333,22 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/account': typeof AccountRoute
   '/become-a-seller': typeof BecomeASellerRoute
+  '/careers': typeof CareersRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
+  '/faq': typeof FaqRoute
   '/farmers': typeof FarmersRoute
   '/order-confirmation': typeof OrderConfirmationRoute
+  '/press': typeof PressRoute
+  '/privacy': typeof PrivacyRoute
+  '/returns': typeof ReturnsRoute
+  '/shipping': typeof ShippingRoute
   '/shop': typeof ShopRoute
+  '/sustainability': typeof SustainabilityRoute
+  '/terms': typeof TermsRoute
+  '/track-order': typeof TrackOrderRoute
+  '/wishlist': typeof WishlistRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/coupons': typeof AdminCouponsRoute
   '/admin/customers': typeof AdminCustomersRoute
@@ -265,6 +359,7 @@ export interface FileRoutesByTo {
   '/admin/vendors': typeof AdminVendorsRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/category/$slug': typeof CategorySlugRoute
   '/farmer-portal/dashboard': typeof FarmerPortalDashboardRoute
   '/farmer-portal/earnings': typeof FarmerPortalEarningsRoute
@@ -275,6 +370,7 @@ export interface FileRoutesByTo {
   '/farmer/$slug': typeof FarmerSlugRoute
   '/product/$slug': typeof ProductSlugRoute
   '/admin': typeof AdminIndexRoute
+  '/blog': typeof BlogIndexRoute
   '/farmer-portal': typeof FarmerPortalIndexRoute
 }
 export interface FileRoutesById {
@@ -284,13 +380,23 @@ export interface FileRoutesById {
   '/account': typeof AccountRoute
   '/admin': typeof AdminRouteWithChildren
   '/become-a-seller': typeof BecomeASellerRoute
+  '/careers': typeof CareersRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
+  '/faq': typeof FaqRoute
   '/farmer-portal': typeof FarmerPortalRouteWithChildren
   '/farmers': typeof FarmersRoute
   '/order-confirmation': typeof OrderConfirmationRoute
+  '/press': typeof PressRoute
+  '/privacy': typeof PrivacyRoute
+  '/returns': typeof ReturnsRoute
+  '/shipping': typeof ShippingRoute
   '/shop': typeof ShopRoute
+  '/sustainability': typeof SustainabilityRoute
+  '/terms': typeof TermsRoute
+  '/track-order': typeof TrackOrderRoute
+  '/wishlist': typeof WishlistRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/coupons': typeof AdminCouponsRoute
   '/admin/customers': typeof AdminCustomersRoute
@@ -301,6 +407,7 @@ export interface FileRoutesById {
   '/admin/vendors': typeof AdminVendorsRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/category/$slug': typeof CategorySlugRoute
   '/farmer-portal/dashboard': typeof FarmerPortalDashboardRoute
   '/farmer-portal/earnings': typeof FarmerPortalEarningsRoute
@@ -311,6 +418,7 @@ export interface FileRoutesById {
   '/farmer/$slug': typeof FarmerSlugRoute
   '/product/$slug': typeof ProductSlugRoute
   '/admin/': typeof AdminIndexRoute
+  '/blog/': typeof BlogIndexRoute
   '/farmer-portal/': typeof FarmerPortalIndexRoute
 }
 export interface FileRouteTypes {
@@ -321,13 +429,23 @@ export interface FileRouteTypes {
     | '/account'
     | '/admin'
     | '/become-a-seller'
+    | '/careers'
     | '/cart'
     | '/checkout'
     | '/contact'
+    | '/faq'
     | '/farmer-portal'
     | '/farmers'
     | '/order-confirmation'
+    | '/press'
+    | '/privacy'
+    | '/returns'
+    | '/shipping'
     | '/shop'
+    | '/sustainability'
+    | '/terms'
+    | '/track-order'
+    | '/wishlist'
     | '/admin/banners'
     | '/admin/coupons'
     | '/admin/customers'
@@ -338,6 +456,7 @@ export interface FileRouteTypes {
     | '/admin/vendors'
     | '/auth/login'
     | '/auth/register'
+    | '/blog/$slug'
     | '/category/$slug'
     | '/farmer-portal/dashboard'
     | '/farmer-portal/earnings'
@@ -348,6 +467,7 @@ export interface FileRouteTypes {
     | '/farmer/$slug'
     | '/product/$slug'
     | '/admin/'
+    | '/blog/'
     | '/farmer-portal/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -355,12 +475,22 @@ export interface FileRouteTypes {
     | '/about'
     | '/account'
     | '/become-a-seller'
+    | '/careers'
     | '/cart'
     | '/checkout'
     | '/contact'
+    | '/faq'
     | '/farmers'
     | '/order-confirmation'
+    | '/press'
+    | '/privacy'
+    | '/returns'
+    | '/shipping'
     | '/shop'
+    | '/sustainability'
+    | '/terms'
+    | '/track-order'
+    | '/wishlist'
     | '/admin/banners'
     | '/admin/coupons'
     | '/admin/customers'
@@ -371,6 +501,7 @@ export interface FileRouteTypes {
     | '/admin/vendors'
     | '/auth/login'
     | '/auth/register'
+    | '/blog/$slug'
     | '/category/$slug'
     | '/farmer-portal/dashboard'
     | '/farmer-portal/earnings'
@@ -381,6 +512,7 @@ export interface FileRouteTypes {
     | '/farmer/$slug'
     | '/product/$slug'
     | '/admin'
+    | '/blog'
     | '/farmer-portal'
   id:
     | '__root__'
@@ -389,13 +521,23 @@ export interface FileRouteTypes {
     | '/account'
     | '/admin'
     | '/become-a-seller'
+    | '/careers'
     | '/cart'
     | '/checkout'
     | '/contact'
+    | '/faq'
     | '/farmer-portal'
     | '/farmers'
     | '/order-confirmation'
+    | '/press'
+    | '/privacy'
+    | '/returns'
+    | '/shipping'
     | '/shop'
+    | '/sustainability'
+    | '/terms'
+    | '/track-order'
+    | '/wishlist'
     | '/admin/banners'
     | '/admin/coupons'
     | '/admin/customers'
@@ -406,6 +548,7 @@ export interface FileRouteTypes {
     | '/admin/vendors'
     | '/auth/login'
     | '/auth/register'
+    | '/blog/$slug'
     | '/category/$slug'
     | '/farmer-portal/dashboard'
     | '/farmer-portal/earnings'
@@ -416,6 +559,7 @@ export interface FileRouteTypes {
     | '/farmer/$slug'
     | '/product/$slug'
     | '/admin/'
+    | '/blog/'
     | '/farmer-portal/'
   fileRoutesById: FileRoutesById
 }
@@ -425,27 +569,95 @@ export interface RootRouteChildren {
   AccountRoute: typeof AccountRoute
   AdminRoute: typeof AdminRouteWithChildren
   BecomeASellerRoute: typeof BecomeASellerRoute
+  CareersRoute: typeof CareersRoute
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRoute
   ContactRoute: typeof ContactRoute
+  FaqRoute: typeof FaqRoute
   FarmerPortalRoute: typeof FarmerPortalRouteWithChildren
   FarmersRoute: typeof FarmersRoute
   OrderConfirmationRoute: typeof OrderConfirmationRoute
+  PressRoute: typeof PressRoute
+  PrivacyRoute: typeof PrivacyRoute
+  ReturnsRoute: typeof ReturnsRoute
+  ShippingRoute: typeof ShippingRoute
   ShopRoute: typeof ShopRoute
+  SustainabilityRoute: typeof SustainabilityRoute
+  TermsRoute: typeof TermsRoute
+  TrackOrderRoute: typeof TrackOrderRoute
+  WishlistRoute: typeof WishlistRoute
   AuthLoginRoute: typeof AuthLoginRoute
   AuthRegisterRoute: typeof AuthRegisterRoute
+  BlogSlugRoute: typeof BlogSlugRoute
   CategorySlugRoute: typeof CategorySlugRoute
   FarmerSlugRoute: typeof FarmerSlugRoute
   ProductSlugRoute: typeof ProductSlugRoute
+  BlogIndexRoute: typeof BlogIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/wishlist': {
+      id: '/wishlist'
+      path: '/wishlist'
+      fullPath: '/wishlist'
+      preLoaderRoute: typeof WishlistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/track-order': {
+      id: '/track-order'
+      path: '/track-order'
+      fullPath: '/track-order'
+      preLoaderRoute: typeof TrackOrderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sustainability': {
+      id: '/sustainability'
+      path: '/sustainability'
+      fullPath: '/sustainability'
+      preLoaderRoute: typeof SustainabilityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/shop': {
       id: '/shop'
       path: '/shop'
       fullPath: '/shop'
       preLoaderRoute: typeof ShopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/shipping': {
+      id: '/shipping'
+      path: '/shipping'
+      fullPath: '/shipping'
+      preLoaderRoute: typeof ShippingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/returns': {
+      id: '/returns'
+      path: '/returns'
+      fullPath: '/returns'
+      preLoaderRoute: typeof ReturnsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/press': {
+      id: '/press'
+      path: '/press'
+      fullPath: '/press'
+      preLoaderRoute: typeof PressRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/order-confirmation': {
@@ -469,6 +681,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FarmerPortalRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/contact': {
       id: '/contact'
       path: '/contact'
@@ -488,6 +707,13 @@ declare module '@tanstack/react-router' {
       path: '/cart'
       fullPath: '/cart'
       preLoaderRoute: typeof CartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/careers': {
+      id: '/careers'
+      path: '/careers'
+      fullPath: '/careers'
+      preLoaderRoute: typeof CareersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/become-a-seller': {
@@ -531,6 +757,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/farmer-portal/'
       preLoaderRoute: typeof FarmerPortalIndexRouteImport
       parentRoute: typeof FarmerPortalRoute
+    }
+    '/blog/': {
+      id: '/blog/'
+      path: '/blog'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/admin/': {
       id: '/admin/'
@@ -600,6 +833,13 @@ declare module '@tanstack/react-router' {
       path: '/category/$slug'
       fullPath: '/category/$slug'
       preLoaderRoute: typeof CategorySlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/blog/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/register': {
@@ -731,18 +971,30 @@ const rootRouteChildren: RootRouteChildren = {
   AccountRoute: AccountRoute,
   AdminRoute: AdminRouteWithChildren,
   BecomeASellerRoute: BecomeASellerRoute,
+  CareersRoute: CareersRoute,
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRoute,
   ContactRoute: ContactRoute,
+  FaqRoute: FaqRoute,
   FarmerPortalRoute: FarmerPortalRouteWithChildren,
   FarmersRoute: FarmersRoute,
   OrderConfirmationRoute: OrderConfirmationRoute,
+  PressRoute: PressRoute,
+  PrivacyRoute: PrivacyRoute,
+  ReturnsRoute: ReturnsRoute,
+  ShippingRoute: ShippingRoute,
   ShopRoute: ShopRoute,
+  SustainabilityRoute: SustainabilityRoute,
+  TermsRoute: TermsRoute,
+  TrackOrderRoute: TrackOrderRoute,
+  WishlistRoute: WishlistRoute,
   AuthLoginRoute: AuthLoginRoute,
   AuthRegisterRoute: AuthRegisterRoute,
+  BlogSlugRoute: BlogSlugRoute,
   CategorySlugRoute: CategorySlugRoute,
   FarmerSlugRoute: FarmerSlugRoute,
   ProductSlugRoute: ProductSlugRoute,
+  BlogIndexRoute: BlogIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
