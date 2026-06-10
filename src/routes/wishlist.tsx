@@ -6,8 +6,9 @@ import { Reveal } from "@/components/reveal";
 import { allProducts } from "@/lib/mock/products";
 import { inr } from "@/lib/format";
 import { useCart } from "@/lib/cart-store";
+import { useWishlist } from "@/lib/wishlist-store";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useEffect, useMemo } from "react";
 
 export const Route = createFileRoute("/wishlist")({
   head: () => ({
@@ -21,20 +22,44 @@ export const Route = createFileRoute("/wishlist")({
 });
 
 function WishlistPage() {
-  // Demo wishlist: first 4 products
-  const [items, setItems] = useState(allProducts.slice(0, 4));
+  const account = useWishlist((s) => s.accountId);
+  const items = useWishlist((s) => s.items);
+  const remove = useWishlist((s) => s.remove);
+  const seed = useWishlist((s) => s.add);
   const add = useCart((s) => s.add);
+
+  // First-visit seed so the demo isn't empty — only when there's nothing saved.
+  useEffect(() => {
+    if (items.length === 0) {
+      const seeded = typeof window !== "undefined" && localStorage.getItem("prajnaa-wishlist-seeded");
+      if (!seeded) {
+        allProducts.slice(0, 4).forEach((p) =>
+          seed({ slug: p.slug, name: p.name, image: p.image, price: p.price, weight: p.weight }),
+        );
+        try { localStorage.setItem("prajnaa-wishlist-seeded", "1"); } catch {}
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const products = useMemo(
+    () =>
+      items
+        .map((w) => ({ w, p: allProducts.find((p) => p.slug === w.slug) }))
+        .filter((x): x is { w: typeof items[number]; p: NonNullable<typeof x.p> } => !!x.p),
+    [items],
+  );
 
   return (
     <MarketingLayout>
       <PageHero
         eyebrow="Wishlist"
         title={<>Saved for <span className="text-primary">later.</span></>}
-        subtitle="Products you've heart-marked. Move them to your cart when you're ready."
+        subtitle={`Synced to ${account}. Your saved products stay with you across sessions and devices.`}
       />
 
       <section className="container-prj py-20">
-        {items.length === 0 ? (
+        {products.length === 0 ? (
           <Reveal>
             <div className="mx-auto max-w-md rounded-3xl border border-border bg-background p-12 text-center">
               <Heart className="mx-auto h-8 w-8 text-muted-foreground" />
@@ -47,7 +72,7 @@ function WishlistPage() {
           </Reveal>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {items.map((p, i) => (
+            {products.map(({ p }, i) => (
               <Reveal key={p.slug} delay={(i % 4) * 80}>
                 <div className="group flex h-full flex-col rounded-2xl border border-border bg-background p-3 transition-shadow hover:shadow-[0_20px_50px_-20px_oklch(0.34_0.06_156_/_0.25)]">
                   <Link to="/product/$slug" params={{ slug: p.slug }} className="relative block overflow-hidden rounded-xl bg-secondary">
@@ -63,7 +88,7 @@ function WishlistPage() {
                       <div className="flex items-center gap-1">
                         <button
                           aria-label={`Remove ${p.name} from wishlist`}
-                          onClick={() => { setItems((s) => s.filter((x) => x.slug !== p.slug)); toast("Removed from wishlist"); }}
+                          onClick={() => { remove(p.slug); toast("Removed from wishlist"); }}
                           className="grid h-9 w-9 place-items-center rounded-full border border-border text-muted-foreground transition-colors hover:bg-secondary"
                         >
                           <Trash2 className="h-4 w-4" />
