@@ -1,0 +1,107 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowRight } from "lucide-react";
+import { toast } from "sonner";
+import { MarketingLayout } from "@/components/marketing/layout";
+
+export const Route = createFileRoute("/become-a-seller")({
+  head: () => ({
+    meta: [
+      { title: "Become a seller — Prajnaa Farm" },
+      { name: "description", content: "Sell your farm produce directly to families across India. Zero listing fees, monthly settlements." },
+      { property: "og:title", content: "Become a seller — Prajnaa Farm" },
+      { property: "og:description", content: "Sell your farm produce directly to families across India." },
+      { property: "og:url", content: "/become-a-seller" },
+    ],
+    links: [{ rel: "canonical", href: "/become-a-seller" }],
+  }),
+  component: BecomeSellerPage,
+});
+
+function BecomeSellerPage() {
+  return (
+    <MarketingLayout>
+      <section className="container-prj pt-14 md:pt-20">
+        <div className="grid items-start gap-14 md:grid-cols-2">
+          <div>
+            <p className="font-subhead text-xs uppercase tracking-[0.18em] text-primary">For farmers</p>
+            <h1 className="font-display mt-3 text-5xl font-semibold leading-[1.02] md:text-6xl">
+              Your soil. Our&nbsp;storefront.
+            </h1>
+            <p className="mt-5 max-w-md text-muted-foreground">
+              Reach customers across India without the supermarket cut. We handle the storefront, payments, and logistics — you focus on growing.
+            </p>
+            <ul className="mt-8 space-y-3 text-sm">
+              {[
+                "Zero listing fees — keep more of every rupee",
+                "Monthly settlements between the 7th–10th",
+                "Pan-India logistics partners",
+                "A dedicated story page that markets you",
+                "Direct dashboard for orders, stock, and earnings",
+              ].map((b) => (
+                <li key={b} className="font-subhead flex items-start gap-3">
+                  <span className="mt-1 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
+                    <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12l5 5L20 7" /></svg>
+                  </span>
+                  {b}
+                </li>
+              ))}
+            </ul>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link to="/farmer-portal/dashboard" className="font-subhead inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:opacity-90">
+                See farmer portal <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link to="/farmers" className="font-subhead inline-flex items-center gap-2 rounded-full border border-border bg-background px-5 py-2.5 text-sm font-medium hover:bg-secondary">
+                Meet our farmers
+              </Link>
+            </div>
+          </div>
+          <form
+            onSubmit={(e) => { e.preventDefault(); toast.success("Application received. We'll be in touch within 48 hours."); }}
+            className="rounded-3xl border border-border bg-secondary/40 p-6 md:p-8"
+          >
+            <h2 className="font-display text-2xl font-semibold">Apply to sell</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Tell us a little about your farm.</p>
+            <div className="mt-6 space-y-3">
+              <Field label="Your name" required />
+              <Field label="Phone" type="tel" required />
+              <Field label="Farm location (village, state)" required />
+              <Field label="Years of farming" type="number" />
+              <Field label="What do you grow?" placeholder="e.g. turmeric, millet, mango" />
+              <label className="block">
+                <span className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Tell us your story</span>
+                <textarea rows={4} className="font-subhead mt-1.5 w-full rounded-xl border border-border bg-background p-3.5 text-sm outline-none focus:border-primary" />
+              </label>
+              <button className="font-subhead mt-3 h-12 w-full rounded-full bg-primary text-sm font-medium text-primary-foreground hover:opacity-90">Submit application</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section className="container-prj mt-24">
+        <h2 className="font-display text-3xl font-semibold">How it works</h2>
+        <ol className="mt-8 grid gap-5 md:grid-cols-3">
+          {[
+            ["01", "Apply", "Tell us about your farm. We review within 48 hours."],
+            ["02", "Onboard", "We help you photograph products and set up your story page."],
+            ["03", "Sell", "Manage everything from your dashboard. We pay you monthly."],
+          ].map(([n, t, d]) => (
+            <li key={n} className="rounded-2xl border border-border bg-background p-6">
+              <p className="font-display text-3xl text-primary">{n}</p>
+              <h3 className="font-display mt-3 text-lg font-medium">{t}</h3>
+              <p className="mt-1.5 text-sm text-muted-foreground">{d}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+    </MarketingLayout>
+  );
+}
+
+function Field({ label, ...rest }: React.InputHTMLAttributes<HTMLInputElement> & { label: string }) {
+  return (
+    <label className="block">
+      <span className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{label}</span>
+      <input {...rest} className="font-subhead mt-1.5 h-11 w-full rounded-xl border border-border bg-background px-3.5 text-sm outline-none focus:border-primary" />
+    </label>
+  );
+}
