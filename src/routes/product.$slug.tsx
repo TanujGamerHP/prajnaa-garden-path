@@ -94,7 +94,7 @@ function ProductPage() {
             <p className="mt-6 max-w-prose text-[15px] leading-relaxed text-foreground/80">{product.description}</p>
 
             <div className="mt-6 flex flex-wrap gap-2">
-              {product.badges?.map((b) => (
+              {product.badges?.map((b: string) => (
                 <span key={b} className="font-subhead rounded-full bg-secondary px-3 py-1 text-[11px] uppercase tracking-[0.12em] text-foreground/75">
                   {b}
                 </span>
@@ -169,7 +169,7 @@ function ProductPage() {
           <section className="mt-20">
             <h2 className="font-display text-2xl font-semibold">You may also like</h2>
             <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {related.map((p) => <ProductCard key={p.slug} product={p} />)}
+              {related.map((p: typeof related[number]) => <ProductCard key={p.slug} product={p} />)}
             </div>
           </section>
         )}

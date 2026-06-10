@@ -68,7 +68,7 @@ function FarmerPage() {
       <section className="container-prj mt-20">
         <h2 className="font-display text-2xl font-semibold">Upcoming harvests</h2>
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {farmer.upcomingHarvests.map((h) => (
+          {farmer.upcomingHarvests.map((h: string) => (
             <div key={h} className="font-subhead rounded-2xl border border-dashed border-border bg-secondary/40 p-5 text-sm">
               {h}
             </div>
@@ -82,7 +82,7 @@ function FarmerPage() {
           <p className="mt-4 text-muted-foreground">No active listings right now. Check back after the next harvest.</p>
         ) : (
           <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {products.map((p) => <ProductCard key={p.slug} product={p} />)}
+            {products.map((p: typeof products[number]) => <ProductCard key={p.slug} product={p} />)}
           </div>
         )}
       </section>
