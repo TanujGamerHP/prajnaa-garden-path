@@ -55,7 +55,7 @@ function WishlistPage() {
       <PageHero
         eyebrow="Wishlist"
         title={<>Saved for <span className="text-primary">later.</span></>}
-        subtitle={`Synced to ${account}. Your saved products stay with you across sessions and devices.`}
+        subtitle={userId ? "Synced to your account. Your saved products stay with you across sessions and devices." : "Sign in to sync your saved products across devices."}
       />
 
       <section className="container-prj py-20">
