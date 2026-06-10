@@ -11,8 +11,12 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as TrackOrderRouteImport } from './routes/track-order'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SustainabilityRouteImport } from './routes/sustainability'
 import { Route as ShopRouteImport } from './routes/shop'
+import { Route as ShippingRouteImport } from './routes/shipping'
+import { Route as ReturnsRouteImport } from './routes/returns'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PressRouteImport } from './routes/press'
 import { Route as OrderConfirmationRouteImport } from './routes/order-confirmation'
 import { Route as FarmersRouteImport } from './routes/farmers'
@@ -61,6 +65,11 @@ const TrackOrderRoute = TrackOrderRouteImport.update({
   path: '/track-order',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SustainabilityRoute = SustainabilityRouteImport.update({
   id: '/sustainability',
   path: '/sustainability',
@@ -69,6 +78,21 @@ const SustainabilityRoute = SustainabilityRouteImport.update({
 const ShopRoute = ShopRouteImport.update({
   id: '/shop',
   path: '/shop',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShippingRoute = ShippingRouteImport.update({
+  id: '/shipping',
+  path: '/shipping',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReturnsRoute = ReturnsRouteImport.update({
+  id: '/returns',
+  path: '/returns',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PressRoute = PressRouteImport.update({
@@ -272,8 +296,12 @@ export interface FileRoutesByFullPath {
   '/farmers': typeof FarmersRoute
   '/order-confirmation': typeof OrderConfirmationRoute
   '/press': typeof PressRoute
+  '/privacy': typeof PrivacyRoute
+  '/returns': typeof ReturnsRoute
+  '/shipping': typeof ShippingRoute
   '/shop': typeof ShopRoute
   '/sustainability': typeof SustainabilityRoute
+  '/terms': typeof TermsRoute
   '/track-order': typeof TrackOrderRoute
   '/wishlist': typeof WishlistRoute
   '/admin/banners': typeof AdminBannersRoute
@@ -313,8 +341,12 @@ export interface FileRoutesByTo {
   '/farmers': typeof FarmersRoute
   '/order-confirmation': typeof OrderConfirmationRoute
   '/press': typeof PressRoute
+  '/privacy': typeof PrivacyRoute
+  '/returns': typeof ReturnsRoute
+  '/shipping': typeof ShippingRoute
   '/shop': typeof ShopRoute
   '/sustainability': typeof SustainabilityRoute
+  '/terms': typeof TermsRoute
   '/track-order': typeof TrackOrderRoute
   '/wishlist': typeof WishlistRoute
   '/admin/banners': typeof AdminBannersRoute
@@ -357,8 +389,12 @@ export interface FileRoutesById {
   '/farmers': typeof FarmersRoute
   '/order-confirmation': typeof OrderConfirmationRoute
   '/press': typeof PressRoute
+  '/privacy': typeof PrivacyRoute
+  '/returns': typeof ReturnsRoute
+  '/shipping': typeof ShippingRoute
   '/shop': typeof ShopRoute
   '/sustainability': typeof SustainabilityRoute
+  '/terms': typeof TermsRoute
   '/track-order': typeof TrackOrderRoute
   '/wishlist': typeof WishlistRoute
   '/admin/banners': typeof AdminBannersRoute
@@ -402,8 +438,12 @@ export interface FileRouteTypes {
     | '/farmers'
     | '/order-confirmation'
     | '/press'
+    | '/privacy'
+    | '/returns'
+    | '/shipping'
     | '/shop'
     | '/sustainability'
+    | '/terms'
     | '/track-order'
     | '/wishlist'
     | '/admin/banners'
@@ -443,8 +483,12 @@ export interface FileRouteTypes {
     | '/farmers'
     | '/order-confirmation'
     | '/press'
+    | '/privacy'
+    | '/returns'
+    | '/shipping'
     | '/shop'
     | '/sustainability'
+    | '/terms'
     | '/track-order'
     | '/wishlist'
     | '/admin/banners'
@@ -486,8 +530,12 @@ export interface FileRouteTypes {
     | '/farmers'
     | '/order-confirmation'
     | '/press'
+    | '/privacy'
+    | '/returns'
+    | '/shipping'
     | '/shop'
     | '/sustainability'
+    | '/terms'
     | '/track-order'
     | '/wishlist'
     | '/admin/banners'
@@ -530,8 +578,12 @@ export interface RootRouteChildren {
   FarmersRoute: typeof FarmersRoute
   OrderConfirmationRoute: typeof OrderConfirmationRoute
   PressRoute: typeof PressRoute
+  PrivacyRoute: typeof PrivacyRoute
+  ReturnsRoute: typeof ReturnsRoute
+  ShippingRoute: typeof ShippingRoute
   ShopRoute: typeof ShopRoute
   SustainabilityRoute: typeof SustainabilityRoute
+  TermsRoute: typeof TermsRoute
   TrackOrderRoute: typeof TrackOrderRoute
   WishlistRoute: typeof WishlistRoute
   AuthLoginRoute: typeof AuthLoginRoute
@@ -559,6 +611,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TrackOrderRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sustainability': {
       id: '/sustainability'
       path: '/sustainability'
@@ -571,6 +630,27 @@ declare module '@tanstack/react-router' {
       path: '/shop'
       fullPath: '/shop'
       preLoaderRoute: typeof ShopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/shipping': {
+      id: '/shipping'
+      path: '/shipping'
+      fullPath: '/shipping'
+      preLoaderRoute: typeof ShippingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/returns': {
+      id: '/returns'
+      path: '/returns'
+      fullPath: '/returns'
+      preLoaderRoute: typeof ReturnsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/press': {
@@ -900,8 +980,12 @@ const rootRouteChildren: RootRouteChildren = {
   FarmersRoute: FarmersRoute,
   OrderConfirmationRoute: OrderConfirmationRoute,
   PressRoute: PressRoute,
+  PrivacyRoute: PrivacyRoute,
+  ReturnsRoute: ReturnsRoute,
+  ShippingRoute: ShippingRoute,
   ShopRoute: ShopRoute,
   SustainabilityRoute: SustainabilityRoute,
+  TermsRoute: TermsRoute,
   TrackOrderRoute: TrackOrderRoute,
   WishlistRoute: WishlistRoute,
   AuthLoginRoute: AuthLoginRoute,
@@ -915,3 +999,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
