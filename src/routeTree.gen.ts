@@ -13,6 +13,7 @@ import { Route as ShopRouteImport } from './routes/shop'
 import { Route as OrderConfirmationRouteImport } from './routes/order-confirmation'
 import { Route as FarmersRouteImport } from './routes/farmers'
 import { Route as FarmerPortalRouteImport } from './routes/farmer-portal'
+import { Route as FaqRouteImport } from './routes/faq'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as CartRouteImport } from './routes/cart'
@@ -61,6 +62,11 @@ const FarmersRoute = FarmersRouteImport.update({
 const FarmerPortalRoute = FarmerPortalRouteImport.update({
   id: '/farmer-portal',
   path: '/farmer-portal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -218,6 +224,7 @@ export interface FileRoutesByFullPath {
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
+  '/faq': typeof FaqRoute
   '/farmer-portal': typeof FarmerPortalRouteWithChildren
   '/farmers': typeof FarmersRoute
   '/order-confirmation': typeof OrderConfirmationRoute
@@ -252,6 +259,7 @@ export interface FileRoutesByTo {
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
+  '/faq': typeof FaqRoute
   '/farmers': typeof FarmersRoute
   '/order-confirmation': typeof OrderConfirmationRoute
   '/shop': typeof ShopRoute
@@ -287,6 +295,7 @@ export interface FileRoutesById {
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
+  '/faq': typeof FaqRoute
   '/farmer-portal': typeof FarmerPortalRouteWithChildren
   '/farmers': typeof FarmersRoute
   '/order-confirmation': typeof OrderConfirmationRoute
@@ -324,6 +333,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/checkout'
     | '/contact'
+    | '/faq'
     | '/farmer-portal'
     | '/farmers'
     | '/order-confirmation'
@@ -358,6 +368,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/checkout'
     | '/contact'
+    | '/faq'
     | '/farmers'
     | '/order-confirmation'
     | '/shop'
@@ -392,6 +403,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/checkout'
     | '/contact'
+    | '/faq'
     | '/farmer-portal'
     | '/farmers'
     | '/order-confirmation'
@@ -428,6 +440,7 @@ export interface RootRouteChildren {
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRoute
   ContactRoute: typeof ContactRoute
+  FaqRoute: typeof FaqRoute
   FarmerPortalRoute: typeof FarmerPortalRouteWithChildren
   FarmersRoute: typeof FarmersRoute
   OrderConfirmationRoute: typeof OrderConfirmationRoute
@@ -467,6 +480,13 @@ declare module '@tanstack/react-router' {
       path: '/farmer-portal'
       fullPath: '/farmer-portal'
       preLoaderRoute: typeof FarmerPortalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -734,6 +754,7 @@ const rootRouteChildren: RootRouteChildren = {
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRoute,
   ContactRoute: ContactRoute,
+  FaqRoute: FaqRoute,
   FarmerPortalRoute: FarmerPortalRouteWithChildren,
   FarmersRoute: FarmersRoute,
   OrderConfirmationRoute: OrderConfirmationRoute,
