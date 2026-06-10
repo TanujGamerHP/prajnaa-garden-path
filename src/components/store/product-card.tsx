@@ -1,13 +1,16 @@
 import { Link } from "@tanstack/react-router";
-import { Star } from "lucide-react";
+import { Heart, Star } from "lucide-react";
 import { toast } from "sonner";
 import type { Product } from "@/lib/mock/types";
 import { inr } from "@/lib/format";
 import { useCart } from "@/lib/cart-store";
+import { useWishlist } from "@/lib/wishlist-store";
 import { farmerBySlug } from "@/lib/mock/farmers";
 
 export function ProductCard({ product }: { product: Product }) {
   const add = useCart((s) => s.add);
+  const toggleWish = useWishlist((s) => s.toggle);
+  const saved = useWishlist((s) => s.items.some((i) => i.slug === product.slug));
   const farmer = farmerBySlug(product.farmerSlug);
   return (
     <div className="group flex h-full flex-col transition-transform duration-300 hover:-translate-y-1">
