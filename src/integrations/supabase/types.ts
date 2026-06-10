@@ -116,6 +116,13 @@ export type Database = {
             referencedRelation: "farmer_profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "farmer_documents_farmer_id_fkey"
+            columns: ["farmer_id"]
+            isOneToOne: false
+            referencedRelation: "my_farmer_profile"
+            referencedColumns: ["id"]
+          },
         ]
       }
       farmer_payouts: {
@@ -167,6 +174,13 @@ export type Database = {
             columns: ["farmer_id"]
             isOneToOne: false
             referencedRelation: "farmer_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "farmer_payouts_farmer_id_fkey"
+            columns: ["farmer_id"]
+            isOneToOne: false
+            referencedRelation: "my_farmer_profile"
             referencedColumns: ["id"]
           },
         ]
@@ -235,6 +249,13 @@ export type Database = {
             columns: ["farmer_id"]
             isOneToOne: false
             referencedRelation: "farmer_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "farmer_products_farmer_id_fkey"
+            columns: ["farmer_id"]
+            isOneToOne: false
+            referencedRelation: "my_farmer_profile"
             referencedColumns: ["id"]
           },
         ]
@@ -556,7 +577,108 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      my_farmer_profile: {
+        Row: {
+          aadhaar_last4: string | null
+          approved_at: string | null
+          bank_account_name: string | null
+          bank_account_number: string | null
+          bank_ifsc: string | null
+          bank_name: string | null
+          cover_image_url: string | null
+          created_at: string | null
+          crops: string[] | null
+          district: string | null
+          email: string | null
+          farm_name: string | null
+          farm_size_acres: number | null
+          farming_method: string | null
+          full_name: string | null
+          headline: string | null
+          id: string | null
+          pan_number: string | null
+          phone: string | null
+          pincode: string | null
+          portrait_url: string | null
+          rejection_reason: string | null
+          slug: string | null
+          state: string | null
+          status: Database["public"]["Enums"]["farmer_status"] | null
+          story: string | null
+          updated_at: string | null
+          upi_id: string | null
+          user_id: string | null
+          village: string | null
+          years_farming: number | null
+        }
+        Insert: {
+          aadhaar_last4?: string | null
+          approved_at?: string | null
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_ifsc?: string | null
+          bank_name?: string | null
+          cover_image_url?: string | null
+          created_at?: string | null
+          crops?: string[] | null
+          district?: string | null
+          email?: string | null
+          farm_name?: string | null
+          farm_size_acres?: number | null
+          farming_method?: string | null
+          full_name?: string | null
+          headline?: string | null
+          id?: string | null
+          pan_number?: string | null
+          phone?: string | null
+          pincode?: string | null
+          portrait_url?: string | null
+          rejection_reason?: string | null
+          slug?: string | null
+          state?: string | null
+          status?: Database["public"]["Enums"]["farmer_status"] | null
+          story?: string | null
+          updated_at?: string | null
+          upi_id?: string | null
+          user_id?: string | null
+          village?: string | null
+          years_farming?: number | null
+        }
+        Update: {
+          aadhaar_last4?: string | null
+          approved_at?: string | null
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_ifsc?: string | null
+          bank_name?: string | null
+          cover_image_url?: string | null
+          created_at?: string | null
+          crops?: string[] | null
+          district?: string | null
+          email?: string | null
+          farm_name?: string | null
+          farm_size_acres?: number | null
+          farming_method?: string | null
+          full_name?: string | null
+          headline?: string | null
+          id?: string | null
+          pan_number?: string | null
+          phone?: string | null
+          pincode?: string | null
+          portrait_url?: string | null
+          rejection_reason?: string | null
+          slug?: string | null
+          state?: string | null
+          status?: Database["public"]["Enums"]["farmer_status"] | null
+          story?: string | null
+          updated_at?: string | null
+          upi_id?: string | null
+          user_id?: string | null
+          village?: string | null
+          years_farming?: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       claim_first_admin: { Args: never; Returns: boolean }
