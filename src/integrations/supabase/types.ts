@@ -559,6 +559,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_first_admin: { Args: never; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -566,6 +567,16 @@ export type Database = {
         }
         Returns: boolean
       }
+      list_admins: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          user_id: string
+        }[]
+      }
+      promote_user_to_admin: { Args: { target_email: string }; Returns: string }
+      revoke_admin: { Args: { target_user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "customer" | "farmer" | "admin"
