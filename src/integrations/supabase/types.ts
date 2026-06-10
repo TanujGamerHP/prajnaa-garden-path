@@ -14,6 +14,159 @@ export type Database = {
   }
   public: {
     Tables: {
+      addresses: {
+        Row: {
+          city: string
+          country: string
+          created_at: string
+          full_name: string
+          id: string
+          is_default: boolean
+          label: string
+          line1: string
+          line2: string | null
+          phone: string | null
+          postal_code: string
+          state: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          city: string
+          country?: string
+          created_at?: string
+          full_name: string
+          id?: string
+          is_default?: boolean
+          label?: string
+          line1: string
+          line2?: string | null
+          phone?: string | null
+          postal_code: string
+          state: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          city?: string
+          country?: string
+          created_at?: string
+          full_name?: string
+          id?: string
+          is_default?: boolean
+          label?: string
+          line1?: string
+          line2?: string | null
+          phone?: string | null
+          postal_code?: string
+          state?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notification_preferences: {
+        Row: {
+          newsletter: boolean
+          order_updates_email: boolean
+          order_updates_sms: boolean
+          promotions_email: boolean
+          promotions_sms: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          newsletter?: boolean
+          order_updates_email?: boolean
+          order_updates_sms?: boolean
+          promotions_email?: boolean
+          promotions_sms?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          newsletter?: boolean
+          order_updates_email?: boolean
+          order_updates_sms?: boolean
+          promotions_email?: boolean
+          promotions_sms?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      payment_methods: {
+        Row: {
+          brand: string
+          created_at: string
+          exp_month: number
+          exp_year: number
+          id: string
+          is_default: boolean
+          last4: string
+          nickname: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          brand: string
+          created_at?: string
+          exp_month: number
+          exp_year: number
+          id?: string
+          is_default?: boolean
+          last4: string
+          nickname?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          brand?: string
+          created_at?: string
+          exp_month?: number
+          exp_year?: number
+          id?: string
+          is_default?: boolean
+          last4?: string
+          nickname?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      product_reviews: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          product_slug: string
+          rating: number
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          product_slug: string
+          rating: number
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          product_slug?: string
+          rating?: number
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address_line1: string | null
@@ -59,6 +212,48 @@ export type Database = {
           postal_code?: string | null
           state?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      recently_viewed: {
+        Row: {
+          id: string
+          product_slug: string
+          user_id: string
+          viewed_at: string
+        }
+        Insert: {
+          id?: string
+          product_slug: string
+          user_id: string
+          viewed_at?: string
+        }
+        Update: {
+          id?: string
+          product_slug?: string
+          user_id?: string
+          viewed_at?: string
+        }
+        Relationships: []
+      }
+      wishlist_items: {
+        Row: {
+          created_at: string
+          id: string
+          product_slug: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_slug: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_slug?: string
+          user_id?: string
         }
         Relationships: []
       }
