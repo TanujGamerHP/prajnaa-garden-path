@@ -25,7 +25,8 @@ export const posts: BlogPost[] = [
   {
     slug: "the-himalayan-apricot-harvest",
     title: "The Himalayan apricot harvest, in 9 photos",
-    excerpt: "Each summer, the Hunza valley turns gold. We followed Ramesh Singh for a week as his family brings in the year's harvest.",
+    excerpt:
+      "Each summer, the Hunza valley turns gold. We followed Ramesh Singh for a week as his family brings in the year's harvest.",
     category: "Farmer story",
     author: "Aanya Iyer",
     date: "2026-05-18",
@@ -41,7 +42,8 @@ export const posts: BlogPost[] = [
   {
     slug: "five-ways-to-cook-with-turmeric",
     title: "Five gentle ways to cook with single-origin turmeric",
-    excerpt: "A spice this fragrant deserves more than dal. Five quick ideas from our test kitchen, each ready in 15 minutes.",
+    excerpt:
+      "A spice this fragrant deserves more than dal. Five quick ideas from our test kitchen, each ready in 15 minutes.",
     category: "Recipe",
     author: "Meera Bhatt",
     date: "2026-05-02",
@@ -56,7 +58,8 @@ export const posts: BlogPost[] = [
   {
     slug: "why-we-publish-batch-codes",
     title: "Why every Prajnaa pack carries a batch code",
-    excerpt: "A small string of letters and numbers, but it is the most important thing on the label. Here is what it means.",
+    excerpt:
+      "A small string of letters and numbers, but it is the most important thing on the label. Here is what it means.",
     category: "Journal",
     author: "Karan Mehra",
     date: "2026-04-21",
@@ -71,7 +74,8 @@ export const posts: BlogPost[] = [
   {
     slug: "meet-asha-patel-anand-pickles",
     title: "Meet Asha Patel: the pickle maker of Anand",
-    excerpt: "Three generations of pickle recipes, one steel kitchen in a small town in Gujarat, and one rule that has never broken.",
+    excerpt:
+      "Three generations of pickle recipes, one steel kitchen in a small town in Gujarat, and one rule that has never broken.",
     category: "Farmer story",
     author: "Aanya Iyer",
     date: "2026-04-09",
@@ -86,7 +90,8 @@ export const posts: BlogPost[] = [
   {
     slug: "field-notes-monsoon-2026",
     title: "Field notes: what the monsoon told us in 2026",
-    excerpt: "An early monsoon, a late retreat, and a strange story of mangoes. Notes from twelve states.",
+    excerpt:
+      "An early monsoon, a late retreat, and a strange story of mangoes. Notes from twelve states.",
     category: "Field notes",
     author: "Karan Mehra",
     date: "2026-03-30",
@@ -101,7 +106,8 @@ export const posts: BlogPost[] = [
   {
     slug: "the-almond-of-kashmir",
     title: "The almond of Kashmir — and why it tastes different",
-    excerpt: "Smaller, paler, and far sweeter than its American cousin. A short essay on a fruit you might not have met.",
+    excerpt:
+      "Smaller, paler, and far sweeter than its American cousin. A short essay on a fruit you might not have met.",
     category: "Journal",
     author: "Meera Bhatt",
     date: "2026-03-12",
@@ -116,7 +122,8 @@ export const posts: BlogPost[] = [
   {
     slug: "what-organic-really-means",
     title: "What 'organic' really means on a label",
-    excerpt: "We unpack the four most common claims on Indian food packs and what each one is actually promising you.",
+    excerpt:
+      "We unpack the four most common claims on Indian food packs and what each one is actually promising you.",
     category: "Journal",
     author: "Karan Mehra",
     date: "2026-02-26",
@@ -131,7 +138,8 @@ export const posts: BlogPost[] = [
   {
     slug: "the-quiet-economics-of-fair-trade",
     title: "The quiet economics of fair trade for a small farmer",
-    excerpt: "Margins, middlemen, and the maths that decides whether a farmer's child stays in the village.",
+    excerpt:
+      "Margins, middlemen, and the maths that decides whether a farmer's child stays in the village.",
     category: "Journal",
     author: "Aanya Iyer",
     date: "2026-02-04",

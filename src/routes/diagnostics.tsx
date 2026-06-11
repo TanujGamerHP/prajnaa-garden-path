@@ -6,10 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/diagnostics")({
   head: () => ({
-    meta: [
-      { title: "Diagnostics — Prajnaa Farm" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Diagnostics — Prajnaa Farm" }, { name: "robots", content: "noindex" }],
   }),
   component: DiagnosticsPage,
 });
@@ -44,7 +41,7 @@ function DiagnosticsPage() {
     setHealth(items);
 
     // Auth ping
-    supabase.auth.getSession().then(({ error }) => {
+    supabase.auth.getSession().then(({ error }: any) => {
       setHealth((prev) => [
         ...prev,
         {
@@ -67,9 +64,7 @@ function DiagnosticsPage() {
   return (
     <main className="mx-auto max-w-3xl px-6 py-12">
       <h1 className="font-display text-3xl font-semibold">Diagnostics</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Internal health overview. Not indexed.
-      </p>
+      <p className="mt-2 text-sm text-muted-foreground">Internal health overview. Not indexed.</p>
 
       <section className="mt-8 rounded-2xl border border-border bg-card p-5">
         <h2 className="font-display text-lg font-semibold">Build & services</h2>
@@ -131,11 +126,11 @@ function DiagnosticsPage() {
       <section className="mt-6 rounded-2xl border border-border bg-card p-5">
         <h2 className="font-display text-lg font-semibold">Stuck after install?</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          504s from <code>/node_modules/.vite/deps/*</code> mean the optimized-deps cache went stale.
-          Run:
+          504s from <code>/node_modules/.vite/deps/*</code> mean the optimized-deps cache went
+          stale. Run:
         </p>
         <pre className="mt-2 overflow-x-auto rounded bg-muted/40 p-3 text-xs">
-{`bun run fresh   # clears .vite cache and reinstalls`}
+          {`bun run fresh   # clears .vite cache and reinstalls`}
         </pre>
       </section>
     </main>

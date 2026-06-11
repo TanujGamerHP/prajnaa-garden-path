@@ -12,6 +12,7 @@ export function ProductCard({ product }: { product: Product }) {
   const toggleWish = useWishlist((s) => s.toggle);
   const saved = useWishlist((s) => s.items.some((i) => i.slug === product.slug));
   const farmer = farmerBySlug(product.farmerSlug);
+  const location = farmer ? `${farmer.village}, ${farmer.state}` : (product as any).farmerLocation;
   return (
     <div className="group flex h-full flex-col transition-transform duration-300 hover:-translate-y-1">
       <Link
@@ -26,7 +27,7 @@ export function ProductCard({ product }: { product: Product }) {
             loading="lazy"
             width={800}
             height={800}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+            className="h-full w-full object-contain p-2 transition-transform duration-500 group-hover:scale-[1.04]"
           />
         </div>
         {product.badges?.[0] && (
@@ -36,7 +37,9 @@ export function ProductCard({ product }: { product: Product }) {
         )}
         <button
           type="button"
-          aria-label={saved ? `Remove ${product.name} from wishlist` : `Save ${product.name} to wishlist`}
+          aria-label={
+            saved ? `Remove ${product.name} from wishlist` : `Save ${product.name} to wishlist`
+          }
           aria-pressed={saved}
           onClick={async (e) => {
             e.preventDefault();
@@ -57,9 +60,9 @@ export function ProductCard({ product }: { product: Product }) {
       </Link>
 
       <div className="mt-4 flex flex-1 flex-col">
-        {farmer && (
+        {location && (
           <p className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-            {farmer.village}, {farmer.state}
+            {location}
           </p>
         )}
         <Link to="/product/$slug" params={{ slug: product.slug }} className="mt-1">
@@ -74,12 +77,20 @@ export function ProductCard({ product }: { product: Product }) {
           <div>
             <span className="font-display text-lg font-semibold">{inr(product.price)}</span>
             {product.mrp && product.mrp > product.price && (
-              <span className="ml-2 text-xs text-muted-foreground line-through">{inr(product.mrp)}</span>
+              <span className="ml-2 text-xs text-muted-foreground line-through">
+                {inr(product.mrp)}
+              </span>
             )}
           </div>
           <button
             onClick={() => {
-              add({ slug: product.slug, name: product.name, image: product.image, price: product.price, weight: product.weight });
+              add({
+                slug: product.slug,
+                name: product.name,
+                image: product.image,
+                price: product.price,
+                weight: product.weight,
+              });
               toast.success(`${product.name} added`);
             }}
             className="font-subhead rounded-full border border-border px-3 py-1.5 text-xs font-medium transition-colors hover:bg-primary hover:text-primary-foreground hover:border-primary"

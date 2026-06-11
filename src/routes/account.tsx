@@ -7,10 +7,7 @@ import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/account")({
   head: () => ({
-    meta: [
-      { title: "Your account — Prajnaa Farm" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Your account — Prajnaa Farm" }, { name: "robots", content: "noindex" }],
   }),
   component: AccountLayout,
 });
@@ -40,7 +37,9 @@ function AccountLayout() {
           <aside className="lg:sticky lg:top-24 lg:self-start">
             <div className="rounded-2xl border border-border bg-card p-3">
               <div className="px-3 py-2">
-                <p className="font-subhead text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Signed in as</p>
+                <p className="font-subhead text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                  Signed in as
+                </p>
                 <p className="mt-1 truncate text-sm font-medium">{user.email}</p>
               </div>
               <div className="my-2 border-t border-border" />

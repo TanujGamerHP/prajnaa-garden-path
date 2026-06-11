@@ -27,9 +27,15 @@ function AdminSettlements() {
   });
 
   const filtered = rows.filter((r: any) => statusFilter === "all" || r.status === statusFilter);
-  const totalPending = rows.filter((r: any) => r.status !== "paid").reduce((s: number, r: any) => s + Number(r.net_amount), 0);
-  const totalPaid = rows.filter((r: any) => r.status === "paid").reduce((s: number, r: any) => s + Number(r.net_amount), 0);
-  const farmersAwaiting = new Set(rows.filter((r: any) => r.status !== "paid").map((r: any) => r.farmer_id)).size;
+  const totalPending = rows
+    .filter((r: any) => r.status !== "paid")
+    .reduce((s: number, r: any) => s + Number(r.net_amount), 0);
+  const totalPaid = rows
+    .filter((r: any) => r.status === "paid")
+    .reduce((s: number, r: any) => s + Number(r.net_amount), 0);
+  const farmersAwaiting = new Set(
+    rows.filter((r: any) => r.status !== "paid").map((r: any) => r.farmer_id),
+  ).size;
 
   const markPaid = async (id: string) => {
     setBusy(id);
@@ -39,35 +45,56 @@ function AdminSettlements() {
       .update({ status: "paid", settled_at: new Date().toISOString(), reference: ref })
       .eq("id", id);
     setBusy(null);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("Payout marked paid");
     qc.invalidateQueries({ queryKey: ["admin-settlements"] });
   };
 
   const processAll = async () => {
     const pending = rows.filter((r: any) => r.status === "scheduled" || r.status === "processing");
-    if (pending.length === 0) { toast.info("Nothing to process"); return; }
+    if (pending.length === 0) {
+      toast.info("Nothing to process");
+      return;
+    }
     if (!confirm(`Mark ${pending.length} payouts as processing?`)) return;
     const { error } = await supabase
       .from("farmer_payouts")
       .update({ status: "processing" })
-      .in("id", pending.map((p: any) => p.id));
-    if (error) { toast.error(error.message); return; }
+      .in(
+        "id",
+        pending.map((p: any) => p.id),
+      );
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success(`${pending.length} payouts moved to processing`);
     qc.invalidateQueries({ queryKey: ["admin-settlements"] });
   };
 
   // Compute next settlement window (7th-10th of next applicable month)
   const today = new Date();
-  let openY = today.getFullYear(), openM = today.getMonth();
-  if (today.getDate() > 10) { openM++; if (openM > 11) { openM = 0; openY++; } }
+  let openY = today.getFullYear(),
+    openM = today.getMonth();
+  if (today.getDate() > 10) {
+    openM++;
+    if (openM > 11) {
+      openM = 0;
+      openY++;
+    }
+  }
   const nextRun = new Date(openY, openM, 7).toLocaleDateString();
 
   return (
     <div className="space-y-8">
       <div>
         <h2 className="font-display text-3xl font-semibold">Settlements</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Run farmer payouts between the 7th and 10th of every month.</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Run farmer payouts between the 7th and 10th of every month.
+        </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-4">
@@ -78,21 +105,30 @@ function AdminSettlements() {
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="font-subhead h-10 rounded-full border border-border bg-background px-4 text-xs outline-none focus:border-primary">
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="font-subhead h-10 rounded-full border border-border bg-background px-4 text-xs outline-none focus:border-primary"
+        >
           <option value="all">All statuses</option>
           <option value="scheduled">Scheduled</option>
           <option value="processing">Processing</option>
           <option value="paid">Paid</option>
           <option value="failed">Failed</option>
         </select>
-        <button onClick={processAll} className="font-subhead inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:opacity-90">
+        <button
+          onClick={processAll}
+          className="font-subhead inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:opacity-90"
+        >
           Process all scheduled
         </button>
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-border bg-background">
         {isLoading ? (
-          <div className="grid place-items-center py-20"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+          <div className="grid place-items-center py-20">
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          </div>
         ) : filtered.length === 0 ? (
           <p className="py-20 text-center text-sm text-muted-foreground">No settlements yet.</p>
         ) : (
@@ -113,12 +149,18 @@ function AdminSettlements() {
               {filtered.map((r: any) => (
                 <tr key={r.id} className="border-t border-border">
                   <td className="px-5 py-3 font-medium">{r.farmer?.full_name ?? "—"}</td>
-                  <td className="text-muted-foreground">{new Date(r.period_start).toLocaleDateString()} – {new Date(r.period_end).toLocaleDateString()}</td>
+                  <td className="text-muted-foreground">
+                    {new Date(r.period_start).toLocaleDateString()} –{" "}
+                    {new Date(r.period_end).toLocaleDateString()}
+                  </td>
                   <td className="text-right">{inr(Number(r.gross_amount))}</td>
                   <td className="text-right text-muted-foreground">{inr(Number(r.fees))}</td>
                   <td className="text-right font-medium">{inr(Number(r.net_amount))}</td>
                   <td className="text-muted-foreground text-xs">
-                    {r.farmer?.bank_name} {r.farmer?.bank_account_number ? `•••• ${r.farmer.bank_account_number.slice(-4)}` : ""}
+                    {r.farmer?.bank_name}{" "}
+                    {r.farmer?.bank_account_number
+                      ? `•••• ${r.farmer.bank_account_number.slice(-4)}`
+                      : ""}
                   </td>
                   <td>
                     {r.status === "paid" ? (

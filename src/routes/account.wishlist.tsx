@@ -66,7 +66,9 @@ function WishlistPage() {
       ) : items.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center">
           <p className="font-display text-lg font-semibold">Nothing saved yet</p>
-          <p className="mt-1 text-sm text-muted-foreground">Tap the heart on any product to save it here.</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Tap the heart on any product to save it here.
+          </p>
           <Link
             to="/shop"
             className="font-subhead mt-4 inline-flex h-10 items-center rounded-full bg-primary px-5 text-xs uppercase tracking-[0.14em] text-primary-foreground hover:opacity-90"
@@ -77,7 +79,10 @@ function WishlistPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           {items.map((p) => (
-            <article key={p.slug} className="flex gap-4 rounded-2xl border border-border bg-card p-4">
+            <article
+              key={p.slug}
+              className="flex gap-4 rounded-2xl border border-border bg-card p-4"
+            >
               <Link to="/product/$slug" params={{ slug: p.slug }} className="shrink-0">
                 <img src={p.image} alt={p.name} className="h-24 w-24 rounded-xl object-cover" />
               </Link>
@@ -94,7 +99,16 @@ function WishlistPage() {
                 <div className="mt-auto flex flex-wrap gap-2 pt-3">
                   <button
                     onClick={() => {
-                      addToCart({ slug: p.slug, name: p.name, image: p.image, price: p.price, weight: p.weight }, 1);
+                      addToCart(
+                        {
+                          slug: p.slug,
+                          name: p.name,
+                          image: p.image,
+                          price: p.price,
+                          weight: p.weight,
+                        },
+                        1,
+                      );
                       toast.success("Added to cart");
                     }}
                     className="font-subhead inline-flex h-9 items-center gap-1.5 rounded-full bg-primary px-3 text-xs uppercase tracking-[0.14em] text-primary-foreground hover:opacity-90"

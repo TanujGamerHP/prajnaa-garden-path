@@ -3,6 +3,7 @@
 A fully responsive, mock-data prototype of the marketplace with three portals (Customer, Farmer, Admin), built directly to your PRD spec. No real auth, DB, or payments — every screen renders from in-memory mock data so the visual + UX layer is locked before backend work begins (which you'll do in Next.js/NestJS separately).
 
 ### Design system (foundation, built first)
+
 - Tokens in `src/styles.css` via Tailwind v4 `@theme`:
   - Colors: primary `#0F3D2E`, secondary `#F7F3EE`, accent `#E8A317`, text `#111827`, bg `#FFFFFF`, plus success/warning/error
   - Fonts loaded via `<link>` in `__root.tsx`: Bricolage Grotesque (headings), Plus Jakarta Sans (subheads), Inter (body)
@@ -11,6 +12,7 @@ A fully responsive, mock-data prototype of the marketplace with three portals (C
 - Layout shells: `MarketingHeader`, `MarketingFooter`, `DashboardSidebar`
 
 ### Mock data layer
+
 - `src/lib/mock/` with typed fixtures: `farmers.ts`, `products.ts`, `categories.ts`, `orders.ts`, `reviews.ts`, `customers.ts`
 - ~8 farmers, ~30 products across all 9 categories, ~20 orders, sample reviews/testimonials
 - All images generated via the image tool (hero, category tiles, product photos, farmer portraits)
@@ -18,6 +20,7 @@ A fully responsive, mock-data prototype of the marketplace with three portals (C
 ### Routes
 
 **Customer (marketing + storefront)**
+
 - `/` — Homepage with all 9 PRD sections
 - `/shop` — Product listing with category/price filters + sort
 - `/category/$slug` — Category-scoped listing
@@ -33,6 +36,7 @@ A fully responsive, mock-data prototype of the marketplace with three portals (C
 - `/about`, `/contact` — Static content
 
 **Farmer portal** (`/farmer-portal/*` — mock-gated, no real auth)
+
 - `/dashboard` — KPIs (sales, orders, payout ETA), recent orders, low-stock alerts
 - `/products` — Product list, add/edit product form
 - `/inventory` — Stock levels, bulk update
@@ -41,6 +45,7 @@ A fully responsive, mock-data prototype of the marketplace with three portals (C
 - `/profile` — Public story editor, documents, farming method
 
 **Admin portal** (`/admin/*` — mock-gated)
+
 - `/dashboard` — Platform KPIs
 - `/vendors` — Farmer approval queue
 - `/products` — Product approval queue
@@ -50,6 +55,7 @@ A fully responsive, mock-data prototype of the marketplace with three portals (C
 - `/settlements` — Payout runs
 
 ### Cross-cutting
+
 - Cart state in Zustand (or React context) with localStorage persistence — mock only
 - Toast notifications for add-to-cart, form submits
 - Skeleton loading states on listing pages
@@ -58,6 +64,7 @@ A fully responsive, mock-data prototype of the marketplace with three portals (C
 - Accessibility: semantic landmarks, ARIA labels on icon buttons, visible focus rings, keyboard nav
 
 ### Explicitly out of scope (frontend prototype only, per your choice)
+
 - Real authentication, OTP delivery, sessions
 - Database, Lovable Cloud / Supabase
 - Real Razorpay integration (mock UI only)
@@ -66,6 +73,7 @@ A fully responsive, mock-data prototype of the marketplace with three portals (C
 - Blog system, support tickets, loyalty/referral logic (UI shells only if shown)
 
 ### Build sequence (suggested phases)
+
 1. **Phase 1 — Design system + homepage** (foundation, hero, all 9 sections, header, footer, mock data for farmers/products/categories)
 2. **Phase 2 — Customer storefront** (shop, category, product, farmer, cart, checkout, account, auth UI)
 3. **Phase 3 — Farmer portal** (dashboard shell + all 6 screens)
@@ -74,4 +82,5 @@ A fully responsive, mock-data prototype of the marketplace with three portals (C
 Each phase is independently reviewable. After approving this plan I'll start with Phase 1 and check in before moving to the next phase so you can steer.
 
 ### Tech notes (for your reference)
+
 Built on Lovable's stack: TanStack Start (file-based routing under `src/routes/`), React 19, Tailwind v4 (CSS-first tokens), shadcn primitives restyled. All data is in-memory mocks — easy to swap for real API calls when you wire the NestJS backend.

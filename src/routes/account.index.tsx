@@ -1,14 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import {
-  ShoppingBag,
-  Heart,
-  MapPin,
-  CreditCard,
-  Bell,
-  Star,
-  ArrowRight,
-} from "lucide-react";
+import { ShoppingBag, Heart, MapPin, CreditCard, Bell, Star, ArrowRight } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { AccountPageHeader } from "@/components/account/page-header";
@@ -19,43 +11,105 @@ export const Route = createFileRoute("/account/")({
   component: AccountOverview,
 });
 
-type Counts = { wishlist: number; addresses: number; payments: number; reviews: number };
+type Counts = { orders: number; wishlist: number; addresses: number; payments: number; reviews: number };
 
 function AccountOverview() {
   const { user } = useAuth();
-  const [counts, setCounts] = useState<Counts>({ wishlist: 0, addresses: 0, payments: 0, reviews: 0 });
+  const [counts, setCounts] = useState<Counts>({
+    orders: 0,
+    wishlist: 0,
+    addresses: 0,
+    payments: 0,
+    reviews: 0,
+  });
   const [fullName, setFullName] = useState<string>("");
+  const [recentOrders, setRecentOrders] = useState<any[]>([]);
 
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const [wl, addr, pm, rv, prof] = await Promise.all([
-        supabase.from("wishlist_items").select("id", { count: "exact", head: true }).eq("user_id", user.id),
-        supabase.from("addresses").select("id", { count: "exact", head: true }).eq("user_id", user.id),
-        supabase.from("payment_methods").select("id", { count: "exact", head: true }).eq("user_id", user.id),
-        supabase.from("product_reviews").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+      const [wl, addr, pm, rv, prof, ords] = await Promise.all([
+        supabase
+          .from("wishlist_items")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user.id),
+        supabase
+          .from("addresses")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user.id),
+        supabase
+          .from("payment_methods")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user.id),
+        supabase
+          .from("product_reviews")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user.id),
         supabase.from("profiles").select("full_name").eq("id", user.id).maybeSingle(),
+        supabase
+          .from("orders")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false }),
       ]);
       setCounts({
+        orders: ords.data?.length ?? 0,
         wishlist: wl.count ?? 0,
         addresses: addr.count ?? 0,
         payments: pm.count ?? 0,
         reviews: rv.count ?? 0,
       });
       setFullName((prof.data as { full_name?: string } | null)?.full_name ?? "");
+      setRecentOrders(ords.data ?? []);
     })();
   }, [user]);
 
   const displayName = fullName || user?.email?.split("@")[0] || "there";
-  const recent = mockOrders.slice(0, 3);
+  const recent = recentOrders.slice(0, 3);
 
   const cards = [
-    { to: "/account/orders", label: "Your orders", icon: ShoppingBag, value: `${mockOrders.length} total`, hint: "Track, return, or buy again" },
-    { to: "/account/wishlist", label: "Wishlist", icon: Heart, value: `${counts.wishlist} saved`, hint: "Items you love" },
-    { to: "/account/addresses", label: "Addresses", icon: MapPin, value: `${counts.addresses} on file`, hint: "Manage delivery addresses" },
-    { to: "/account/payments", label: "Payment methods", icon: CreditCard, value: `${counts.payments} on file`, hint: "Add or remove cards" },
-    { to: "/account/reviews", label: "Your reviews", icon: Star, value: `${counts.reviews} written`, hint: "Edit your ratings" },
-    { to: "/account/notifications", label: "Notifications", icon: Bell, value: "Preferences", hint: "Email & SMS settings" },
+    {
+      to: "/account/orders",
+      label: "Your orders",
+      icon: ShoppingBag,
+      value: `${counts.orders} total`,
+      hint: "Track, return, or buy again",
+    },
+    {
+      to: "/account/wishlist",
+      label: "Wishlist",
+      icon: Heart,
+      value: `${counts.wishlist} saved`,
+      hint: "Items you love",
+    },
+    {
+      to: "/account/addresses",
+      label: "Addresses",
+      icon: MapPin,
+      value: `${counts.addresses} on file`,
+      hint: "Manage delivery addresses",
+    },
+    {
+      to: "/account/payments",
+      label: "Payment methods",
+      icon: CreditCard,
+      value: `${counts.payments} on file`,
+      hint: "Add or remove cards",
+    },
+    {
+      to: "/account/reviews",
+      label: "Your reviews",
+      icon: Star,
+      value: `${counts.reviews} written`,
+      hint: "Edit your ratings",
+    },
+    {
+      to: "/account/notifications",
+      label: "Notifications",
+      icon: Bell,
+      value: "Preferences",
+      hint: "Email & SMS settings",
+    },
   ] as const;
 
   return (
@@ -94,23 +148,41 @@ function AccountOverview() {
           </Link>
         </div>
         <div className="space-y-3">
-          {recent.map((o) => (
-            <Link
-              key={o.id}
-              to="/orders/$id"
-              params={{ id: o.id }}
-              className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-card p-4 transition-colors hover:bg-secondary/40"
-            >
-              <div>
-                <p className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-                  {o.date} · {o.status}
-                </p>
-                <p className="font-display mt-1 text-sm font-medium">Order {o.id}</p>
-                <p className="text-xs text-muted-foreground">{o.items.length} item(s) · {o.payment}</p>
-              </div>
-              <p className="font-display text-base font-semibold">{inr(o.total)}</p>
-            </Link>
-          ))}
+          {recent.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-border bg-card p-8 text-center">
+              <p className="text-sm text-muted-foreground">You haven't placed any orders yet.</p>
+              <Link
+                to="/shop"
+                className="font-subhead mt-3 inline-block rounded-full bg-primary px-4 py-2 text-xs font-medium text-primary-foreground hover:opacity-90"
+              >
+                Explore products
+              </Link>
+            </div>
+          ) : (
+            recent.map((o) => {
+              const displayDate = o.created_at ? new Date(o.created_at).toLocaleDateString("en-IN") : "Recent";
+              const orderId = o.order_id || o.id;
+              return (
+                <Link
+                  key={o.id}
+                  to="/orders/$id"
+                  params={{ id: o.id }}
+                  className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-card p-4 transition-colors hover:bg-secondary/40"
+                >
+                  <div>
+                    <p className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                      {displayDate} · {o.status}
+                    </p>
+                    <p className="font-display mt-1 text-sm font-medium">Order {orderId}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {o.items?.length || 0} item(s) · {o.payment_method || "COD"}
+                    </p>
+                  </div>
+                  <p className="font-display text-base font-semibold">{inr(o.total)}</p>
+                </Link>
+              );
+            })
+          )}
         </div>
       </section>
     </>

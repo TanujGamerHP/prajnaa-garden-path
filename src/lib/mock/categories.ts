@@ -10,13 +10,23 @@ import salts from "@/assets/cat-salts.jpg";
 import masalas from "@/assets/cat-masalas.jpg";
 
 export const categories: Category[] = [
-  { slug: "dry-fruits", name: "Dry Fruits", image: dryfruits, description: "Sun-dried, naturally sweet." },
+  {
+    slug: "dry-fruits",
+    name: "Dry Fruits",
+    image: dryfruits,
+    description: "Sun-dried, naturally sweet.",
+  },
   { slug: "nuts", name: "Nuts", image: nuts, description: "Raw, roasted, hand-sorted." },
   { slug: "seeds", name: "Seeds", image: seeds, description: "Nutrient-dense superfoods." },
   { slug: "spices", name: "Spices", image: spices, description: "Single-origin, freshly ground." },
   { slug: "herbs", name: "Herbs", image: herbs, description: "Aromatic, garden-fresh." },
   { slug: "plants", name: "Plants", image: plants, description: "Live herbs for your home." },
-  { slug: "pickles", name: "Pickles", image: pickles, description: "Slow-fermented, family recipes." },
+  {
+    slug: "pickles",
+    name: "Pickles",
+    image: pickles,
+    description: "Slow-fermented, family recipes.",
+  },
   { slug: "salts", name: "Salts", image: salts, description: "Mineral-rich, unrefined." },
   { slug: "masalas", name: "Masalas", image: masalas, description: "Whole-spice blends." },
 ];

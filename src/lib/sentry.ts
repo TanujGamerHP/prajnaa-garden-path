@@ -1,5 +1,7 @@
 // Lightweight Sentry init. Only activates when VITE_SENTRY_DSN is set.
 import * as Sentry from "@sentry/react";
+import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
 
 type StartupErrorEntry = {
   message: string;
@@ -11,16 +13,29 @@ type StartupErrorEntry = {
 const STARTUP_ERROR_KEY = "__prajnaa_startup_errors";
 const MAX_ENTRIES = 25;
 
+// Server function to log client errors to server console
+export const logClientError = createServerFn({ method: "POST" })
+  .inputValidator(
+    z.object({
+      message: z.string(),
+      stack: z.string().optional(),
+      source: z.string(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    console.error(
+      `\n[CLIENT EXCEPTION] Source: ${data.source}\nMessage: ${data.message}\nStack: ${data.stack || "No stack trace available"}\n`,
+    );
+    return { logged: true };
+  });
+
 function pushStartupError(entry: StartupErrorEntry) {
   if (typeof window === "undefined") return;
   try {
     const raw = window.sessionStorage.getItem(STARTUP_ERROR_KEY);
     const list: StartupErrorEntry[] = raw ? JSON.parse(raw) : [];
     list.unshift(entry);
-    window.sessionStorage.setItem(
-      STARTUP_ERROR_KEY,
-      JSON.stringify(list.slice(0, MAX_ENTRIES)),
-    );
+    window.sessionStorage.setItem(STARTUP_ERROR_KEY, JSON.stringify(list.slice(0, MAX_ENTRIES)));
   } catch {
     /* ignore */
   }
@@ -60,32 +75,53 @@ export function initSentry() {
   }
 
   window.addEventListener("error", (event) => {
+    const msg = event.message || String(event.error ?? "Unknown error");
+    const stk = event.error?.stack;
+    const src = "window.onerror";
+
     pushStartupError({
-      message: event.message || String(event.error ?? "Unknown error"),
-      stack: event.error?.stack,
-      source: "window.onerror",
+      message: msg,
+      stack: stk,
+      source: src,
       at: Date.now(),
     });
+
+    logClientError({ data: { message: msg, stack: stk || "", source: src } }).catch(() => {});
   });
 
   window.addEventListener("unhandledrejection", (event) => {
     const reason = event.reason;
+    const msg = reason?.message ?? String(reason ?? "Unhandled rejection");
+    const stk = reason?.stack;
+    const src = "unhandledrejection";
+
     pushStartupError({
-      message: reason?.message ?? String(reason ?? "Unhandled rejection"),
-      stack: reason?.stack,
-      source: "unhandledrejection",
+      message: msg,
+      stack: stk,
+      source: src,
       at: Date.now(),
     });
+
+    logClientError({ data: { message: msg, stack: stk || "", source: src } }).catch(() => {});
   });
 }
 
 export function captureException(error: unknown, context?: Record<string, unknown>) {
+  const msg = error instanceof Error ? error.message : String(error);
+  const stk = error instanceof Error ? error.stack : undefined;
+  const src = (context?.source as string) ?? "manual";
+
   pushStartupError({
-    message: error instanceof Error ? error.message : String(error),
-    stack: error instanceof Error ? error.stack : undefined,
-    source: (context?.source as string) ?? "manual",
+    message: msg,
+    stack: stk,
+    source: src,
     at: Date.now(),
   });
+
+  if (typeof window !== "undefined") {
+    logClientError({ data: { message: msg, stack: stk || "", source: src } }).catch(() => {});
+  }
+
   if (import.meta.env.VITE_SENTRY_DSN) {
     Sentry.captureException(error, { extra: context });
   }

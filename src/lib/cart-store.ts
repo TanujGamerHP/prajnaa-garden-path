@@ -26,14 +26,19 @@ export const useCart = create<CartState>()(
         set((s) => {
           const existing = s.items.find((i) => i.slug === item.slug);
           if (existing) {
-            return { items: s.items.map((i) => (i.slug === item.slug ? { ...i, qty: i.qty + qty } : i)) };
+            return {
+              items: s.items.map((i) => (i.slug === item.slug ? { ...i, qty: i.qty + qty } : i)),
+            };
           }
           return { items: [...s.items, { ...item, qty }] };
         }),
       remove: (slug) => set((s) => ({ items: s.items.filter((i) => i.slug !== slug) })),
       setQty: (slug, qty) =>
         set((s) => ({
-          items: qty <= 0 ? s.items.filter((i) => i.slug !== slug) : s.items.map((i) => (i.slug === slug ? { ...i, qty } : i)),
+          items:
+            qty <= 0
+              ? s.items.filter((i) => i.slug !== slug)
+              : s.items.map((i) => (i.slug === slug ? { ...i, qty } : i)),
         })),
       clear: () => set({ items: [] }),
     }),
@@ -44,5 +49,10 @@ export const useCart = create<CartState>()(
 export const cartTotals = (items: CartItem[]) => {
   const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
   const shipping = subtotal > 999 || subtotal === 0 ? 0 : 49;
-  return { subtotal, shipping, total: subtotal + shipping, count: items.reduce((s, i) => s + i.qty, 0) };
+  return {
+    subtotal,
+    shipping,
+    total: subtotal + shipping,
+    count: items.reduce((s, i) => s + i.qty, 0),
+  };
 };

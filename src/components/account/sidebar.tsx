@@ -45,9 +45,7 @@ export function AccountSidebar() {
             key={to}
             to={to as "/account"}
             className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${
-              active
-                ? "bg-primary/10 text-primary"
-                : "text-foreground/80 hover:bg-secondary"
+              active ? "bg-primary/10 text-primary" : "text-foreground/80 hover:bg-secondary"
             }`}
           >
             <Icon className="h-4 w-4" />

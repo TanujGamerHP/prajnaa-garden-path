@@ -1,7 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, X, Loader2, FileText, ExternalLink, ShieldCheck, ShieldAlert, Eye } from "lucide-react";
+import {
+  Check,
+  X,
+  Loader2,
+  FileText,
+  ExternalLink,
+  ShieldCheck,
+  ShieldAlert,
+  Eye,
+} from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -33,12 +42,14 @@ function AdminVendors() {
       const { data, error } = await supabase.from("farmer_profiles").select("status");
       if (error) throw error;
       const out: Record<string, number> = {};
-      (data ?? []).forEach((r: any) => { out[r.status] = (out[r.status] ?? 0) + 1; });
+      (data ?? []).forEach((r: any) => {
+        out[r.status] = (out[r.status] ?? 0) + 1;
+      });
       return out;
     },
   });
 
-  const selected = farmers.find((f) => f.id === selectedId);
+  const selected = farmers.find((f: any) => f.id === selectedId);
 
   return (
     <div className="space-y-6">
@@ -53,13 +64,20 @@ function AdminVendors() {
         {(["pending", "approved", "rejected", "draft", "suspended"] as Tab[]).map((t) => (
           <button
             key={t}
-            onClick={() => { setTab(t); setSelectedId(null); }}
+            onClick={() => {
+              setTab(t);
+              setSelectedId(null);
+            }}
             className={`font-subhead inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs capitalize transition ${
-              tab === t ? "bg-primary text-primary-foreground" : "border border-border bg-background hover:bg-secondary"
+              tab === t
+                ? "bg-primary text-primary-foreground"
+                : "border border-border bg-background hover:bg-secondary"
             }`}
           >
             {t}
-            <span className={`rounded-full px-1.5 text-[10px] ${tab === t ? "bg-primary-foreground/20" : "bg-secondary"}`}>
+            <span
+              className={`rounded-full px-1.5 text-[10px] ${tab === t ? "bg-primary-foreground/20" : "bg-secondary"}`}
+            >
               {counts?.[t] ?? 0}
             </span>
           </button>
@@ -69,12 +87,14 @@ function AdminVendors() {
       <div className="grid gap-6 lg:grid-cols-5">
         <div className="lg:col-span-2 rounded-2xl border border-border bg-background">
           {isLoading ? (
-            <div className="grid place-items-center py-16"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+            <div className="grid place-items-center py-16">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            </div>
           ) : farmers.length === 0 ? (
             <p className="py-16 text-center text-sm text-muted-foreground">No {tab} farmers.</p>
           ) : (
             <ul className="divide-y divide-border">
-              {farmers.map((f) => (
+              {farmers.map((f: any) => (
                 <li key={f.id}>
                   <button
                     onClick={() => setSelectedId(f.id)}
@@ -106,7 +126,9 @@ function AdminVendors() {
             />
           ) : (
             <div className="grid h-full min-h-64 place-items-center rounded-2xl border border-dashed border-border p-8 text-center">
-              <p className="text-sm text-muted-foreground">Select a farmer to review their application.</p>
+              <p className="text-sm text-muted-foreground">
+                Select a farmer to review their application.
+              </p>
             </div>
           )}
         </div>
@@ -139,6 +161,20 @@ function FarmerDetail({ farmer, onChange }: { farmer: any; onChange: () => void 
       if (status === "approved") {
         patch.approved_at = new Date().toISOString();
         patch.rejection_reason = null;
+
+        // Automatically verify all pending/submitted documents for this farmer
+        const { error: docError } = await supabase
+          .from("farmer_documents")
+          .update({
+            status: "verified",
+            verified_at: new Date().toISOString(),
+          })
+          .eq("farmer_id", farmer.id)
+          .neq("status", "verified");
+
+        if (docError) {
+          console.warn("Failed to automatically verify documents:", docError);
+        }
       }
       if (status === "rejected") {
         patch.rejection_reason = reason.trim() || "Application did not meet our criteria.";
@@ -154,24 +190,40 @@ function FarmerDetail({ farmer, onChange }: { farmer: any; onChange: () => void 
     }
   };
 
-  const updateDoc = async (id: string, status: "verified" | "rejected" | "pending", notes?: string) => {
+  const updateDoc = async (
+    id: string,
+    status: "verified" | "rejected" | "pending",
+    notes?: string,
+  ) => {
     const patch: any = { status, notes: notes ?? null };
     if (status === "verified") patch.verified_at = new Date().toISOString();
     const { error } = await supabase.from("farmer_documents").update(patch).eq("id", id);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success(`Document ${status}`);
     onChange();
   };
 
-  const viewDoc = async (path: string) => {
-    const { data, error } = await supabase.storage.from("kyc-docs").createSignedUrl(path, 300);
-    if (error || !data?.signedUrl) { toast.error("Could not open file"); return; }
-    window.open(data.signedUrl, "_blank");
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewLabel, setPreviewLabel] = useState("");
+
+  const viewDoc = (fileUrl: string, label: string) => {
+    if (fileUrl.startsWith("data:")) {
+      // Base64 data URL — show directly in modal
+      setPreviewUrl(fileUrl);
+      setPreviewLabel(label);
+    } else {
+      // Legacy path — try opening in new tab
+      window.open(fileUrl, "_blank");
+    }
   };
 
-  const verifiedCount = docs.filter((d) => d.status === "verified").length;
+  const verifiedCount = docs.filter((d: any) => d.status === "verified").length;
 
   return (
+    <>
     <div className="rounded-2xl border border-border bg-background">
       <div className="border-b border-border px-6 py-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -181,12 +233,17 @@ function FarmerDetail({ farmer, onChange }: { farmer: any; onChange: () => void 
               {farmer.farm_name} · {farmer.village}, {farmer.state}
             </p>
           </div>
-          <span className={`font-subhead rounded-full px-3 py-1 text-xs capitalize ${
-            farmer.status === "approved" ? "bg-success/15 text-success"
-            : farmer.status === "rejected" ? "bg-destructive/15 text-destructive"
-            : farmer.status === "pending" ? "bg-warning/15 text-warning"
-            : "bg-secondary text-muted-foreground"
-          }`}>
+          <span
+            className={`font-subhead rounded-full px-3 py-1 text-xs capitalize ${
+              farmer.status === "approved"
+                ? "bg-success/15 text-success"
+                : farmer.status === "rejected"
+                  ? "bg-destructive/15 text-destructive"
+                  : farmer.status === "pending"
+                    ? "bg-warning/15 text-warning"
+                    : "bg-secondary text-muted-foreground"
+            }`}
+          >
             {farmer.status}
           </span>
         </div>
@@ -195,21 +252,33 @@ function FarmerDetail({ farmer, onChange }: { farmer: any; onChange: () => void 
       <div className="grid gap-4 px-6 py-5 sm:grid-cols-2 text-sm">
         <Row k="Phone" v={farmer.phone} />
         <Row k="Email" v={farmer.email} />
-        <Row k="Aadhaar (last 4)" v={farmer.aadhaar_last4 ? `xxxx-xxxx-${farmer.aadhaar_last4}` : "—"} />
+        <Row
+          k="Aadhaar (last 4)"
+          v={farmer.aadhaar_last4 ? `xxxx-xxxx-${farmer.aadhaar_last4}` : "—"}
+        />
         <Row k="PAN" v={farmer.pan_number} />
         <Row k="PIN" v={farmer.pincode} />
         <Row k="Method" v={farmer.farming_method} />
         <Row k="Farm size" v={farmer.farm_size_acres ? `${farmer.farm_size_acres} acres` : "—"} />
         <Row k="Years farming" v={farmer.years_farming?.toString()} />
         <Row k="Bank" v={farmer.bank_name} />
-        <Row k="Account" v={farmer.bank_account_number ? `•••• ${farmer.bank_account_number.slice(-4)} · ${farmer.bank_ifsc}` : "—"} />
+        <Row
+          k="Account"
+          v={
+            farmer.bank_account_number
+              ? `•••• ${farmer.bank_account_number.slice(-4)} · ${farmer.bank_ifsc}`
+              : "—"
+          }
+        />
         <Row k="UPI" v={farmer.upi_id} />
         <Row k="Crops" v={(farmer.crops ?? []).join(", ")} />
       </div>
 
       {farmer.story && (
         <div className="border-t border-border px-6 py-5">
-          <p className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Story</p>
+          <p className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+            Story
+          </p>
           <p className="mt-2 text-sm leading-relaxed">{farmer.story}</p>
         </div>
       )}
@@ -224,26 +293,52 @@ function FarmerDetail({ farmer, onChange }: { farmer: any; onChange: () => void 
           <p className="mt-3 text-sm text-muted-foreground">No documents uploaded yet.</p>
         ) : (
           <ul className="mt-3 space-y-2">
-            {docs.map((d) => (
-              <li key={d.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border p-3 text-sm">
+            {docs.map((d: any) => (
+              <li
+                key={d.id}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border p-3 text-sm"
+              >
                 <div className="flex items-center gap-2">
                   <FileText className="h-4 w-4 text-muted-foreground" />
                   <span className="font-medium capitalize">{d.doc_type.replace(/_/g, " ")}</span>
-                  <span className="text-xs text-muted-foreground">{new Date(d.created_at).toLocaleDateString()}</span>
-                  <span className={`font-subhead rounded-full px-2 py-0.5 text-[10px] capitalize ${
-                    d.status === "verified" ? "bg-success/15 text-success"
-                    : d.status === "rejected" ? "bg-destructive/15 text-destructive"
-                    : "bg-warning/15 text-warning"
-                  }`}>{d.status}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {new Date(d.created_at).toLocaleDateString()}
+                  </span>
+                  <span
+                    className={`font-subhead rounded-full px-2 py-0.5 text-[10px] capitalize ${
+                      d.status === "verified"
+                        ? "bg-success/15 text-success"
+                        : d.status === "rejected"
+                          ? "bg-destructive/15 text-destructive"
+                          : "bg-warning/15 text-warning"
+                    }`}
+                  >
+                    {d.status}
+                  </span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <button onClick={() => viewDoc(d.file_url)} className="grid h-7 w-7 place-items-center rounded-full border border-border hover:bg-secondary" title="View">
+                  <button
+                    onClick={() => viewDoc(d.file_url, d.doc_type?.replace(/_/g, " ") || d.label || "Document")}
+                    className="grid h-7 w-7 place-items-center rounded-full border border-border hover:bg-secondary"
+                    title="View"
+                  >
                     <Eye className="h-3.5 w-3.5" />
                   </button>
-                  <button onClick={() => updateDoc(d.id, "verified")} className="grid h-7 w-7 place-items-center rounded-full border border-border text-success hover:bg-success/10" title="Verify">
+                  <button
+                    onClick={() => updateDoc(d.id, "verified")}
+                    className="grid h-7 w-7 place-items-center rounded-full border border-border text-success hover:bg-success/10"
+                    title="Verify"
+                  >
                     <ShieldCheck className="h-3.5 w-3.5" />
                   </button>
-                  <button onClick={() => { const n = prompt("Rejection note (optional):") ?? undefined; updateDoc(d.id, "rejected", n || "Document unclear or invalid"); }} className="grid h-7 w-7 place-items-center rounded-full border border-border text-destructive hover:bg-destructive/10" title="Reject">
+                  <button
+                    onClick={() => {
+                      const n = prompt("Rejection note (optional):") ?? undefined;
+                      updateDoc(d.id, "rejected", n || "Document unclear or invalid");
+                    }}
+                    className="grid h-7 w-7 place-items-center rounded-full border border-border text-destructive hover:bg-destructive/10"
+                    title="Reject"
+                  >
                     <ShieldAlert className="h-3.5 w-3.5" />
                   </button>
                 </div>
@@ -255,7 +350,9 @@ function FarmerDetail({ farmer, onChange }: { farmer: any; onChange: () => void 
 
       <div className="border-t border-border px-6 py-5">
         <label className="block">
-          <span className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Rejection reason (if rejecting)</span>
+          <span className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+            Rejection reason (if rejecting)
+          </span>
           <textarea
             value={reason}
             onChange={(e) => setReason(e.target.value)}
@@ -272,7 +369,11 @@ function FarmerDetail({ farmer, onChange }: { farmer: any; onChange: () => void 
               onClick={() => updateStatus("approved")}
               className="font-subhead inline-flex items-center gap-1.5 rounded-full bg-success px-5 py-2.5 text-sm font-medium text-success-foreground disabled:opacity-50"
             >
-              {busy === "approved" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+              {busy === "approved" ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Check className="h-3.5 w-3.5" />
+              )}
               Approve farmer
             </button>
           )}
@@ -282,7 +383,11 @@ function FarmerDetail({ farmer, onChange }: { farmer: any; onChange: () => void 
               onClick={() => updateStatus("rejected")}
               className="font-subhead inline-flex items-center gap-1.5 rounded-full border border-destructive bg-destructive/10 px-5 py-2.5 text-sm font-medium text-destructive disabled:opacity-50"
             >
-              {busy === "rejected" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <X className="h-3.5 w-3.5" />}
+              {busy === "rejected" ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <X className="h-3.5 w-3.5" />
+              )}
               Reject
             </button>
           )}
@@ -308,13 +413,71 @@ function FarmerDetail({ farmer, onChange }: { farmer: any; onChange: () => void 
         </div>
       </div>
     </div>
+
+      {/* Document Preview Modal */}
+      {previewUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+          onClick={() => setPreviewUrl(null)}
+        >
+          <div
+            className="relative w-full max-w-3xl rounded-2xl border border-border bg-background shadow-2xl animate-scale-up overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-border px-6 py-4">
+              <div className="flex items-center gap-2">
+                <FileText className="h-4 w-4 text-primary" />
+                <h3 className="font-display text-sm font-semibold capitalize">{previewLabel}</h3>
+                <span className="font-subhead rounded-full bg-primary/10 px-2 py-0.5 text-[10px] text-primary">
+                  KYC Document
+                </span>
+              </div>
+              <button
+                onClick={() => setPreviewUrl(null)}
+                className="grid h-8 w-8 place-items-center rounded-full border border-border text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="flex items-center justify-center bg-secondary/20 p-6" style={{ maxHeight: "70vh" }}>
+              {previewUrl.startsWith("data:application/pdf") ? (
+                <iframe
+                  src={previewUrl}
+                  title="Document preview"
+                  className="h-[60vh] w-full rounded-xl border border-border bg-white"
+                />
+              ) : (
+                <img
+                  src={previewUrl}
+                  alt={previewLabel}
+                  className="max-h-[60vh] max-w-full rounded-xl border border-border object-contain shadow-lg"
+                />
+              )}
+            </div>
+            <div className="flex items-center justify-between border-t border-border px-6 py-3">
+              <p className="font-subhead text-[11px] text-muted-foreground">
+                Farmer: {farmer.full_name}
+              </p>
+              <button
+                onClick={() => setPreviewUrl(null)}
+                className="font-subhead inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-xs font-medium hover:bg-secondary transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
 function Row({ k, v }: { k: string; v: string | null | undefined }) {
   return (
     <div>
-      <p className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{k}</p>
+      <p className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+        {k}
+      </p>
       <p className="mt-1 font-medium">{v || "—"}</p>
     </div>
   );

@@ -41,7 +41,7 @@ async function fetchRemote(userId: string): Promise<string[]> {
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
   if (error) return [];
-  return (data ?? []).map((r) => (r as { product_slug: string }).product_slug);
+  return (data ?? []).map((r: any) => (r as { product_slug: string }).product_slug);
 }
 
 export const useWishlist = create<WishlistState>()(
@@ -62,12 +62,10 @@ export const useWishlist = create<WishlistState>()(
 
         // Push any guest-saved items to the DB (upsert by unique pair).
         if (local.length > 0) {
-          await supabase
-            .from("wishlist_items")
-            .upsert(
-              local.map((i) => ({ user_id: id, product_slug: i.slug })),
-              { onConflict: "user_id,product_slug", ignoreDuplicates: true },
-            );
+          await supabase.from("wishlist_items").upsert(
+            local.map((i) => ({ user_id: id, product_slug: i.slug })),
+            { onConflict: "user_id,product_slug", ignoreDuplicates: true },
+          );
         }
 
         const remoteSlugs = await fetchRemote(id);

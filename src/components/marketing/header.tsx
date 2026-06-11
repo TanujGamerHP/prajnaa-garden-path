@@ -19,7 +19,6 @@ export function MarketingHeader() {
   const { user } = useAuth();
   const accountHref = user ? "/account" : "/auth/login";
 
-
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur-md">
       <div className="container-prj flex h-16 items-center justify-between gap-6">
@@ -87,7 +86,11 @@ export function MarketingHeader() {
                 {n.label}
               </Link>
             ))}
-            <Link to={accountHref} onClick={() => setOpen(false)} className="font-subhead py-3 text-[15px] text-foreground/85">
+            <Link
+              to={accountHref}
+              onClick={() => setOpen(false)}
+              className="font-subhead py-3 text-[15px] text-foreground/85"
+            >
               {user ? "My account" : "Sign in"}
             </Link>
           </nav>

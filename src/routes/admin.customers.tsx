@@ -21,7 +21,7 @@ function AdminCustomers() {
     },
   });
 
-  const filtered = customers.filter((c) => {
+  const filtered = customers.filter((c: any) => {
     if (!q.trim()) return true;
     const s = q.toLowerCase();
     return (
@@ -37,7 +37,9 @@ function AdminCustomers() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="font-display text-3xl font-semibold">Customers</h2>
-          <p className="mt-1 text-sm text-muted-foreground">{customers.length} registered customers.</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {customers.length} registered customers.
+          </p>
         </div>
         <label className="relative w-72 max-w-full">
           <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
@@ -52,7 +54,9 @@ function AdminCustomers() {
 
       <div className="overflow-hidden rounded-2xl border border-border bg-background">
         {isLoading ? (
-          <div className="grid place-items-center py-20"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+          <div className="grid place-items-center py-20">
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          </div>
         ) : filtered.length === 0 ? (
           <p className="py-20 text-center text-sm text-muted-foreground">No customers match.</p>
         ) : (
@@ -67,13 +71,17 @@ function AdminCustomers() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((c) => (
+              {filtered.map((c: any) => (
                 <tr key={c.id} className="border-t border-border">
                   <td className="px-5 py-4 font-medium">{c.full_name || "—"}</td>
                   <td className="text-muted-foreground">{c.email || "—"}</td>
                   <td className="text-muted-foreground">{c.phone || "—"}</td>
-                  <td className="text-muted-foreground">{[c.city, c.state].filter(Boolean).join(", ") || "—"}</td>
-                  <td className="px-5 text-right text-muted-foreground">{new Date(c.created_at).toLocaleDateString()}</td>
+                  <td className="text-muted-foreground">
+                    {[c.city, c.state].filter(Boolean).join(", ") || "—"}
+                  </td>
+                  <td className="px-5 text-right text-muted-foreground">
+                    {new Date(c.created_at).toLocaleDateString()}
+                  </td>
                 </tr>
               ))}
             </tbody>

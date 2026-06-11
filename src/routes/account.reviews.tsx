@@ -54,7 +54,10 @@ function ReviewsPage() {
 
   return (
     <>
-      <AccountPageHeader title="Your reviews" description="Ratings and write-ups you've published." />
+      <AccountPageHeader
+        title="Your reviews"
+        description="Ratings and write-ups you've published."
+      />
 
       {loading ? (
         <div className="grid place-items-center py-16">
@@ -203,12 +206,21 @@ function EditReviewDialog({
             </div>
           </div>
           <label className="block">
-            <span className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Title</span>
+            <span className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+              Title
+            </span>
             <input name="title" defaultValue={review.title ?? ""} className="input-prj mt-2" />
           </label>
           <label className="block">
-            <span className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Review</span>
-            <textarea name="body" defaultValue={review.body ?? ""} rows={4} className="input-prj mt-2" />
+            <span className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+              Review
+            </span>
+            <textarea
+              name="body"
+              defaultValue={review.body ?? ""}
+              rows={4}
+              className="input-prj mt-2"
+            />
           </label>
         </div>
         <div className="mt-6 flex justify-end gap-2">

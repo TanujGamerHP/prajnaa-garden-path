@@ -15,14 +15,21 @@ export function LegalArticle({
   return (
     <div className="container-prj mx-auto grid max-w-6xl gap-12 py-20 md:grid-cols-[220px_1fr]">
       <aside className="md:sticky md:top-24 md:self-start">
-        <p className="font-subhead text-[11px] uppercase tracking-[0.16em] text-muted-foreground">Last updated</p>
+        <p className="font-subhead text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+          Last updated
+        </p>
         <p className="font-display mt-1.5 text-base font-medium">{updated}</p>
         <nav className="mt-8 hidden md:block">
-          <p className="font-subhead text-[11px] uppercase tracking-[0.16em] text-muted-foreground">On this page</p>
+          <p className="font-subhead text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+            On this page
+          </p>
           <ol className="mt-3 space-y-2 text-sm">
             {sections.map((s, i) => (
               <li key={s.h}>
-                <a href={`#sec-${i}`} className="text-muted-foreground transition-colors hover:text-foreground">
+                <a
+                  href={`#sec-${i}`}
+                  className="text-muted-foreground transition-colors hover:text-foreground"
+                >
                   {String(i + 1).padStart(2, "0")} · {s.h}
                 </a>
               </li>

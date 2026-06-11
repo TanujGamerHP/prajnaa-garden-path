@@ -65,32 +65,32 @@
   --radius: 0.75rem;
 
   /* Brand palette — PRD spec */
-  --background: oklch(1 0 0);                  /* #FFFFFF */
-  --foreground: oklch(0.205 0.024 264);        /* #111827 */
+  --background: oklch(1 0 0); /* #FFFFFF */
+  --foreground: oklch(0.205 0.024 264); /* #111827 */
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.205 0.024 264);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.205 0.024 264);
 
-  --primary: oklch(0.34 0.06 156);             /* #0F3D2E forest */
+  --primary: oklch(0.34 0.06 156); /* #0F3D2E forest */
   --primary-foreground: oklch(0.98 0.01 80);
 
-  --secondary: oklch(0.965 0.012 80);          /* #F7F3EE cream */
+  --secondary: oklch(0.965 0.012 80); /* #F7F3EE cream */
   --secondary-foreground: oklch(0.34 0.06 156);
 
   --muted: oklch(0.965 0.012 80);
   --muted-foreground: oklch(0.49 0.02 264);
 
-  --accent: oklch(0.78 0.14 75);               /* #E8A317 saffron */
+  --accent: oklch(0.78 0.14 75); /* #E8A317 saffron */
   --accent-foreground: oklch(0.205 0.024 264);
 
-  --destructive: oklch(0.6 0.22 27);           /* #DC2626 */
+  --destructive: oklch(0.6 0.22 27); /* #DC2626 */
   --destructive-foreground: oklch(0.98 0 0);
 
-  --success: oklch(0.65 0.17 145);             /* #16A34A */
+  --success: oklch(0.65 0.17 145); /* #16A34A */
   --success-foreground: oklch(0.98 0 0);
 
-  --warning: oklch(0.78 0.16 75);              /* #F59E0B */
+  --warning: oklch(0.78 0.16 75); /* #F59E0B */
   --warning-foreground: oklch(0.205 0.024 264);
 
   --border: oklch(0.92 0.005 80);
@@ -159,7 +159,12 @@
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: var(--font-display);
     letter-spacing: -0.02em;
     color: var(--color-foreground);
@@ -179,7 +184,9 @@
 
 /* Reduced motion: kill ambient + entrance animations, keep semantic transitions snappy. */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     animation-delay: 0ms !important;
@@ -207,7 +214,9 @@
 }
 
 @media (min-width: 768px) {
-  .container-prj { padding-inline: 2rem; }
+  .container-prj {
+    padding-inline: 2rem;
+  }
 }
 
 @utility input-prj {
@@ -222,12 +231,14 @@
   outline: none;
   transition: border-color 150ms ease;
 }
-.input-prj:focus { border-color: var(--color-primary); }
-
+.input-prj:focus {
+  border-color: var(--color-primary);
+}
 
 @utility lift {
-  transition: transform 250ms cubic-bezier(0.2, 0.8, 0.2, 1),
-              box-shadow 250ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition:
+    transform 250ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 250ms cubic-bezier(0.2, 0.8, 0.2, 1);
   &:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-lift);
@@ -235,8 +246,14 @@
 }
 
 @keyframes fade-up {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @utility animate-fade-up {
@@ -244,19 +261,35 @@
 }
 
 @keyframes float-slow {
-  0%, 100% { transform: translate3d(0, 0, 0); }
-  50% { transform: translate3d(0, -12px, 0); }
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -12px, 0);
+  }
 }
 
 @keyframes blob-drift {
-  0%, 100% { transform: translate3d(0,0,0) scale(1); }
-  33% { transform: translate3d(20px,-18px,0) scale(1.06); }
-  66% { transform: translate3d(-18px,12px,0) scale(0.96); }
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(20px, -18px, 0) scale(1.06);
+  }
+  66% {
+    transform: translate3d(-18px, 12px, 0) scale(0.96);
+  }
 }
 
 @keyframes marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 @utility animate-float-slow {
@@ -281,8 +314,12 @@
 
 /* On coarse pointers / small screens, slow the blob & drop heavy blur work — keeps it 60fps. */
 @media (max-width: 768px), (pointer: coarse) {
-  .animate-blob { animation-duration: 28s; }
-  .animate-marquee { animation-duration: 55s; }
+  .animate-blob {
+    animation-duration: 28s;
+  }
+  .animate-marquee {
+    animation-duration: 55s;
+  }
 }
 
 @utility grain {

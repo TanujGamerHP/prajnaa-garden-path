@@ -1,6 +1,18 @@
 import { createFileRoute, Outlet, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { LayoutDashboard, Users, Package, ShoppingBag, UserCog, Ticket, Image, Wallet, Settings, Loader2, ShieldOff } from "lucide-react";
+import {
+  LayoutDashboard,
+  Users,
+  Package,
+  ShoppingBag,
+  UserCog,
+  Ticket,
+  Image,
+  Wallet,
+  Settings,
+  Loader2,
+  ShieldOff,
+} from "lucide-react";
 import { DashboardShell, type NavItem } from "@/components/dashboard/shell";
 import { useAuth } from "@/hooks/use-auth";
 import { useIsAdmin } from "@/lib/admin/use-admin";
@@ -88,7 +100,10 @@ function AdminShell() {
             <p className="text-[11px] text-muted-foreground">
               The button above only works if no admin has been set up yet.
             </p>
-            <Link to="/" className="font-subhead mt-3 text-xs text-muted-foreground hover:text-foreground">
+            <Link
+              to="/"
+              className="font-subhead mt-3 text-xs text-muted-foreground hover:text-foreground"
+            >
               Back to site
             </Link>
           </div>

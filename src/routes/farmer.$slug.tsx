@@ -79,7 +79,11 @@ function DbFarmerView({ farmer, products }: { farmer: any; products: any[] }) {
           <div className="md:col-span-5">
             <div className="overflow-hidden rounded-3xl bg-secondary">
               {farmer.portrait_url ? (
-                <img src={farmer.portrait_url} alt={farmer.full_name} className="aspect-[4/5] w-full object-cover" />
+                <img
+                  src={farmer.portrait_url}
+                  alt={farmer.full_name}
+                  className="aspect-[4/5] w-full object-cover"
+                />
               ) : (
                 <div className="grid aspect-[4/5] w-full place-items-center bg-secondary">
                   <span className="font-display text-6xl text-muted-foreground">
@@ -117,29 +121,44 @@ function DbFarmerView({ farmer, products }: { farmer: any; products: any[] }) {
             <dl className="mt-6 flex flex-wrap gap-x-8 gap-y-3 text-sm">
               {farmer.farm_size_acres && (
                 <div>
-                  <dt className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Farm size</dt>
-                  <dd className="font-display mt-1 text-lg font-medium">{farmer.farm_size_acres} acres</dd>
+                  <dt className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                    Farm size
+                  </dt>
+                  <dd className="font-display mt-1 text-lg font-medium">
+                    {farmer.farm_size_acres} acres
+                  </dd>
                 </div>
               )}
               <div>
-                <dt className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Available products</dt>
+                <dt className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                  Available products
+                </dt>
                 <dd className="font-display mt-1 text-lg font-medium">{products.length}</dd>
               </div>
             </dl>
 
             {(farmer.headline || farmer.story) && (
               <div className="mt-8 max-w-prose space-y-4 text-[15px] leading-relaxed text-foreground/85">
-                {farmer.headline && <p className="font-display text-xl text-foreground">{farmer.headline}</p>}
+                {farmer.headline && (
+                  <p className="font-display text-xl text-foreground">{farmer.headline}</p>
+                )}
                 {farmer.story && <p>{farmer.story}</p>}
               </div>
             )}
 
             {farmer.crops && farmer.crops.length > 0 && (
               <div className="mt-6">
-                <p className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Crops</p>
+                <p className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                  Crops
+                </p>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {farmer.crops.map((c: string) => (
-                    <span key={c} className="font-subhead rounded-full border border-border px-3 py-1 text-xs capitalize">{c}</span>
+                    <span
+                      key={c}
+                      className="font-subhead rounded-full border border-border px-3 py-1 text-xs capitalize"
+                    >
+                      {c}
+                    </span>
                   ))}
                 </div>
               </div>
@@ -151,23 +170,30 @@ function DbFarmerView({ farmer, products }: { farmer: any; products: any[] }) {
       <section className="container-prj mt-20">
         <h2 className="font-display text-2xl font-semibold">Products from this farm</h2>
         {products.length === 0 ? (
-          <p className="mt-4 text-muted-foreground">No active listings right now. Check back after the next harvest.</p>
+          <p className="mt-4 text-muted-foreground">
+            No active listings right now. Check back after the next harvest.
+          </p>
         ) : (
           <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {products.map((p) => (
-              <div key={p.id} className="rounded-2xl border border-border bg-background overflow-hidden hover:shadow-md transition-shadow">
-                <Link to="/product/$slug" params={{ slug: p.slug }}>
-                  <div className="aspect-square bg-secondary">
-                    {p.images?.[0] && <img src={p.images[0]} alt={p.name} className="h-full w-full object-cover" />}
-                  </div>
-                  <div className="p-4">
-                    <p className="font-display text-sm font-semibold">{p.name}</p>
-                    <p className="font-subhead mt-1 text-xs text-muted-foreground capitalize">{p.category}</p>
-                    <p className="font-display mt-2 text-base font-semibold">₹{Number(p.price).toFixed(0)} <span className="font-subhead text-xs text-muted-foreground">/ {p.unit}</span></p>
-                  </div>
-                </Link>
-              </div>
-            ))}
+            {products.map((p) => {
+              const mappedProduct = {
+                slug: p.slug,
+                name: p.name,
+                category: p.category,
+                farmerSlug: farmer.slug,
+                image: p.images?.[0] || "",
+                images: p.images || [],
+                price: Math.ceil(Number(p.price || 0) * 1.10), // Adding 10% commission
+                weight: p.unit || "unit",
+                stock: Number(p.stock || 0),
+                rating: 4.8,
+                reviews: 0,
+                description: p.description || "",
+                farmerName: farmer.full_name,
+                farmerLocation: `${farmer.village}, ${farmer.state}`,
+              };
+              return <ProductCard key={p.slug} product={mappedProduct as any} />;
+            })}
           </div>
         )}
       </section>
@@ -182,14 +208,22 @@ function MockFarmerView({ farmer, products }: { farmer: any; products: any[] }) 
         <div className="grid items-center gap-10 md:grid-cols-12">
           <div className="md:col-span-5">
             <div className="overflow-hidden rounded-3xl bg-secondary">
-              <img src={farmer.image} alt={farmer.name} width={800} height={1000} className="aspect-[4/5] w-full object-cover" />
+              <img
+                src={farmer.image}
+                alt={farmer.name}
+                width={800}
+                height={1000}
+                className="aspect-[4/5] w-full object-cover"
+              />
             </div>
           </div>
           <div className="md:col-span-7">
             <p className="font-subhead text-xs uppercase tracking-[0.18em] text-primary">
               {farmer.village}, {farmer.state} · {farmer.region}
             </p>
-            <h1 className="font-display mt-3 text-5xl font-semibold leading-[1.02] md:text-6xl">{farmer.name}</h1>
+            <h1 className="font-display mt-3 text-5xl font-semibold leading-[1.02] md:text-6xl">
+              {farmer.name}
+            </h1>
             <div className="mt-4">
               <span className="font-subhead inline-flex items-center gap-1.5 rounded-full bg-success/15 px-3 py-1 text-xs font-medium text-success">
                 <ShieldCheck className="h-3.5 w-3.5" /> KYC verified
@@ -197,15 +231,23 @@ function MockFarmerView({ farmer, products }: { farmer: any; products: any[] }) 
             </div>
             <dl className="mt-6 flex flex-wrap gap-x-8 gap-y-3 text-sm">
               <div>
-                <dt className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Experience</dt>
-                <dd className="font-display mt-1 text-lg font-medium">{farmer.yearsExperience} years</dd>
+                <dt className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                  Experience
+                </dt>
+                <dd className="font-display mt-1 text-lg font-medium">
+                  {farmer.yearsExperience} years
+                </dd>
               </div>
               <div>
-                <dt className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Method</dt>
+                <dt className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                  Method
+                </dt>
                 <dd className="font-display mt-1 text-lg font-medium">{farmer.method}</dd>
               </div>
               <div>
-                <dt className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Available products</dt>
+                <dt className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                  Available products
+                </dt>
                 <dd className="font-display mt-1 text-lg font-medium">{products.length}</dd>
               </div>
             </dl>
@@ -221,7 +263,10 @@ function MockFarmerView({ farmer, products }: { farmer: any; products: any[] }) 
         <h2 className="font-display text-2xl font-semibold">Upcoming harvests</h2>
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {farmer.upcomingHarvests.map((h: string) => (
-            <div key={h} className="font-subhead rounded-2xl border border-dashed border-border bg-secondary/40 p-5 text-sm">
+            <div
+              key={h}
+              className="font-subhead rounded-2xl border border-dashed border-border bg-secondary/40 p-5 text-sm"
+            >
               {h}
             </div>
           ))}
@@ -231,10 +276,14 @@ function MockFarmerView({ farmer, products }: { farmer: any; products: any[] }) 
       <section className="container-prj mt-20">
         <h2 className="font-display text-2xl font-semibold">Products from this farm</h2>
         {products.length === 0 ? (
-          <p className="mt-4 text-muted-foreground">No active listings right now. Check back after the next harvest.</p>
+          <p className="mt-4 text-muted-foreground">
+            No active listings right now. Check back after the next harvest.
+          </p>
         ) : (
           <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {products.map((p: typeof products[number]) => <ProductCard key={p.slug} product={p} />)}
+            {products.map((p: (typeof products)[number]) => (
+              <ProductCard key={p.slug} product={p} />
+            ))}
           </div>
         )}
       </section>

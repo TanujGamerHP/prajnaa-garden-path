@@ -107,7 +107,9 @@ function AddressesPage() {
             <article key={a.id} className="rounded-2xl border border-border bg-card p-5">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="font-subhead text-[11px] uppercase tracking-[0.14em] text-primary">{a.label}</p>
+                  <p className="font-subhead text-[11px] uppercase tracking-[0.14em] text-primary">
+                    {a.label}
+                  </p>
                   <p className="font-display mt-1 text-base font-medium">{a.full_name}</p>
                 </div>
                 {a.is_default && (
@@ -118,12 +120,22 @@ function AddressesPage() {
               </div>
               <address className="mt-3 text-sm not-italic text-muted-foreground">
                 {a.line1}
-                {a.line2 && <><br />{a.line2}</>}
+                {a.line2 && (
+                  <>
+                    <br />
+                    {a.line2}
+                  </>
+                )}
                 <br />
                 {a.city}, {a.state} {a.postal_code}
                 <br />
                 {a.country}
-                {a.phone && <><br />Phone: {a.phone}</>}
+                {a.phone && (
+                  <>
+                    <br />
+                    Phone: {a.phone}
+                  </>
+                )}
               </address>
               <div className="mt-4 flex flex-wrap gap-2">
                 <button
@@ -244,16 +256,33 @@ function AddressDialog({
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-xl rounded-2xl border border-border bg-background p-6 shadow-xl"
       >
-        <h2 className="font-display text-xl font-semibold">{address ? "Edit address" : "New address"}</h2>
+        <h2 className="font-display text-xl font-semibold">
+          {address ? "Edit address" : "New address"}
+        </h2>
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
           <Field label="Label">
-            <input name="label" defaultValue={address?.label ?? "Home"} required className="input-prj" />
+            <input
+              name="label"
+              defaultValue={address?.label ?? "Home"}
+              required
+              className="input-prj"
+            />
           </Field>
           <Field label="Full name">
-            <input name="full_name" defaultValue={address?.full_name ?? ""} required className="input-prj" />
+            <input
+              name="full_name"
+              defaultValue={address?.full_name ?? ""}
+              required
+              className="input-prj"
+            />
           </Field>
           <Field label="Phone">
-            <input name="phone" defaultValue={address?.phone ?? ""} placeholder="+91…" className="input-prj" />
+            <input
+              name="phone"
+              defaultValue={address?.phone ?? ""}
+              placeholder="+91…"
+              className="input-prj"
+            />
           </Field>
           <Field label="Country (2-letter)">
             <input
@@ -265,7 +294,12 @@ function AddressDialog({
             />
           </Field>
           <Field label="Address line 1" full>
-            <input name="line1" defaultValue={address?.line1 ?? ""} required className="input-prj" />
+            <input
+              name="line1"
+              defaultValue={address?.line1 ?? ""}
+              required
+              className="input-prj"
+            />
           </Field>
           <Field label="Address line 2" full>
             <input name="line2" defaultValue={address?.line2 ?? ""} className="input-prj" />
@@ -274,10 +308,20 @@ function AddressDialog({
             <input name="city" defaultValue={address?.city ?? ""} required className="input-prj" />
           </Field>
           <Field label="State">
-            <input name="state" defaultValue={address?.state ?? ""} required className="input-prj" />
+            <input
+              name="state"
+              defaultValue={address?.state ?? ""}
+              required
+              className="input-prj"
+            />
           </Field>
           <Field label="Postal code">
-            <input name="postal_code" defaultValue={address?.postal_code ?? ""} required className="input-prj" />
+            <input
+              name="postal_code"
+              defaultValue={address?.postal_code ?? ""}
+              required
+              className="input-prj"
+            />
           </Field>
           <label className="flex items-center gap-2 sm:col-span-2">
             <input
@@ -309,10 +353,20 @@ function AddressDialog({
   );
 }
 
-function Field({ label, children, full }: { label: string; children: React.ReactNode; full?: boolean }) {
+function Field({
+  label,
+  children,
+  full,
+}: {
+  label: string;
+  children: React.ReactNode;
+  full?: boolean;
+}) {
   return (
     <label className={`block ${full ? "sm:col-span-2" : ""}`}>
-      <span className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{label}</span>
+      <span className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+        {label}
+      </span>
       <div className="mt-2">{children}</div>
     </label>
   );

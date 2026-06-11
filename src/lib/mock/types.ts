@@ -23,11 +23,11 @@ export type Farmer = {
 export type Product = {
   slug: string;
   name: string;
-  category: string;          // category slug
+  category: string; // category slug
   farmerSlug: string;
   image: string;
   images?: string[];
-  price: number;             // INR
+  price: number; // INR
   mrp?: number;
   weight: string;
   stock: number;

@@ -9,7 +9,8 @@ export function MarketingFooter() {
         <div className="md:col-span-4">
           <Logo />
           <p className="mt-4 max-w-xs text-sm text-muted-foreground">
-            From Soil to Soul, Naturally. Authentic farm produce, sourced directly from trusted farmers across India.
+            From Soil to Soul, Naturally. Authentic farm produce, sourced directly from trusted
+            farmers across India.
           </p>
           <p className="font-subhead mt-6 text-xs uppercase tracking-[0.16em] text-muted-foreground">
             shop.prajnaa.in
@@ -78,10 +79,18 @@ export function MarketingFooter() {
         <div className="container-prj flex flex-col items-start justify-between gap-3 py-6 text-xs text-muted-foreground md:flex-row md:items-center">
           <p>© {new Date().getFullYear()} Prajnaa Farm. All rights reserved.</p>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-            <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
-            <Link to="/terms" className="hover:text-foreground">Terms</Link>
-            <Link to="/shipping" className="hover:text-foreground">Shipping</Link>
-            <Link to="/returns" className="hover:text-foreground">Returns</Link>
+            <Link to="/privacy" className="hover:text-foreground">
+              Privacy
+            </Link>
+            <Link to="/terms" className="hover:text-foreground">
+              Terms
+            </Link>
+            <Link to="/shipping" className="hover:text-foreground">
+              Shipping
+            </Link>
+            <Link to="/returns" className="hover:text-foreground">
+              Returns
+            </Link>
             <span>· Made with care in India.</span>
           </div>
         </div>
@@ -93,11 +102,16 @@ export function MarketingFooter() {
 function FooterCol({ title, links }: { title: string; links: { to: string; label: string }[] }) {
   return (
     <div className="md:col-span-2">
-      <h4 className="font-subhead text-xs uppercase tracking-[0.16em] text-foreground/85">{title}</h4>
+      <h4 className="font-subhead text-xs uppercase tracking-[0.16em] text-foreground/85">
+        {title}
+      </h4>
       <ul className="mt-4 space-y-2.5">
         {links.map((l) => (
           <li key={l.to + l.label}>
-            <Link to={l.to} className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+            <Link
+              to={l.to}
+              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
               {l.label}
             </Link>
           </li>

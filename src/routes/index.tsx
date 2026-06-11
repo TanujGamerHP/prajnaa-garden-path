@@ -1,6 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Leaf, ShieldCheck, Truck, Sprout, Star, MapPin, PackageCheck, HandHeart, Quote } from "lucide-react";
-import { useState } from "react";
+import {
+  ArrowRight,
+  Leaf,
+  ShieldCheck,
+  Truck,
+  Sprout,
+  Star,
+  MapPin,
+  PackageCheck,
+  HandHeart,
+  Quote,
+} from "lucide-react";
+import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import heroImg from "@/assets/hero.jpg";
 import { MarketingLayout } from "@/components/marketing/layout";
 import { SectionHeader } from "@/components/store/section-header";
@@ -18,9 +31,16 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Prajnaa Farm — From Soil to Soul, Naturally" },
-      { name: "description", content: "A premium farm-to-consumer marketplace. Verified farmers, natural products, traceable to the soil." },
+      {
+        name: "description",
+        content:
+          "A premium farm-to-consumer marketplace. Verified farmers, natural products, traceable to the soil.",
+      },
       { property: "og:title", content: "Prajnaa Farm — From Soil to Soul, Naturally" },
-      { property: "og:description", content: "Verified farmers, natural products, traceable to the soil." },
+      {
+        property: "og:description",
+        content: "Verified farmers, natural products, traceable to the soil.",
+      },
       { property: "og:url", content: "/" },
     ],
   }),
@@ -54,7 +74,10 @@ function Hero() {
       {/* Ambient gradient blobs */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute -top-32 -left-24 h-[420px] w-[420px] rounded-full bg-primary/15 blur-3xl animate-blob" />
-        <div className="absolute top-20 -right-20 h-[360px] w-[360px] rounded-full bg-accent/25 blur-3xl animate-blob" style={{ animationDelay: "-6s" }} />
+        <div
+          className="absolute top-20 -right-20 h-[360px] w-[360px] rounded-full bg-accent/25 blur-3xl animate-blob"
+          style={{ animationDelay: "-6s" }}
+        />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,oklch(0.965_0.012_80)_0%,transparent_60%)]" />
       </div>
 
@@ -71,10 +94,13 @@ function Hero() {
             <h1 className="font-display mt-5 text-5xl font-semibold leading-[1.02] tracking-tight md:text-6xl lg:text-7xl">
               From Soil to&nbsp;Soul,
               <br />
-              <span className="bg-gradient-to-r from-primary via-primary to-accent bg-clip-text text-transparent">Naturally.</span>
+              <span className="bg-gradient-to-r from-primary via-primary to-accent bg-clip-text text-transparent">
+                Naturally.
+              </span>
             </h1>
             <p className="mt-5 max-w-md text-base text-muted-foreground md:text-lg">
-              Authentic farm produce sourced directly from trusted farmers. Every jar carries a name, a place, and a harvest date.
+              Authentic farm produce sourced directly from trusted farmers. Every jar carries a
+              name, a place, and a harvest date.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link
@@ -99,7 +125,9 @@ function Hero() {
               ].map((s, i) => (
                 <Reveal key={s.v} delay={i * 80} inline>
                   <dt className="font-display text-2xl font-semibold">{s.k}</dt>
-                  <dd className="font-subhead mt-1 text-xs uppercase tracking-[0.12em] text-muted-foreground">{s.v}</dd>
+                  <dd className="font-subhead mt-1 text-xs uppercase tracking-[0.12em] text-muted-foreground">
+                    {s.v}
+                  </dd>
                 </Reveal>
               ))}
             </dl>
@@ -124,7 +152,9 @@ function Hero() {
               </div>
               <div className="absolute bottom-5 left-5 right-5 flex items-center justify-between rounded-2xl bg-background/95 p-4 backdrop-blur shadow-lg">
                 <div>
-                  <p className="font-subhead text-[11px] uppercase tracking-[0.16em] text-muted-foreground">Harvested by</p>
+                  <p className="font-subhead text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+                    Harvested by
+                  </p>
                   <p className="font-display text-base font-medium">Ramesh Singh · Hunza, Ladakh</p>
                 </div>
                 <Link
@@ -144,18 +174,33 @@ function Hero() {
 }
 
 function PressStrip() {
-  const items = ["The Hindu", "Vogue India", "Mint Lounge", "YourStory", "Forbes India", "Conde Nast Traveller", "LBB", "Architectural Digest"];
+  const items = [
+    "The Hindu",
+    "Vogue India",
+    "Mint Lounge",
+    "YourStory",
+    "Forbes India",
+    "Conde Nast Traveller",
+    "LBB",
+    "Architectural Digest",
+  ];
   const row = [...items, ...items];
   return (
     <section className="mt-20 border-y border-border bg-secondary/40 py-6">
       <div className="container-prj mb-3 flex items-center justify-between">
-        <p className="font-subhead text-[11px] uppercase tracking-[0.18em] text-muted-foreground">As featured in</p>
-        <p className="font-subhead text-[11px] uppercase tracking-[0.18em] text-muted-foreground hidden sm:block">2024 · 2025 · 2026</p>
+        <p className="font-subhead text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+          As featured in
+        </p>
+        <p className="font-subhead text-[11px] uppercase tracking-[0.18em] text-muted-foreground hidden sm:block">
+          2024 · 2025 · 2026
+        </p>
       </div>
       <div className="relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
         <div className="flex w-max gap-14 animate-marquee whitespace-nowrap pr-14">
           {row.map((p, i) => (
-            <span key={i} className="font-display text-xl font-medium text-foreground/55">{p}</span>
+            <span key={i} className="font-display text-xl font-medium text-foreground/55">
+              {p}
+            </span>
           ))}
         </div>
       </div>
@@ -165,7 +210,11 @@ function PressStrip() {
 
 function WhyUs() {
   const items = [
-    { icon: ShieldCheck, t: "Verified Farmers", d: "Every seller is vetted and traceable to a real farm." },
+    {
+      icon: ShieldCheck,
+      t: "Verified Farmers",
+      d: "Every seller is vetted and traceable to a real farm.",
+    },
     { icon: Leaf, t: "Natural Products", d: "No synthetic additives. No fillers. No shortcuts." },
     { icon: Sprout, t: "Secure Payments", d: "UPI, cards, COD. Razorpay-secured checkout." },
     { icon: Truck, t: "India-Wide Delivery", d: "Carefully packed. Tracked. Delivered fresh." },
@@ -201,7 +250,10 @@ function ShopByCategory() {
           title="Shop by category"
           subtitle="Nine carefully curated families of produce. Each one sourced from a farmer with a name."
           action={
-            <Link to="/shop" className="font-subhead inline-flex items-center gap-1 text-sm font-medium text-primary hover:opacity-80">
+            <Link
+              to="/shop"
+              className="font-subhead inline-flex items-center gap-1 text-sm font-medium text-primary hover:opacity-80"
+            >
               View all <ArrowRight className="h-4 w-4" />
             </Link>
           }
@@ -220,10 +272,30 @@ function ShopByCategory() {
 
 function HowItWorks() {
   const steps = [
-    { n: "01", icon: MapPin, t: "We find the farmer", d: "We travel to remote villages and meet growers with generational expertise." },
-    { n: "02", icon: ShieldCheck, t: "Verify & lab-test", d: "Soil, water, and product samples are tested before a single jar ships." },
-    { n: "03", icon: PackageCheck, t: "Carefully packed", d: "Sealed at source. Each pack carries the farmer's name, batch, and harvest date." },
-    { n: "04", icon: HandHeart, t: "Delivered to you", d: "Tracked logistics across India. From a Himalayan field to your kitchen." },
+    {
+      n: "01",
+      icon: MapPin,
+      t: "We find the farmer",
+      d: "We travel to remote villages and meet growers with generational expertise.",
+    },
+    {
+      n: "02",
+      icon: ShieldCheck,
+      t: "Verify & lab-test",
+      d: "Soil, water, and product samples are tested before a single jar ships.",
+    },
+    {
+      n: "03",
+      icon: PackageCheck,
+      t: "Carefully packed",
+      d: "Sealed at source. Each pack carries the farmer's name, batch, and harvest date.",
+    },
+    {
+      n: "04",
+      icon: HandHeart,
+      t: "Delivered to you",
+      d: "Tracked logistics across India. From a Himalayan field to your kitchen.",
+    },
   ];
   return (
     <section className="container-prj mt-24">
@@ -234,7 +306,9 @@ function HowItWorks() {
         {steps.map((s, i) => (
           <Reveal key={s.n} delay={i * 100}>
             <div className="relative h-full rounded-2xl border border-border bg-background p-6">
-              <span className="font-display absolute right-5 top-5 text-3xl font-semibold text-primary/15">{s.n}</span>
+              <span className="font-display absolute right-5 top-5 text-3xl font-semibold text-primary/15">
+                {s.n}
+              </span>
               <s.icon className="h-5 w-5 text-primary" />
               <h3 className="font-display mt-4 text-lg font-medium">{s.t}</h3>
               <p className="mt-1.5 text-sm text-muted-foreground">{s.d}</p>
@@ -247,6 +321,39 @@ function HowItWorks() {
 }
 
 function FeaturedFarmers() {
+  const { data: dbFarmers = [] } = useQuery({
+    queryKey: ["public-all-farmers"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("farmer_profiles")
+        .select("id,full_name,farm_name,village,state,crops,headline,story,portrait_url,slug,years_farming,farming_method")
+        .eq("status", "approved");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const mappedDbFarmers = useMemo(() => {
+    return dbFarmers.map((f: any) => ({
+      slug: f.slug || "unknown",
+      name: f.full_name,
+      image: f.portrait_url || "",
+      village: f.village || "India",
+      state: f.state || "Farm",
+      region: "Local Farm",
+      yearsExperience: f.years_farming || 0,
+      method: f.farming_method || "Natural Farming",
+      storyPreview: f.headline || "",
+      story: f.story || "",
+      upcomingHarvests: f.crops || [],
+      productSlugs: [],
+    }));
+  }, [dbFarmers]);
+
+  const combinedFarmers = useMemo(() => {
+    return [...farmers, ...mappedDbFarmers];
+  }, [mappedDbFarmers]);
+
   return (
     <section className="container-prj mt-24">
       <Reveal>
@@ -255,16 +362,19 @@ function FeaturedFarmers() {
           title="The people behind your produce."
           subtitle="Real farmers, real stories, real fields. Tap any portrait to read theirs."
           action={
-            <Link to="/farmers" className="font-subhead inline-flex items-center gap-1 text-sm font-medium text-primary hover:opacity-80">
+            <Link
+              to="/farmers"
+              className="font-subhead inline-flex items-center gap-1 text-sm font-medium text-primary hover:opacity-80"
+            >
               Meet all farmers <ArrowRight className="h-4 w-4" />
             </Link>
           }
         />
       </Reveal>
       <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {farmers.map((f, i) => (
+        {combinedFarmers.map((f, i) => (
           <Reveal key={f.slug} delay={(i % 4) * 90}>
-            <FarmerCard farmer={f} />
+            <FarmerCard farmer={f as any} />
           </Reveal>
         ))}
       </div>
@@ -281,7 +391,10 @@ function Trending() {
           eyebrow="Trending"
           title="What people are buying."
           action={
-            <Link to="/shop" className="font-subhead inline-flex items-center gap-1 text-sm font-medium text-primary hover:opacity-80">
+            <Link
+              to="/shop"
+              className="font-subhead inline-flex items-center gap-1 text-sm font-medium text-primary hover:opacity-80"
+            >
               Shop all <ArrowRight className="h-4 w-4" />
             </Link>
           }
@@ -315,7 +428,9 @@ function ImpactStats() {
           </div>
           <div className="relative grid items-end gap-10 md:grid-cols-[1fr_2fr]">
             <div>
-              <p className="font-subhead text-xs uppercase tracking-[0.18em] text-primary">Our impact</p>
+              <p className="font-subhead text-xs uppercase tracking-[0.18em] text-primary">
+                Our impact
+              </p>
               <h2 className="font-display mt-3 text-3xl font-semibold leading-[1.05] md:text-4xl">
                 Numbers that go back to the soil.
               </h2>
@@ -324,7 +439,9 @@ function ImpactStats() {
               {stats.map((s, i) => (
                 <Reveal key={s.v} delay={i * 80}>
                   <dt className="font-display text-3xl font-semibold md:text-4xl">{s.k}</dt>
-                  <dd className="font-subhead mt-1 text-xs uppercase tracking-[0.12em] text-muted-foreground">{s.v}</dd>
+                  <dd className="font-subhead mt-1 text-xs uppercase tracking-[0.12em] text-muted-foreground">
+                    {s.v}
+                  </dd>
                 </Reveal>
               ))}
             </dl>
@@ -343,16 +460,22 @@ function Seasonal() {
         <div className="relative overflow-hidden rounded-3xl bg-primary text-primary-foreground">
           <div aria-hidden className="pointer-events-none absolute inset-0">
             <div className="absolute -top-32 -right-20 h-96 w-96 rounded-full bg-accent/30 blur-3xl animate-blob" />
-            <div className="absolute -bottom-20 left-10 h-72 w-72 rounded-full bg-primary-foreground/10 blur-3xl animate-blob" style={{ animationDelay: "-8s" }} />
+            <div
+              className="absolute -bottom-20 left-10 h-72 w-72 rounded-full bg-primary-foreground/10 blur-3xl animate-blob"
+              style={{ animationDelay: "-8s" }}
+            />
           </div>
           <div className="relative grid items-center gap-10 p-8 md:grid-cols-2 md:p-14">
             <div>
-              <p className="font-subhead text-xs uppercase tracking-[0.18em] text-accent">In season now</p>
+              <p className="font-subhead text-xs uppercase tracking-[0.18em] text-accent">
+                In season now
+              </p>
               <h2 className="font-display mt-3 text-4xl font-semibold leading-[1.05] md:text-5xl">
                 Seasonal produce, at its&nbsp;peak.
               </h2>
               <p className="mt-3 max-w-md text-sm opacity-85">
-                Limited harvests, available only while they last. When the season ends, they're gone until next year.
+                Limited harvests, available only while they last. When the season ends, they're gone
+                until next year.
               </p>
               <Link
                 to="/shop"
@@ -370,7 +493,14 @@ function Seasonal() {
                     className="group block overflow-hidden rounded-2xl bg-background/10"
                   >
                     <div className="aspect-square overflow-hidden">
-                      <img src={p.image} alt={p.name} loading="lazy" width={400} height={400} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.08]" />
+                      <img
+                        src={p.image}
+                        alt={p.name}
+                        loading="lazy"
+                        width={400}
+                        height={400}
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.08]"
+                      />
                     </div>
                   </Link>
                 </Reveal>
@@ -397,7 +527,11 @@ function SourcingMap() {
   return (
     <section className="container-prj mt-24">
       <Reveal>
-        <SectionHeader eyebrow="Sourcing map" title="Where your jars come from." subtitle="From the Himalayas to the Western Ghats, traced to the village." />
+        <SectionHeader
+          eyebrow="Sourcing map"
+          title="Where your jars come from."
+          subtitle="From the Himalayas to the Western Ghats, traced to the village."
+        />
       </Reveal>
       <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {regions.map((r, i) => (
@@ -424,12 +558,15 @@ function BecomeSeller() {
       <Reveal>
         <div className="grid items-center gap-10 rounded-3xl border border-border bg-secondary/40 p-8 md:grid-cols-2 md:p-14">
           <div>
-            <p className="font-subhead text-xs uppercase tracking-[0.18em] text-primary">For farmers</p>
+            <p className="font-subhead text-xs uppercase tracking-[0.18em] text-primary">
+              For farmers
+            </p>
             <h2 className="font-display mt-3 text-3xl font-semibold leading-[1.05] md:text-4xl">
               Sell directly to families across India.
             </h2>
             <p className="mt-3 max-w-md text-sm text-muted-foreground">
-              Keep more of every rupee. We handle the storefront, payments, and logistics. You focus on the soil.
+              Keep more of every rupee. We handle the storefront, payments, and logistics. You focus
+              on the soil.
             </p>
             <Link
               to="/become-a-seller"
@@ -447,9 +584,22 @@ function BecomeSeller() {
               "Farmer story page",
               "Dedicated dashboard",
             ].map((b, i) => (
-              <Reveal as="li" key={b} delay={i * 60} className="font-subhead flex items-center gap-2 rounded-xl bg-background p-3 text-sm">
+              <Reveal
+                as="li"
+                key={b}
+                delay={i * 60}
+                className="font-subhead flex items-center gap-2 rounded-xl bg-background p-3 text-sm"
+              >
                 <span className="grid h-5 w-5 place-items-center rounded-full bg-primary text-primary-foreground">
-                  <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12l5 5L20 7" /></svg>
+                  <svg
+                    className="h-3 w-3"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                  >
+                    <path d="M5 12l5 5L20 7" />
+                  </svg>
                 </span>
                 {b}
               </Reveal>
@@ -477,7 +627,9 @@ function Testimonials() {
                   <Star key={i} className="h-4 w-4 fill-accent" />
                 ))}
               </div>
-              <blockquote className="mt-4 text-sm leading-relaxed text-foreground/85">"{t.text}"</blockquote>
+              <blockquote className="mt-4 text-sm leading-relaxed text-foreground/85">
+                "{t.text}"
+              </blockquote>
               <figcaption className="font-subhead mt-5 text-xs uppercase tracking-[0.12em] text-muted-foreground">
                 {t.author} · {t.location}
               </figcaption>
@@ -491,11 +643,26 @@ function Testimonials() {
 
 function FAQ() {
   const items = [
-    { q: "How do you verify farmers?", a: "Each farmer goes through a 4-step onboarding: site visit, document verification, soil/water reports, and lab-tested product samples before going live." },
-    { q: "Is everything organic?", a: "We source natural, chemical-free produce. Many products are certified organic; certifications are listed on each product page." },
-    { q: "Do you deliver across India?", a: "Yes. We deliver to 20,000+ pin codes via trusted logistics partners. Most orders ship within 48 hours of harvest packing." },
-    { q: "What if my order arrives damaged?", a: "We offer a 100% refund or replacement on damaged items, no questions asked. Just share a photo within 48 hours of delivery." },
-    { q: "Can I subscribe to monthly orders?", a: "Subscriptions are rolling out in our next release. Meanwhile, our 'Restock reminder' will email you when your favourites are back." },
+    {
+      q: "How do you verify farmers?",
+      a: "Each farmer goes through a 4-step onboarding: site visit, document verification, soil/water reports, and lab-tested product samples before going live.",
+    },
+    {
+      q: "Is everything organic?",
+      a: "We source natural, chemical-free produce. Many products are certified organic; certifications are listed on each product page.",
+    },
+    {
+      q: "Do you deliver across India?",
+      a: "Yes. We deliver to 20,000+ pin codes via trusted logistics partners. Most orders ship within 48 hours of harvest packing.",
+    },
+    {
+      q: "What if my order arrives damaged?",
+      a: "We offer a 100% refund or replacement on damaged items, no questions asked. Just share a photo within 48 hours of delivery.",
+    },
+    {
+      q: "Can I subscribe to monthly orders?",
+      a: "Subscriptions are rolling out in our next release. Meanwhile, our 'Restock reminder' will email you when your favourites are back.",
+    },
   ];
   const [open, setOpen] = useState<number | null>(0);
   return (
@@ -519,7 +686,12 @@ function FAQ() {
                   aria-controls={panelId}
                 >
                   <span className="font-display text-base font-medium">{item.q}</span>
-                  <span aria-hidden className={`grid h-7 w-7 shrink-0 place-items-center rounded-full border border-border text-sm transition-transform ${isOpen ? "rotate-45 bg-primary text-primary-foreground border-primary" : ""}`}>+</span>
+                  <span
+                    aria-hidden
+                    className={`grid h-7 w-7 shrink-0 place-items-center rounded-full border border-border text-sm transition-transform ${isOpen ? "rotate-45 bg-primary text-primary-foreground border-primary" : ""}`}
+                  >
+                    +
+                  </span>
                 </button>
               </h3>
               <div
@@ -531,7 +703,9 @@ function FAQ() {
                 className="grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none"
               >
                 <div className="overflow-hidden">
-                  <p className="px-6 pb-5 text-sm leading-relaxed text-muted-foreground">{item.a}</p>
+                  <p className="px-6 pb-5 text-sm leading-relaxed text-muted-foreground">
+                    {item.a}
+                  </p>
                 </div>
               </div>
             </div>
@@ -550,14 +724,21 @@ function Newsletter() {
         <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-secondary/70 via-background to-secondary/40 p-10 md:p-14">
           <div aria-hidden className="pointer-events-none absolute inset-0">
             <div className="absolute -top-20 -left-10 h-64 w-64 rounded-full bg-primary/10 blur-3xl animate-blob" />
-            <div className="absolute -bottom-24 -right-10 h-72 w-72 rounded-full bg-accent/20 blur-3xl animate-blob" style={{ animationDelay: "-9s" }} />
+            <div
+              className="absolute -bottom-24 -right-10 h-72 w-72 rounded-full bg-accent/20 blur-3xl animate-blob"
+              style={{ animationDelay: "-9s" }}
+            />
           </div>
           <div className="relative mx-auto max-w-2xl text-center">
-            <p className="font-subhead text-xs uppercase tracking-[0.18em] text-primary">Stay in the loop</p>
+            <p className="font-subhead text-xs uppercase tracking-[0.18em] text-primary">
+              Stay in the loop
+            </p>
             <h2 className="font-display mt-3 text-3xl font-semibold leading-[1.1] md:text-4xl">
               New harvests. Farmer stories. Quiet inbox.
             </h2>
-            <p className="mt-3 text-sm text-muted-foreground">One thoughtful email a month. Unsubscribe anytime.</p>
+            <p className="mt-3 text-sm text-muted-foreground">
+              One thoughtful email a month. Unsubscribe anytime.
+            </p>
             <form
               onSubmit={(e) => {
                 e.preventDefault();

@@ -14,7 +14,9 @@ export function SectionHeader({
   align?: "left" | "center";
 }) {
   return (
-    <div className={`flex flex-col gap-3 ${align === "center" ? "items-center text-center" : "md:flex-row md:items-end md:justify-between"}`}>
+    <div
+      className={`flex flex-col gap-3 ${align === "center" ? "items-center text-center" : "md:flex-row md:items-end md:justify-between"}`}
+    >
       <div className={align === "center" ? "max-w-2xl" : "max-w-2xl"}>
         {eyebrow && (
           <p className="font-subhead text-xs uppercase tracking-[0.18em] text-primary">{eyebrow}</p>

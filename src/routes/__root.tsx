@@ -22,7 +22,9 @@ function NotFoundComponent() {
   return (
     <div className="flex min-h-dvh items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <p className="font-subhead text-xs uppercase tracking-[0.18em] text-muted-foreground">Error 404</p>
+        <p className="font-subhead text-xs uppercase tracking-[0.18em] text-muted-foreground">
+          Error 404
+        </p>
         <h1 className="font-display mt-3 text-5xl font-semibold">Page not found</h1>
         <p className="mt-3 text-sm text-muted-foreground">
           The page you're looking for doesn't exist or has been moved.
@@ -83,12 +85,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Prajnaa Farm — From Soil to Soul, Naturally" },
-      { name: "description", content: "A premium farm-to-consumer marketplace. Authentic produce, traceable to the farmer who grew it." },
+      {
+        name: "description",
+        content:
+          "A premium farm-to-consumer marketplace. Authentic produce, traceable to the farmer who grew it.",
+      },
       { name: "author", content: "Prajnaa Farm" },
       { name: "theme-color", content: "#0F3D2E" },
       { property: "og:site_name", content: "Prajnaa Farm" },
       { property: "og:title", content: "Prajnaa Farm — From Soil to Soul, Naturally" },
-      { property: "og:description", content: "A premium farm-to-consumer marketplace. Authentic produce, traceable to the farmer who grew it." },
+      {
+        property: "og:description",
+        content:
+          "A premium farm-to-consumer marketplace. Authentic produce, traceable to the farmer who grew it.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

@@ -18,6 +18,7 @@ import { Route as ShippingRouteImport } from './routes/shipping'
 import { Route as ReturnsRouteImport } from './routes/returns'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PressRouteImport } from './routes/press'
+import { Route as PaymentGatewayRouteImport } from './routes/payment-gateway'
 import { Route as OrderConfirmationRouteImport } from './routes/order-confirmation'
 import { Route as FarmersRouteImport } from './routes/farmers'
 import { Route as FarmerPortalRouteImport } from './routes/farmer-portal'
@@ -113,6 +114,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
 const PressRoute = PressRouteImport.update({
   id: '/press',
   path: '/press',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PaymentGatewayRoute = PaymentGatewayRouteImport.update({
+  id: '/payment-gateway',
+  path: '/payment-gateway',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OrderConfirmationRoute = OrderConfirmationRouteImport.update({
@@ -385,6 +391,7 @@ export interface FileRoutesByFullPath {
   '/farmer-portal': typeof FarmerPortalRouteWithChildren
   '/farmers': typeof FarmersRoute
   '/order-confirmation': typeof OrderConfirmationRoute
+  '/payment-gateway': typeof PaymentGatewayRoute
   '/press': typeof PressRoute
   '/privacy': typeof PrivacyRoute
   '/returns': typeof ReturnsRoute
@@ -444,6 +451,7 @@ export interface FileRoutesByTo {
   '/faq': typeof FaqRoute
   '/farmers': typeof FarmersRoute
   '/order-confirmation': typeof OrderConfirmationRoute
+  '/payment-gateway': typeof PaymentGatewayRoute
   '/press': typeof PressRoute
   '/privacy': typeof PrivacyRoute
   '/returns': typeof ReturnsRoute
@@ -507,6 +515,7 @@ export interface FileRoutesById {
   '/farmer-portal': typeof FarmerPortalRouteWithChildren
   '/farmers': typeof FarmersRoute
   '/order-confirmation': typeof OrderConfirmationRoute
+  '/payment-gateway': typeof PaymentGatewayRoute
   '/press': typeof PressRoute
   '/privacy': typeof PrivacyRoute
   '/returns': typeof ReturnsRoute
@@ -571,6 +580,7 @@ export interface FileRouteTypes {
     | '/farmer-portal'
     | '/farmers'
     | '/order-confirmation'
+    | '/payment-gateway'
     | '/press'
     | '/privacy'
     | '/returns'
@@ -630,6 +640,7 @@ export interface FileRouteTypes {
     | '/faq'
     | '/farmers'
     | '/order-confirmation'
+    | '/payment-gateway'
     | '/press'
     | '/privacy'
     | '/returns'
@@ -692,6 +703,7 @@ export interface FileRouteTypes {
     | '/farmer-portal'
     | '/farmers'
     | '/order-confirmation'
+    | '/payment-gateway'
     | '/press'
     | '/privacy'
     | '/returns'
@@ -755,6 +767,7 @@ export interface RootRouteChildren {
   FarmerPortalRoute: typeof FarmerPortalRouteWithChildren
   FarmersRoute: typeof FarmersRoute
   OrderConfirmationRoute: typeof OrderConfirmationRoute
+  PaymentGatewayRoute: typeof PaymentGatewayRoute
   PressRoute: typeof PressRoute
   PrivacyRoute: typeof PrivacyRoute
   ReturnsRoute: typeof ReturnsRoute
@@ -839,6 +852,13 @@ declare module '@tanstack/react-router' {
       path: '/press'
       fullPath: '/press'
       preLoaderRoute: typeof PressRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/payment-gateway': {
+      id: '/payment-gateway'
+      path: '/payment-gateway'
+      fullPath: '/payment-gateway'
+      preLoaderRoute: typeof PaymentGatewayRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/order-confirmation': {
@@ -1298,6 +1318,7 @@ const rootRouteChildren: RootRouteChildren = {
   FarmerPortalRoute: FarmerPortalRouteWithChildren,
   FarmersRoute: FarmersRoute,
   OrderConfirmationRoute: OrderConfirmationRoute,
+  PaymentGatewayRoute: PaymentGatewayRoute,
   PressRoute: PressRoute,
   PrivacyRoute: PrivacyRoute,
   ReturnsRoute: ReturnsRoute,
@@ -1321,3 +1342,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

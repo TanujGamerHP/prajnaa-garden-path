@@ -1,6 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowRight, CheckCircle2, Mail, MapPin, MessageCircle, Package, Phone, RotateCcw, Sparkles, Truck } from "lucide-react";
+import {
+  ArrowRight,
+  CheckCircle2,
+  Mail,
+  MapPin,
+  MessageCircle,
+  Package,
+  Phone,
+  RotateCcw,
+  Sparkles,
+  Truck,
+} from "lucide-react";
 import { toast } from "sonner";
 import { MarketingLayout } from "@/components/marketing/layout";
 import { Reveal } from "@/components/reveal";
@@ -9,7 +20,11 @@ export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
       { title: "Contact — Prajnaa Farm" },
-      { name: "description", content: "Get in touch with the Prajnaa Farm team — message us, browse FAQ shortcuts, or join the newsletter." },
+      {
+        name: "description",
+        content:
+          "Get in touch with the Prajnaa Farm team — message us, browse FAQ shortcuts, or join the newsletter.",
+      },
       { property: "og:title", content: "Contact — Prajnaa Farm" },
       { property: "og:description", content: "Reach the Prajnaa Farm team or find answers fast." },
       { property: "og:url", content: "/contact" },
@@ -23,10 +38,30 @@ const TOPICS = ["General question", "Order help", "Wholesale", "Partnerships", "
 type Topic = (typeof TOPICS)[number];
 
 const SHORTCUTS = [
-  { icon: Truck, title: "Where's my order?", desc: "Track every milestone from farm to door.", to: "/track-order" as const },
-  { icon: RotateCcw, title: "Returns & refunds", desc: "Our 7-day no-questions promise.", to: "/returns" as const },
-  { icon: Package, title: "Shipping & delivery", desc: "Cities, timelines and packaging.", to: "/shipping" as const },
-  { icon: MessageCircle, title: "Full FAQ", desc: "100+ answers from our customers.", to: "/faq" as const },
+  {
+    icon: Truck,
+    title: "Where's my order?",
+    desc: "Track every milestone from farm to door.",
+    to: "/track-order" as const,
+  },
+  {
+    icon: RotateCcw,
+    title: "Returns & refunds",
+    desc: "Our 7-day no-questions promise.",
+    to: "/returns" as const,
+  },
+  {
+    icon: Package,
+    title: "Shipping & delivery",
+    desc: "Cities, timelines and packaging.",
+    to: "/shipping" as const,
+  },
+  {
+    icon: MessageCircle,
+    title: "Full FAQ",
+    desc: "100+ answers from our customers.",
+    to: "/faq" as const,
+  },
 ];
 
 function ContactPage() {
@@ -60,30 +95,51 @@ function ContactPage() {
         <div className="grid gap-14 md:grid-cols-2">
           <Reveal inline>
             <div>
-              <p className="font-subhead text-xs uppercase tracking-[0.18em] text-primary">Contact</p>
-              <h1 className="font-display mt-3 text-5xl font-semibold leading-[1.02] md:text-6xl">Say hello.</h1>
+              <p className="font-subhead text-xs uppercase tracking-[0.18em] text-primary">
+                Contact
+              </p>
+              <h1 className="font-display mt-3 text-5xl font-semibold leading-[1.02] md:text-6xl">
+                Say hello.
+              </h1>
               <p className="mt-4 max-w-md text-muted-foreground">
-                Questions, partnerships, press, or feedback — we read every message and respond within one business day.
+                Questions, partnerships, press, or feedback — we read every message and respond
+                within one business day.
               </p>
               <ul className="mt-10 space-y-5">
                 <li className="flex items-start gap-3">
                   <Mail className="mt-1 h-5 w-5 text-primary" />
                   <div>
-                    <p className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Email</p>
-                    <a href="mailto:hello@prajnaa.in" className="font-display mt-1 block text-base hover:text-primary">hello@prajnaa.in</a>
+                    <p className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                      Email
+                    </p>
+                    <a
+                      href="mailto:hello@prajnaa.in"
+                      className="font-display mt-1 block text-base hover:text-primary"
+                    >
+                      hello@prajnaa.in
+                    </a>
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
                   <Phone className="mt-1 h-5 w-5 text-primary" />
                   <div>
-                    <p className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Phone · Mon–Sat, 10–6 IST</p>
-                    <a href="tel:+918040401010" className="font-display mt-1 block text-base hover:text-primary">+91 80 4040 1010</a>
+                    <p className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                      Phone · Mon–Sat, 10–6 IST
+                    </p>
+                    <a
+                      href="tel:+918040401010"
+                      className="font-display mt-1 block text-base hover:text-primary"
+                    >
+                      +91 80 4040 1010
+                    </a>
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
                   <MapPin className="mt-1 h-5 w-5 text-primary" />
                   <div>
-                    <p className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Address</p>
+                    <p className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                      Address
+                    </p>
                     <p className="font-display mt-1 text-base">Bengaluru, Karnataka, India</p>
                   </div>
                 </li>
@@ -92,19 +148,30 @@ function ContactPage() {
           </Reveal>
 
           <Reveal inline delay={80}>
-            <form onSubmit={handleSubmit} className="rounded-3xl border border-border bg-secondary/40 p-6 md:p-8">
+            <form
+              onSubmit={handleSubmit}
+              className="rounded-3xl border border-border bg-secondary/40 p-6 md:p-8"
+            >
               {sent ? (
                 <div className="grid place-items-center py-10 text-center">
                   <CheckCircle2 className="h-10 w-10 text-success" />
                   <p className="font-display mt-4 text-xl font-semibold">Message on its way.</p>
-                  <p className="mt-2 text-sm text-muted-foreground">We'll reply to you within one business day.</p>
-                  <button type="button" onClick={() => setSent(false)} className="font-subhead mt-6 rounded-full border border-border px-4 py-2 text-xs hover:bg-background">
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    We'll reply to you within one business day.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setSent(false)}
+                    className="font-subhead mt-6 rounded-full border border-border px-4 py-2 text-xs hover:bg-background"
+                  >
                     Send another
                   </button>
                 </div>
               ) : (
                 <>
-                  <p className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">What's it about?</p>
+                  <p className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                    What's it about?
+                  </p>
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {TOPICS.map((t) => (
                       <button
@@ -113,7 +180,9 @@ function ContactPage() {
                         onClick={() => setTopic(t)}
                         aria-pressed={topic === t}
                         className={`font-subhead rounded-full border px-3 py-1.5 text-xs transition-colors ${
-                          topic === t ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-foreground/80 hover:border-primary/40"
+                          topic === t
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-border bg-background text-foreground/80 hover:border-primary/40"
                         }`}
                       >
                         {t}
@@ -122,22 +191,44 @@ function ContactPage() {
                   </div>
                   <div className="mt-5 space-y-3">
                     <label className="block">
-                      <span className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Your name</span>
-                      <input required className="font-subhead mt-1.5 h-11 w-full rounded-xl border border-border bg-background px-3.5 text-sm outline-none focus:border-primary" />
+                      <span className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                        Your name
+                      </span>
+                      <input
+                        required
+                        className="font-subhead mt-1.5 h-11 w-full rounded-xl border border-border bg-background px-3.5 text-sm outline-none focus:border-primary"
+                      />
                     </label>
                     <label className="block">
-                      <span className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Email</span>
-                      <input type="email" required className="font-subhead mt-1.5 h-11 w-full rounded-xl border border-border bg-background px-3.5 text-sm outline-none focus:border-primary" />
+                      <span className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                        Email
+                      </span>
+                      <input
+                        type="email"
+                        required
+                        className="font-subhead mt-1.5 h-11 w-full rounded-xl border border-border bg-background px-3.5 text-sm outline-none focus:border-primary"
+                      />
                     </label>
                     {topic === "Order help" && (
                       <label className="block">
-                        <span className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Order ID</span>
-                        <input placeholder="PRJ-10241" className="font-subhead mt-1.5 h-11 w-full rounded-xl border border-border bg-background px-3.5 text-sm outline-none focus:border-primary" />
+                        <span className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                          Order ID
+                        </span>
+                        <input
+                          placeholder="PRJ-10241"
+                          className="font-subhead mt-1.5 h-11 w-full rounded-xl border border-border bg-background px-3.5 text-sm outline-none focus:border-primary"
+                        />
                       </label>
                     )}
                     <label className="block">
-                      <span className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Message</span>
-                      <textarea required rows={5} className="font-subhead mt-1.5 w-full rounded-xl border border-border bg-background p-3.5 text-sm outline-none focus:border-primary" />
+                      <span className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                        Message
+                      </span>
+                      <textarea
+                        required
+                        rows={5}
+                        className="font-subhead mt-1.5 w-full rounded-xl border border-border bg-background p-3.5 text-sm outline-none focus:border-primary"
+                      />
                     </label>
                     <button className="font-subhead mt-2 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-primary text-sm font-medium text-primary-foreground transition-all hover:-translate-y-0.5 hover:shadow-lg">
                       Send message <ArrowRight className="h-4 w-4" />
@@ -155,10 +246,17 @@ function ContactPage() {
         <Reveal>
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p className="font-subhead text-xs uppercase tracking-[0.18em] text-primary">Quick answers</p>
-              <h2 className="font-display mt-2 text-3xl font-semibold md:text-4xl">Find it faster.</h2>
+              <p className="font-subhead text-xs uppercase tracking-[0.18em] text-primary">
+                Quick answers
+              </p>
+              <h2 className="font-display mt-2 text-3xl font-semibold md:text-4xl">
+                Find it faster.
+              </h2>
             </div>
-            <Link to="/faq" className="font-subhead inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
+            <Link
+              to="/faq"
+              className="font-subhead inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
+            >
               All FAQs <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
@@ -174,7 +272,8 @@ function ContactPage() {
                 <p className="font-display mt-4 text-lg font-medium">{s.title}</p>
                 <p className="mt-1 text-sm text-muted-foreground">{s.desc}</p>
                 <span className="font-subhead mt-auto inline-flex items-center gap-1 pt-5 text-[11px] uppercase tracking-[0.14em] text-primary">
-                  Open <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                  Open{" "}
+                  <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
                 </span>
               </Link>
             </Reveal>
@@ -188,10 +287,15 @@ function ContactPage() {
           <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-primary/10 via-background to-accent/10 p-8 md:p-12">
             <Sparkles className="absolute right-8 top-8 h-6 w-6 text-primary/40" />
             <div className="max-w-xl">
-              <p className="font-subhead text-xs uppercase tracking-[0.18em] text-primary">Field notes</p>
-              <h2 className="font-display mt-2 text-3xl font-semibold md:text-4xl">Letters from the farm.</h2>
+              <p className="font-subhead text-xs uppercase tracking-[0.18em] text-primary">
+                Field notes
+              </p>
+              <h2 className="font-display mt-2 text-3xl font-semibold md:text-4xl">
+                Letters from the farm.
+              </h2>
               <p className="mt-3 text-muted-foreground">
-                One thoughtful email a month — harvest notes, new drops, and the people behind your pantry. No spam, unsubscribe anytime.
+                One thoughtful email a month — harvest notes, new drops, and the people behind your
+                pantry. No spam, unsubscribe anytime.
               </p>
 
               {stage === "idle" && (
@@ -211,17 +315,29 @@ function ContactPage() {
               )}
 
               {stage === "verifying" && (
-                <form onSubmit={handleSubscribe} className="mt-6 rounded-2xl border border-border bg-background p-6">
-                  <p className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Subscribing</p>
+                <form
+                  onSubmit={handleSubscribe}
+                  className="mt-6 rounded-2xl border border-border bg-background p-6"
+                >
+                  <p className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                    Subscribing
+                  </p>
                   <p className="font-display mt-1 text-lg font-medium">{email}</p>
-                  <p className="mt-3 text-sm text-muted-foreground">Pick what you'd like to hear about:</p>
+                  <p className="mt-3 text-sm text-muted-foreground">
+                    Pick what you'd like to hear about:
+                  </p>
                   <div className="mt-3 space-y-2">
-                    {([
-                      ["stories", "Farmer stories & journal"],
-                      ["drops", "New product drops & seasonal harvests"],
-                      ["recipes", "Recipes & pantry ideas"],
-                    ] as const).map(([key, label]) => (
-                      <label key={key} className="flex items-center gap-3 rounded-xl border border-border bg-background px-4 py-3">
+                    {(
+                      [
+                        ["stories", "Farmer stories & journal"],
+                        ["drops", "New product drops & seasonal harvests"],
+                        ["recipes", "Recipes & pantry ideas"],
+                      ] as const
+                    ).map(([key, label]) => (
+                      <label
+                        key={key}
+                        className="flex items-center gap-3 rounded-xl border border-border bg-background px-4 py-3"
+                      >
                         <input
                           type="checkbox"
                           checked={prefs[key]}
@@ -236,7 +352,11 @@ function ContactPage() {
                     <button className="font-subhead h-11 flex-1 rounded-full bg-primary px-6 text-sm font-medium text-primary-foreground transition-all hover:-translate-y-0.5">
                       Confirm subscription
                     </button>
-                    <button type="button" onClick={() => setStage("idle")} className="font-subhead h-11 rounded-full border border-border px-5 text-sm hover:bg-secondary">
+                    <button
+                      type="button"
+                      onClick={() => setStage("idle")}
+                      className="font-subhead h-11 rounded-full border border-border px-5 text-sm hover:bg-secondary"
+                    >
                       Back
                     </button>
                   </div>
@@ -248,7 +368,8 @@ function ContactPage() {
                   <CheckCircle2 className="h-7 w-7 text-success" />
                   <p className="font-display mt-3 text-lg font-medium">You're in.</p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    A confirmation is on its way to <span className="font-medium">{email}</span>. The first letter lands at the next new moon.
+                    A confirmation is on its way to <span className="font-medium">{email}</span>.
+                    The first letter lands at the next new moon.
                   </p>
                 </div>
               )}

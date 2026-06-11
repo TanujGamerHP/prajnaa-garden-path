@@ -1,14 +1,33 @@
-import { createFileRoute, Outlet, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useNavigate, Link, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { LayoutDashboard, Package, Boxes, ShoppingBag, IndianRupee, User, Loader2, AlertCircle, ShieldCheck } from "lucide-react";
+import {
+  LayoutDashboard,
+  Package,
+  Boxes,
+  ShoppingBag,
+  IndianRupee,
+  User,
+  Loader2,
+  AlertCircle,
+  ShieldCheck,
+} from "lucide-react";
+import { toast } from "sonner";
 import { DashboardShell, type NavItem } from "@/components/dashboard/shell";
 import { useAuth } from "@/hooks/use-auth";
 import { useFarmerProfile } from "@/lib/farmer/use-farmer";
 import { MarketingLayout } from "@/components/marketing/layout";
 
 const nav: NavItem[] = [
-  { to: "/farmer-portal/dashboard", label: "Dashboard", icon: <LayoutDashboard className="h-4 w-4" /> },
-  { to: "/farmer-portal/kyc", label: "KYC verification", icon: <ShieldCheck className="h-4 w-4" /> },
+  {
+    to: "/farmer-portal/dashboard",
+    label: "Dashboard",
+    icon: <LayoutDashboard className="h-4 w-4" />,
+  },
+  {
+    to: "/farmer-portal/kyc",
+    label: "KYC verification",
+    icon: <ShieldCheck className="h-4 w-4" />,
+  },
   { to: "/farmer-portal/products", label: "Products", icon: <Package className="h-4 w-4" /> },
   { to: "/farmer-portal/inventory", label: "Inventory", icon: <Boxes className="h-4 w-4" /> },
   { to: "/farmer-portal/orders", label: "Orders", icon: <ShoppingBag className="h-4 w-4" /> },
@@ -17,18 +36,35 @@ const nav: NavItem[] = [
 ];
 
 export const Route = createFileRoute("/farmer-portal")({
-  head: () => ({ meta: [{ title: "Farmer portal — Prajnaa Farm" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({
+    meta: [{ title: "Farmer portal — Prajnaa Farm" }, { name: "robots", content: "noindex" }],
+  }),
   component: FarmerPortalShell,
 });
 
 function FarmerPortalShell() {
   const navigate = useNavigate();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { user, loading: authLoading } = useAuth();
   const { data: farmer, isLoading: farmerLoading } = useFarmerProfile();
 
   useEffect(() => {
-    if (!authLoading && !user) navigate({ to: "/auth/login", replace: true });
-  }, [authLoading, user, navigate]);
+    if (!authLoading && !user) {
+      navigate({ to: "/auth/login", replace: true });
+      return;
+    }
+
+    if (farmer && farmer.status !== "approved") {
+      const allowedPaths = ["/farmer-portal/dashboard", "/farmer-portal/kyc"];
+      if (pathname.startsWith("/farmer-portal") && !allowedPaths.includes(pathname)) {
+        toast.error("Please complete KYC upload and await admin approval to access this section.");
+        navigate({ to: "/farmer-portal/kyc", replace: true });
+      } else if (pathname === "/farmer-portal/dashboard" && farmer.status === "draft") {
+        // Automatically open the KYC form if they visit the dashboard and are in draft status
+        navigate({ to: "/farmer-portal/kyc", replace: true });
+      }
+    }
+  }, [authLoading, user, farmer, pathname, navigate]);
 
   if (authLoading || (user && farmerLoading)) {
     return (
@@ -44,15 +80,34 @@ function FarmerPortalShell() {
       <MarketingLayout>
         <div className="container-prj py-20 max-w-xl">
           <h1 className="font-display text-3xl font-semibold">Become a seller first</h1>
-          <p className="mt-2 text-muted-foreground">Complete the short registration so we can verify your farm.</p>
-          <Link to="/become-a-seller/register" className="font-subhead mt-6 inline-flex rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground">Start registration</Link>
+          <p className="mt-2 text-muted-foreground">
+            Complete the short registration so we can verify your farm.
+          </p>
+          <Link
+            to="/become-a-seller/register"
+            className="font-subhead mt-6 inline-flex rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground"
+          >
+            Start registration
+          </Link>
         </div>
       </MarketingLayout>
     );
   }
 
+  // Restrict sidebar links to only Dashboard & KYC unless approved
+  const visibleNav =
+    farmer.status === "approved"
+      ? nav
+      : nav.filter(
+          (item) => item.to === "/farmer-portal/dashboard" || item.to === "/farmer-portal/kyc",
+        );
+
   return (
-    <DashboardShell title="Farmer Portal" subtitle={`${farmer.full_name} · ${farmer.village}`} nav={nav}>
+    <DashboardShell
+      title="Farmer Portal"
+      subtitle={`${farmer.full_name} · ${farmer.village}`}
+      nav={visibleNav}
+    >
       {farmer.status !== "approved" && (
         <div className="mb-6 flex items-start gap-3 rounded-2xl border border-warning/30 bg-warning/10 p-4">
           <AlertCircle className="mt-0.5 h-4 w-4 text-warning" />
@@ -60,12 +115,19 @@ function FarmerPortalShell() {
             <p className="font-medium capitalize">Application {farmer.status}</p>
             <p className="text-muted-foreground">
               {farmer.status === "draft" && "Finish your registration to submit for review."}
-              {farmer.status === "pending" && "We're reviewing your application. You'll get full access once approved."}
-              {farmer.status === "rejected" && (farmer.rejection_reason || "Please contact support.")}
+              {farmer.status === "pending" &&
+                "We're reviewing your application. You'll get full access once approved."}
+              {farmer.status === "rejected" &&
+                (farmer.rejection_reason || "Please contact support.")}
               {farmer.status === "suspended" && "Your account is suspended. Contact support."}
             </p>
             {farmer.status === "draft" && (
-              <Link to="/become-a-seller/register" className="font-subhead mt-2 inline-block text-xs text-primary">Continue registration →</Link>
+              <Link
+                to="/become-a-seller/register"
+                className="font-subhead mt-2 inline-block text-xs text-primary"
+              >
+                Continue registration →
+              </Link>
             )}
           </div>
         </div>

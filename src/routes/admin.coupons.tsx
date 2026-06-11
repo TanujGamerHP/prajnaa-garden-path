@@ -41,7 +41,11 @@ function AdminCoupons() {
                 <td className="text-muted-foreground">{c.desc}</td>
                 <td className="text-right">{c.uses.toLocaleString()}</td>
                 <td className="px-5 text-right">
-                  <span className={`font-subhead rounded-full px-2 py-0.5 text-[11px] ${c.status === "Active" ? "bg-success/15 text-success" : "bg-secondary text-muted-foreground"}`}>{c.status}</span>
+                  <span
+                    className={`font-subhead rounded-full px-2 py-0.5 text-[11px] ${c.status === "Active" ? "bg-success/15 text-success" : "bg-secondary text-muted-foreground"}`}
+                  >
+                    {c.status}
+                  </span>
                 </td>
               </tr>
             ))}

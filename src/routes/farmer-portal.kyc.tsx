@@ -1,10 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Upload, FileText, CheckCircle2, XCircle, Clock, Trash2 } from "lucide-react";
+import { Loader2, Upload, FileText, CheckCircle2, XCircle, Clock, Trash2, AlertTriangle, X, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useFarmerProfile } from "@/lib/farmer/use-farmer";
+import { compressImage } from "@/lib/image-compress";
+import { fileToBase64 } from "@/lib/file-to-base64";
+import { sendAdminEmailNotification } from "@/lib/api/notifications.server";
 
 export const Route = createFileRoute("/farmer-portal/kyc")({ component: KycPage });
 
@@ -12,14 +15,15 @@ const DOC_TYPES = [
   { key: "aadhaar", label: "Aadhaar card", required: true },
   { key: "pan", label: "PAN card", required: true },
   { key: "bank_passbook", label: "Bank passbook / cancelled cheque", required: true },
-  { key: "farm_proof", label: "Farm land proof (7/12 / Patta / lease)", required: true },
   { key: "certification", label: "Organic / natural certification (optional)", required: false },
 ] as const;
 
 function KycPage() {
   const { data: farmer } = useFarmerProfile();
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const farmerId = farmer?.id;
+  const [submittingKyc, setSubmittingKyc] = useState(false);
 
   const { data: docs = [], isLoading } = useQuery({
     enabled: !!farmerId,
@@ -37,19 +41,69 @@ function KycPage() {
 
   if (!farmer) return null;
 
-  const verified = docs.filter((d) => d.status === "verified").length;
+  const verified = docs.filter((d: any) => d.status === "verified").length;
   const requiredKeys = DOC_TYPES.filter((d) => d.required).map((d) => d.key);
   const verifiedRequired = requiredKeys.filter((k) =>
-    docs.some((d) => d.doc_type === k && d.status === "verified")
+    docs.some((d: any) => d.doc_type === k && d.status === "verified"),
   ).length;
   const overallStatus =
     verifiedRequired === requiredKeys.length
       ? "verified"
-      : docs.some((d) => d.status === "rejected")
+      : docs.some((d: any) => d.status === "rejected")
         ? "action_needed"
         : docs.length === 0
           ? "not_started"
           : "in_review";
+
+  const hasAadhaar = docs.some((d: any) => d.doc_type === "aadhaar");
+  const hasPan = docs.some((d: any) => d.doc_type === "pan");
+  const hasBank = docs.some((d: any) => d.doc_type === "bank_passbook");
+  const canSubmit = hasAadhaar && hasPan && hasBank;
+
+  const handleSubmitKyc = async () => {
+    setSubmittingKyc(true);
+    try {
+      const { error: profileErr } = await supabase
+        .from("farmer_profiles")
+        .update({ status: "pending" })
+        .eq("id", farmer.id);
+      if (profileErr) throw profileErr;
+
+      const { error: notifErr } = await supabase
+        .from("system_notifications")
+        .insert({
+          type: "farmer_kyc_submission",
+          title: "Farmer KYC Submitted",
+          message: `Farmer "${farmer.full_name}" has submitted Aadhaar, PAN, and Bank details for verification.`,
+          read: false,
+          metadata: {
+            farmer_id: farmer.id,
+            farmer_name: farmer.full_name,
+          }
+        });
+      if (notifErr) throw notifErr;
+
+      try {
+        await sendAdminEmailNotification({
+          data: {
+            subject: `[KYC Submission] Farmer KYC Submitted - ${farmer.full_name}`,
+            body: `Farmer "${farmer.full_name}" (${farmer.farm_name || "No Farm Name"}) has uploaded all 3 required KYC documents (Aadhaar, PAN, Bank Passbook) and submitted them for verification.\n\nPlease review these documents under the admin dashboard / Farmers section.\n\nFarmer ID: ${farmer.id}\nRegistered Email: ${farmer.email || "N/A"}`,
+          }
+        });
+      } catch (emailErr) {
+        console.warn("Failed to send admin email notification:", emailErr);
+      }
+
+      toast.success("Documents submitted successfully! Wait for approval, it will take 24 hours.");
+      qc.invalidateQueries({ queryKey: ["farmer-docs", farmerId] });
+      qc.invalidateQueries({ queryKey: ["farmer-profile"] });
+      navigate({ to: "/farmer-portal/dashboard" });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to submit KYC");
+    } finally {
+      setSubmittingKyc(false);
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -82,7 +136,7 @@ function KycPage() {
 
       <div className="space-y-4">
         {DOC_TYPES.map((dt) => {
-          const docsForType = docs.filter((d) => d.doc_type === dt.key);
+          const docsForType = docs.filter((d: any) => d.doc_type === dt.key);
           return (
             <DocSection
               key={dt.key}
@@ -92,11 +146,38 @@ function KycPage() {
               docs={docsForType}
               farmerId={farmer.id}
               userId={farmer.user_id}
+              readOnly={farmer.status === "pending" || farmer.status === "approved"}
               onChange={() => qc.invalidateQueries({ queryKey: ["farmer-docs", farmerId] })}
             />
           );
         })}
       </div>
+
+      {/* Submit KYC Card */}
+      {farmer.status !== "approved" && (
+        <div className="rounded-2xl border border-primary/20 bg-primary/5 p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="space-y-1">
+            <h3 className="font-display text-base font-semibold text-foreground">
+              {farmer.status === "pending" ? "KYC Pending Verification" : "Submit KYC for Approval"}
+            </h3>
+            <p className="text-xs text-muted-foreground max-w-md">
+              {farmer.status === "pending"
+                ? "Your documents have been submitted successfully. Please wait for approval, it typically takes 24 hours."
+                : "All required documents are uploaded. Please submit them to the operations team for verification."}
+            </p>
+          </div>
+          {farmer.status !== "pending" && (
+            <button
+              onClick={handleSubmitKyc}
+              disabled={!canSubmit || submittingKyc}
+              className="font-subhead h-11 px-6 rounded-full bg-primary text-sm font-semibold text-primary-foreground transition hover:opacity-90 disabled:opacity-50 flex items-center gap-2 cursor-pointer shadow-sm"
+            >
+              {submittingKyc && <Loader2 className="h-4 w-4 animate-spin" />}
+              Submit KYC Documents
+            </button>
+          )}
+        </div>
+      )}
 
       <div className="rounded-2xl border border-border bg-background">
         <div className="border-b border-border px-5 py-3">
@@ -120,15 +201,21 @@ function KycPage() {
               </tr>
             </thead>
             <tbody>
-              {docs.map((d) => (
+              {docs.map((d: any) => (
                 <tr key={d.id} className="border-t border-border">
                   <td className="px-5 py-3 font-medium capitalize">
                     {d.doc_type.replace(/_/g, " ")}
                     {d.label && <span className="text-muted-foreground"> · {d.label}</span>}
                   </td>
-                  <td className="text-muted-foreground">{new Date(d.created_at).toLocaleDateString()}</td>
-                  <td><StatusBadge status={d.status} /></td>
-                  <td className="text-muted-foreground">{d.verified_at ? new Date(d.verified_at).toLocaleDateString() : "—"}</td>
+                  <td className="text-muted-foreground">
+                    {new Date(d.created_at).toLocaleDateString()}
+                  </td>
+                  <td>
+                    <StatusBadge status={d.status} />
+                  </td>
+                  <td className="text-muted-foreground">
+                    {d.verified_at ? new Date(d.verified_at).toLocaleDateString() : "—"}
+                  </td>
                   <td className="px-5 py-3 text-right text-muted-foreground">{d.notes ?? "—"}</td>
                 </tr>
               ))}
@@ -141,13 +228,27 @@ function KycPage() {
 }
 
 function DocSection({
-  docType, label, required, docs, farmerId, userId, onChange,
+  docType,
+  label,
+  required,
+  docs,
+  farmerId,
+  userId,
+  onChange,
+  readOnly,
 }: {
-  docType: string; label: string; required: boolean;
-  docs: any[]; farmerId: string; userId: string; onChange: () => void;
+  docType: string;
+  label: string;
+  required: boolean;
+  docs: any[];
+  farmerId: string;
+  userId: string;
+  onChange: () => void;
+  readOnly?: boolean;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null);
   const latest = docs[0];
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -159,18 +260,17 @@ function DocSection({
     }
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop() || "bin";
-      const path = `${userId}/${docType}-${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("kyc-docs").upload(path, file, {
-        contentType: file.type,
-        upsert: false,
-      });
-      if (upErr) throw upErr;
+      // Compress image (PDFs pass through unchanged)
+      const compressedFile = await compressImage(file);
+
+      // Convert to Base64 data URL for direct Firestore storage
+      const base64Data = await fileToBase64(compressedFile);
+
       const { error: insErr } = await supabase.from("farmer_documents").insert({
         farmer_id: farmerId,
         user_id: userId,
         doc_type: docType,
-        file_url: path,
+        file_url: base64Data,
         label: file.name,
         status: "pending",
       });
@@ -185,10 +285,10 @@ function DocSection({
     }
   };
 
-  const handleDelete = async (id: string, path: string) => {
-    if (!confirm("Remove this document?")) return;
-    await supabase.storage.from("kyc-docs").remove([path]);
-    await supabase.from("farmer_documents").delete().eq("id", id);
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    await supabase.from("farmer_documents").delete().eq("id", deleteTarget.id);
+    setDeleteTarget(null);
     toast.success("Removed");
     onChange();
   };
@@ -200,31 +300,117 @@ function DocSection({
           <div className="flex items-center gap-2">
             <FileText className="h-4 w-4 text-muted-foreground" />
             <h3 className="font-display text-sm font-semibold">{label}</h3>
-            {required && <span className="font-subhead rounded-full bg-secondary px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">Required</span>}
+            {required && (
+              <span className="font-subhead rounded-full bg-secondary px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+                Required
+              </span>
+            )}
           </div>
           {latest ? (
-            <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
+            <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
               <StatusBadge status={latest.status} />
               <span>Uploaded {new Date(latest.created_at).toLocaleDateString()}</span>
-              {latest.notes && <span className="text-destructive">· {latest.notes}</span>}
+              {latest.file_url && (
+                <a
+                  href={latest.file_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline inline-flex items-center gap-1 font-medium ml-1"
+                >
+                  View file <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              )}
+              {latest.notes && <span className="text-destructive font-medium">· {latest.notes}</span>}
             </div>
           ) : (
             <p className="mt-2 text-xs text-muted-foreground">Not uploaded yet.</p>
           )}
         </div>
-        <div className="flex items-center gap-2">
-          <input ref={fileRef} type="file" accept="image/*,application/pdf" onChange={handleUpload} className="hidden" id={`up-${docType}`} />
-          <label htmlFor={`up-${docType}`} className="font-subhead inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-medium text-primary-foreground hover:opacity-90">
-            {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
-            {latest ? "Replace" : "Upload"}
-          </label>
-          {latest && (
-            <button onClick={() => handleDelete(latest.id, latest.file_url)} className="grid h-8 w-8 place-items-center rounded-full border border-border text-muted-foreground hover:text-destructive">
-              <Trash2 className="h-3.5 w-3.5" />
-            </button>
-          )}
-        </div>
+        {!readOnly ? (
+          <div className="flex items-center gap-2">
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*,application/pdf"
+              onChange={handleUpload}
+              className="hidden"
+              id={`up-${docType}`}
+            />
+            <label
+              htmlFor={`up-${docType}`}
+              className="font-subhead inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-medium text-primary-foreground hover:opacity-90"
+            >
+              {uploading ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Upload className="h-3.5 w-3.5" />
+              )}
+              {latest ? "Replace" : "Upload"}
+            </label>
+            {latest && (
+              <button
+                onClick={() => setDeleteTarget({ id: latest.id, label: label })}
+                className="grid h-8 w-8 place-items-center rounded-full border border-border text-muted-foreground hover:text-destructive transition-colors"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+        ) : (
+          latest && (
+            <span className="font-subhead text-xs text-muted-foreground bg-secondary/80 px-3.5 py-1.5 rounded-full border border-border">
+              Submitted
+            </span>
+          )
+        )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteTarget && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+          onClick={() => setDeleteTarget(null)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl border border-border bg-background p-6 shadow-2xl animate-scale-up text-center relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setDeleteTarget(null)}
+              type="button"
+              className="absolute right-4 top-4 text-muted-foreground hover:text-foreground cursor-pointer"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            <div className="p-3 bg-destructive/10 rounded-full inline-block text-destructive mb-4">
+              <AlertTriangle className="h-6 w-6" />
+            </div>
+            <h3 className="font-display text-lg font-semibold text-foreground">
+              Remove document?
+            </h3>
+            <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
+              Are you sure you want to remove your <span className="font-medium text-foreground">{deleteTarget.label}</span>? You'll need to re-upload it for verification.
+            </p>
+
+            <div className="mt-6 flex gap-3 justify-center">
+              <button
+                onClick={() => setDeleteTarget(null)}
+                className="font-subhead inline-flex h-10 items-center justify-center rounded-full border border-border px-5 text-sm font-medium hover:bg-secondary transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                className="font-subhead inline-flex h-10 items-center justify-center gap-2 rounded-full bg-destructive px-5 text-sm font-medium text-destructive-foreground hover:bg-destructive/90 transition-colors"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -233,7 +419,11 @@ function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { icon: any; text: string; cls: string }> = {
     verified: { icon: CheckCircle2, text: "Verified", cls: "bg-success/15 text-success" },
     rejected: { icon: XCircle, text: "Rejected", cls: "bg-destructive/15 text-destructive" },
-    action_needed: { icon: XCircle, text: "Action needed", cls: "bg-destructive/15 text-destructive" },
+    action_needed: {
+      icon: XCircle,
+      text: "Action needed",
+      cls: "bg-destructive/15 text-destructive",
+    },
     pending: { icon: Clock, text: "Pending review", cls: "bg-warning/15 text-warning" },
     in_review: { icon: Clock, text: "In review", cls: "bg-warning/15 text-warning" },
     not_started: { icon: Clock, text: "Not started", cls: "bg-secondary text-muted-foreground" },
@@ -241,7 +431,9 @@ function StatusBadge({ status }: { status: string }) {
   const cfg = map[status] ?? map.pending;
   const Icon = cfg.icon;
   return (
-    <span className={`font-subhead inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] ${cfg.cls}`}>
+    <span
+      className={`font-subhead inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] ${cfg.cls}`}
+    >
       <Icon className="h-3 w-3" /> {cfg.text}
     </span>
   );

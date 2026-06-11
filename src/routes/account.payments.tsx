@@ -65,7 +65,10 @@ function PaymentsPage() {
   };
 
   const setDefault = async (id: string) => {
-    const { error } = await supabase.from("payment_methods").update({ is_default: true }).eq("id", id);
+    const { error } = await supabase
+      .from("payment_methods")
+      .update({ is_default: true })
+      .eq("id", id);
     if (error) return toast.error(error.message);
     load();
   };
@@ -103,7 +106,9 @@ function PaymentsPage() {
               className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-primary/10 via-card to-card p-5"
             >
               <div className="flex items-start justify-between">
-                <span className="font-subhead text-[11px] uppercase tracking-[0.18em] text-primary">{c.brand}</span>
+                <span className="font-subhead text-[11px] uppercase tracking-[0.18em] text-primary">
+                  {c.brand}
+                </span>
                 {c.is_default && (
                   <span className="font-subhead inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] uppercase tracking-[0.12em] text-primary">
                     <Star className="h-3 w-3" /> Default
@@ -206,7 +211,9 @@ function AddCardDialog({
         </p>
         <div className="mt-5 grid gap-4">
           <label className="block">
-            <span className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Brand</span>
+            <span className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+              Brand
+            </span>
             <select name="brand" required defaultValue="Visa" className="input-prj mt-2">
               {BRANDS.map((b) => (
                 <option key={b}>{b}</option>
@@ -228,16 +235,36 @@ function AddCardDialog({
           </label>
           <div className="grid grid-cols-2 gap-3">
             <label className="block">
-              <span className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Exp month</span>
-              <input name="exp_month" required type="number" min={1} max={12} className="input-prj mt-2" />
+              <span className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                Exp month
+              </span>
+              <input
+                name="exp_month"
+                required
+                type="number"
+                min={1}
+                max={12}
+                className="input-prj mt-2"
+              />
             </label>
             <label className="block">
-              <span className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Exp year</span>
-              <input name="exp_year" required type="number" min={2024} max={2100} className="input-prj mt-2" />
+              <span className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                Exp year
+              </span>
+              <input
+                name="exp_year"
+                required
+                type="number"
+                min={2024}
+                max={2100}
+                className="input-prj mt-2"
+              />
             </label>
           </div>
           <label className="block">
-            <span className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Nickname</span>
+            <span className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+              Nickname
+            </span>
             <input name="nickname" placeholder="Personal Visa" className="input-prj mt-2" />
           </label>
           <label className="flex items-center gap-2">

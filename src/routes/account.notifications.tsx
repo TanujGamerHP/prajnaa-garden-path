@@ -40,7 +40,7 @@ function NotificationsPage() {
       .select("*")
       .eq("user_id", user.id)
       .maybeSingle()
-      .then(({ data }) => {
+      .then(({ data }: any) => {
         if (data) {
           const { user_id: _u, updated_at: _ua, ...rest } = data as Prefs & { updated_at?: string };
           setPrefs(rest as Omit<Prefs, "user_id">);
@@ -61,11 +61,31 @@ function NotificationsPage() {
   };
 
   const rows: { key: keyof typeof prefs; label: string; description: string }[] = [
-    { key: "order_updates_email", label: "Order updates · Email", description: "Confirmations, shipping, delivery." },
-    { key: "order_updates_sms", label: "Order updates · SMS", description: "Text alerts for major status changes." },
-    { key: "promotions_email", label: "Promotions · Email", description: "Sales, drops, early access." },
-    { key: "promotions_sms", label: "Promotions · SMS", description: "Occasional time-sensitive offers." },
-    { key: "newsletter", label: "Newsletter", description: "Stories from farms, recipes, seasons." },
+    {
+      key: "order_updates_email",
+      label: "Order updates · Email",
+      description: "Confirmations, shipping, delivery.",
+    },
+    {
+      key: "order_updates_sms",
+      label: "Order updates · SMS",
+      description: "Text alerts for major status changes.",
+    },
+    {
+      key: "promotions_email",
+      label: "Promotions · Email",
+      description: "Sales, drops, early access.",
+    },
+    {
+      key: "promotions_sms",
+      label: "Promotions · SMS",
+      description: "Occasional time-sensitive offers.",
+    },
+    {
+      key: "newsletter",
+      label: "Newsletter",
+      description: "Stories from farms, recipes, seasons.",
+    },
   ];
 
   if (loading) {

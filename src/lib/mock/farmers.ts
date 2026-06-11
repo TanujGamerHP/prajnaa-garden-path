@@ -15,7 +15,8 @@ export const farmers: Farmer[] = [
     yearsExperience: 22,
     method: "Natural farming · Zero pesticide",
     storyPreview: "Three generations of growing groundnut and millet without a drop of chemical.",
-    story: "Lakshmi inherited 4 acres from her father in 1998 and turned away from the chemical inputs the village had adopted. Today her farm is a benchmark for natural cultivation in Rayalaseema, supplying co-operatives and now, directly, families across India.",
+    story:
+      "Lakshmi inherited 4 acres from her father in 1998 and turned away from the chemical inputs the village had adopted. Today her farm is a benchmark for natural cultivation in Rayalaseema, supplying co-operatives and now, directly, families across India.",
     upcomingHarvests: ["Groundnut · Nov 2026", "Foxtail millet · Dec 2026"],
     productSlugs: ["organic-almonds", "mixed-seeds"],
   },
@@ -28,8 +29,10 @@ export const farmers: Farmer[] = [
     region: "Hunza Valley",
     yearsExperience: 35,
     method: "Heirloom orchards · Glacier-fed",
-    storyPreview: "Almond and apricot orchards tended the same way his grandfather did, fed by glacier streams.",
-    story: "At 12,000 feet, Ramesh's orchards yield slowly but with exceptional flavour. Every almond is hand-shelled by women's collectives in the village — a livelihood the family has protected for over three decades.",
+    storyPreview:
+      "Almond and apricot orchards tended the same way his grandfather did, fed by glacier streams.",
+    story:
+      "At 12,000 feet, Ramesh's orchards yield slowly but with exceptional flavour. Every almond is hand-shelled by women's collectives in the village — a livelihood the family has protected for over three decades.",
     upcomingHarvests: ["Mamra almond · Aug 2026", "Wild apricot · Sep 2026"],
     productSlugs: ["organic-almonds"],
   },
@@ -42,8 +45,10 @@ export const farmers: Farmer[] = [
     region: "Charotar",
     yearsExperience: 9,
     method: "Permaculture · Companion planting",
-    storyPreview: "A first-generation farmer growing kitchen herbs and traditional pickle ingredients.",
-    story: "Asha left her city job to set up a 2-acre permaculture farm in 2017. She now grows over forty culinary herbs and runs a small pickle kitchen with five women from the village.",
+    storyPreview:
+      "A first-generation farmer growing kitchen herbs and traditional pickle ingredients.",
+    story:
+      "Asha left her city job to set up a 2-acre permaculture farm in 2017. She now grows over forty culinary herbs and runs a small pickle kitchen with five women from the village.",
     upcomingHarvests: ["Holy basil · Year-round", "Mango (kesar) · May 2026"],
     productSlugs: ["mango-pickle", "garam-masala"],
   },
@@ -57,7 +62,8 @@ export const farmers: Farmer[] = [
     yearsExperience: 18,
     method: "Sun-dried · Stone-ground",
     storyPreview: "Spices grown, dried, and ground on-farm — never warehoused or fumigated.",
-    story: "Vikram's farm is also a small mill. Chillies, turmeric, and coriander are dried on raised cots and stone-ground within 48 hours of harvest — what arrives at your door is what left his field that week.",
+    story:
+      "Vikram's farm is also a small mill. Chillies, turmeric, and coriander are dried on raised cots and stone-ground within 48 hours of harvest — what arrives at your door is what left his field that week.",
     upcomingHarvests: ["Guntur chilli · Jan 2027", "Turmeric · Feb 2027"],
     productSlugs: ["turmeric-powder", "garam-masala", "pink-himalayan-salt"],
   },

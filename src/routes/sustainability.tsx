@@ -5,12 +5,36 @@ import { PageHero } from "@/components/marketing/page-hero";
 import { Reveal } from "@/components/reveal";
 
 const pillars = [
-  { icon: Leaf, t: "Naturally grown", d: "We work only with farmers using natural and regenerative practices — no synthetic inputs, no shortcuts." },
-  { icon: Droplets, t: "Water-aware sourcing", d: "Crops are matched to their climate. We don't move water-thirsty crops to rain-fed regions." },
-  { icon: Recycle, t: "Compostable packs", d: "Our jars are reusable glass. Our pouches are home-compostable. Our cartons are 100% recycled paper." },
-  { icon: Wind, t: "Lower-carbon logistics", d: "Surface shipping by default. Air-freight only when freshness genuinely demands it." },
-  { icon: HandHeart, t: "Fair farmer payout", d: "78 paise of every rupee, on average, goes back to the farmer — versus 18 paise in conventional retail." },
-  { icon: Sprout, t: "Soil-first contracts", d: "We pay growers for crop rotation, cover-cropping and biodiversity — not just yield." },
+  {
+    icon: Leaf,
+    t: "Naturally grown",
+    d: "We work only with farmers using natural and regenerative practices — no synthetic inputs, no shortcuts.",
+  },
+  {
+    icon: Droplets,
+    t: "Water-aware sourcing",
+    d: "Crops are matched to their climate. We don't move water-thirsty crops to rain-fed regions.",
+  },
+  {
+    icon: Recycle,
+    t: "Compostable packs",
+    d: "Our jars are reusable glass. Our pouches are home-compostable. Our cartons are 100% recycled paper.",
+  },
+  {
+    icon: Wind,
+    t: "Lower-carbon logistics",
+    d: "Surface shipping by default. Air-freight only when freshness genuinely demands it.",
+  },
+  {
+    icon: HandHeart,
+    t: "Fair farmer payout",
+    d: "78 paise of every rupee, on average, goes back to the farmer — versus 18 paise in conventional retail.",
+  },
+  {
+    icon: Sprout,
+    t: "Soil-first contracts",
+    d: "We pay growers for crop rotation, cover-cropping and biodiversity — not just yield.",
+  },
 ];
 
 const metrics = [
@@ -24,9 +48,15 @@ export const Route = createFileRoute("/sustainability")({
   head: () => ({
     meta: [
       { title: "Sustainability — Prajnaa Farm" },
-      { name: "description", content: "How we grow, source, pack, and ship — with the soil first." },
+      {
+        name: "description",
+        content: "How we grow, source, pack, and ship — with the soil first.",
+      },
       { property: "og:title", content: "Sustainability — Prajnaa Farm" },
-      { property: "og:description", content: "Soil-first sourcing, compostable packs, fair farmer payouts." },
+      {
+        property: "og:description",
+        content: "Soil-first sourcing, compostable packs, fair farmer payouts.",
+      },
     ],
   }),
   component: SustainabilityPage,
@@ -37,7 +67,11 @@ function SustainabilityPage() {
     <MarketingLayout>
       <PageHero
         eyebrow="Sustainability"
-        title={<>If the soil is well, <span className="text-primary">we all are.</span></>}
+        title={
+          <>
+            If the soil is well, <span className="text-primary">we all are.</span>
+          </>
+        }
         subtitle="Six pillars guide every product on Prajnaa. They are not aspirations. They are the rules we ship by."
       />
 
@@ -68,14 +102,20 @@ function SustainabilityPage() {
             </div>
             <div className="relative grid items-end gap-10 md:grid-cols-[1fr_2fr]">
               <div>
-                <p className="font-subhead text-xs uppercase tracking-[0.18em] text-accent">By the numbers</p>
-                <h2 className="font-display mt-3 text-3xl font-semibold leading-[1.05] md:text-4xl">Where our last year went.</h2>
+                <p className="font-subhead text-xs uppercase tracking-[0.18em] text-accent">
+                  By the numbers
+                </p>
+                <h2 className="font-display mt-3 text-3xl font-semibold leading-[1.05] md:text-4xl">
+                  Where our last year went.
+                </h2>
               </div>
               <dl className="grid grid-cols-2 gap-y-8 md:grid-cols-4">
                 {metrics.map((m, i) => (
                   <Reveal key={m.v} delay={i * 70} inline>
                     <dt className="font-display text-3xl font-semibold md:text-4xl">{m.k}</dt>
-                    <dd className="font-subhead mt-1 text-xs uppercase tracking-[0.12em] opacity-80">{m.v}</dd>
+                    <dd className="font-subhead mt-1 text-xs uppercase tracking-[0.12em] opacity-80">
+                      {m.v}
+                    </dd>
                   </Reveal>
                 ))}
               </dl>
