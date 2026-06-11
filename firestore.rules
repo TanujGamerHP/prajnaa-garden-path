@@ -1,9 +1,74 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
+    
+    // Check if the user has the 'admin' role
+    function isAdmin() {
+      return request.auth != null && 
+        exists(/databases/$(database)/documents/user_roles/admin_$(request.auth.uid));
+    }
+    
+    // Check if the document's owner is the authenticated user
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    match /users/{userId} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /user_roles/{roleId} {
+      allow read: if true;
+      // Allow user to claim first admin, or self-assign farmer role, or if they are admin
+      allow create: if request.auth != null && (
+        roleId == 'admin_' + request.auth.uid ||
+        (request.resource.data.user_id == request.auth.uid && request.resource.data.role == 'farmer') ||
+        isAdmin()
+      );
+      allow update, delete: if isAdmin();
+    }
+
+    match /farmer_profiles/{profileId} {
+      allow read: if true;
+      allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
+      allow update: if (request.auth != null && (request.resource.data.user_id == request.auth.uid && resource.data.user_id == request.auth.uid)) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /farmer_products/{productId} {
+      allow read: if true;
+      allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
+      allow update: if (request.auth != null && (request.resource.data.user_id == request.auth.uid && resource.data.user_id == request.auth.uid)) || isAdmin();
+      allow delete: if (request.auth != null && resource.data.user_id == request.auth.uid) || isAdmin();
+    }
+
+    match /orders/{orderId} {
+      // Anyone can fetch a specific order by ID (anonymous checkout receipts), but only admin/owner can list
+      allow get: if true;
+      allow list: if isAdmin() || (request.auth != null && resource.data.user_id == request.auth.uid);
+      allow create: if true; // allow anonymous checkout creation
+      allow update: if isAdmin() || (request.auth != null && resource.data.user_id == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+
+    match /system_notifications/{notifId} {
+      allow read: if isAdmin();
+      allow create: if true; // anyone can trigger a notification on order placement
+      allow update, delete: if isAdmin();
+    }
+
+    match /file_uploads/{uploadId} {
+      allow read: if true;
+      allow create, update: if request.auth != null || isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // Global fallback for any other collections
+    match /{document=**} {
+      allow read, write: if isAdmin();
     }
   }
 }
