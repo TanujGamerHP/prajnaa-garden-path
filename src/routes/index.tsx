@@ -70,99 +70,94 @@ function Index() {
 
 function Hero() {
   return (
-    <section className="relative overflow-hidden">
-      {/* Ambient gradient blobs */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute -top-32 -left-24 h-[420px] w-[420px] rounded-full bg-primary/15 blur-3xl animate-blob" />
-        <div
-          className="absolute top-20 -right-20 h-[360px] w-[360px] rounded-full bg-accent/25 blur-3xl animate-blob"
-          style={{ animationDelay: "-6s" }}
-        />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,oklch(0.965_0.012_80)_0%,transparent_60%)]" />
-      </div>
+    <section className="container-prj pt-6 md:pt-10">
+      {/* Redesigned Hero Banner Sage Green Card */}
+      <div className="relative overflow-hidden rounded-[32px] bg-[#E9EFE9] border border-primary/5 p-8 md:p-16">
+        {/* Background decorative leaf details */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 opacity-40">
+          <div className="absolute top-0 right-0 h-96 w-96 rounded-full bg-primary/10 blur-3xl" />
+          <div className="absolute bottom-0 left-0 h-64 w-64 rounded-full bg-accent/10 blur-2xl" />
+        </div>
 
-      <div className="container-prj pt-10 md:pt-16">
-        <div className="grid items-center gap-10 md:grid-cols-2 md:gap-14">
-          <div className="animate-fade-up">
-            <p className="font-subhead inline-flex items-center gap-2 rounded-full border border-border bg-background/70 px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-foreground/75 backdrop-blur">
+        <div className="grid items-center gap-10 md:grid-cols-[1.2fr_1fr] lg:gap-14">
+          <div className="animate-fade-up space-y-6 md:space-y-8">
+            <span className="font-subhead inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
               <span className="relative flex h-1.5 w-1.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
-                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-accent" />
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" />
               </span>
-              Now serving across India
-            </p>
-            <h1 className="font-display mt-5 text-5xl font-semibold leading-[1.02] tracking-tight md:text-6xl lg:text-7xl">
-              From Soil to&nbsp;Soul,
-              <br />
-              <span className="bg-gradient-to-r from-primary via-primary to-accent bg-clip-text text-transparent">
-                Naturally.
-              </span>
+              Now delivering fresh across India
+            </span>
+
+            <h1 className="font-display text-4xl font-extrabold leading-[1.08] tracking-tight text-[#0F3D2E] sm:text-5xl md:text-6xl lg:text-7xl">
+              From Soil to Soul, <br />
+              <span className="text-primary italic font-serif font-normal">Naturally.</span>
             </h1>
-            <p className="mt-5 max-w-md text-base text-muted-foreground md:text-lg">
-              Authentic farm produce sourced directly from trusted farmers. Every jar carries a
-              name, a place, and a harvest date.
+
+            <p className="max-w-md text-sm md:text-base text-[#2E423A] font-medium leading-relaxed">
+              Authentic farm produce sourced directly from trusted farmers. Every harvest carries a name, a place, and lab-tested traceablity.
             </p>
-            <div className="mt-8 flex flex-wrap items-center gap-3">
+
+            <div className="flex flex-wrap items-center gap-3">
               <Link
                 to="/shop"
-                className="font-subhead group inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-all hover:opacity-90 hover:shadow-lg hover:-translate-y-0.5"
+                className="font-subhead group inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-xs font-semibold uppercase tracking-wider text-primary-foreground shadow-lg hover:shadow-xl hover:opacity-95 transition-all duration-300 active:scale-95 cursor-pointer"
               >
-                Shop now
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                Shop Now
+                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
               </Link>
               <Link
-                to="/become-a-seller"
-                className="font-subhead inline-flex items-center gap-2 rounded-full border border-border bg-background px-6 py-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+                to="/farmers"
+                className="font-subhead inline-flex items-center gap-2 rounded-full border border-primary/20 bg-background/50 backdrop-blur px-7 py-3.5 text-xs font-semibold uppercase tracking-wider text-primary hover:bg-secondary transition-colors duration-300 cursor-pointer"
               >
-                Become a Farmer Partner
+                Meet Our Farmers
               </Link>
             </div>
-            <dl className="mt-10 grid grid-cols-3 gap-6 border-t border-border pt-8 md:max-w-md">
+
+            {/* Metrics */}
+            <div className="grid grid-cols-3 gap-4 border-t border-primary/10 pt-6 max-w-sm">
               {[
-                { k: "120+", v: "Verified farmers" },
-                { k: "9", v: "Categories" },
-                { k: "4.9", v: "Avg rating" },
-              ].map((s, i) => (
-                <Reveal key={s.v} delay={i * 80} inline>
-                  <dt className="font-display text-2xl font-semibold">{s.k}</dt>
-                  <dd className="font-subhead mt-1 text-xs uppercase tracking-[0.12em] text-muted-foreground">
-                    {s.v}
-                  </dd>
-                </Reveal>
+                { k: "100+", v: "Trusted Farmers" },
+                { k: "100%", v: "Natural Sourced" },
+                { k: "4.9★", v: "Customer Rating" },
+              ].map((s) => (
+                <div key={s.v}>
+                  <p className="font-display text-lg font-bold text-[#0F3D2E]">{s.k}</p>
+                  <p className="font-subhead text-[9px] uppercase tracking-wider text-muted-foreground mt-0.5">{s.v}</p>
+                </div>
               ))}
-            </dl>
+            </div>
           </div>
-          <Reveal delay={120} y={20} className="relative">
-            <div className="absolute -inset-3 rounded-[32px] bg-gradient-to-br from-primary/20 via-transparent to-accent/30 blur-2xl" />
-            <div className="relative overflow-hidden rounded-[28px] bg-secondary shadow-[0_30px_80px_-30px_oklch(0.34_0.06_156_/_0.45)]">
+
+          <Reveal delay={120} y={15} className="relative">
+            <div className="relative overflow-hidden rounded-2xl bg-secondary shadow-lg aspect-[4/3] md:aspect-[5/4] border-2 border-background">
               <img
                 src={heroImg}
-                alt="Farmer hands holding fresh produce"
-                width={1600}
-                height={1200}
+                alt="Friendly Indian farmer smiling in a green field with organic crops"
+                width={1200}
+                height={960}
+                className="h-full w-full object-cover"
                 fetchPriority="high"
-                className="aspect-[5/6] h-full w-full object-cover md:aspect-[4/5]"
               />
-              {/* Floating badge */}
-              <div className="absolute left-5 top-5 animate-float-slow">
-                <div className="flex items-center gap-2 rounded-full bg-background/95 px-3 py-1.5 text-[11px] font-medium shadow-lg backdrop-blur">
-                  <ShieldCheck className="h-3.5 w-3.5 text-success" />
-                  Lab-verified batch · 2026/04
+              
+              {/* Trust Badge */}
+              <div className="absolute right-4 top-4">
+                <div className="flex items-center gap-1.5 rounded-full bg-background/95 px-3 py-1 text-[10px] font-semibold text-primary shadow backdrop-blur">
+                  <ShieldCheck className="h-3.5 w-3.5 text-success" /> Verified Source
                 </div>
               </div>
-              <div className="absolute bottom-5 left-5 right-5 flex items-center justify-between rounded-2xl bg-background/95 p-4 backdrop-blur shadow-lg">
+
+              {/* Farmer Info overlay */}
+              <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between rounded-xl bg-background/90 p-3.5 backdrop-blur shadow-md border border-border/20">
                 <div>
-                  <p className="font-subhead text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-                    Harvested by
-                  </p>
-                  <p className="font-display text-base font-medium">Ramesh Singh · Hunza, Ladakh</p>
+                  <p className="font-subhead text-[9px] uppercase tracking-[0.16em] text-muted-foreground">Harvest Partner</p>
+                  <p className="font-display text-sm font-semibold text-foreground">Ramesh Kumar · Palampur, HP</p>
                 </div>
                 <Link
-                  to="/farmer/$slug"
-                  params={{ slug: "ramesh-singh" }}
-                  className="font-subhead inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-transform hover:scale-105"
+                  to="/farmers"
+                  className="font-subhead inline-flex items-center gap-1 rounded-full bg-[#0F3D2E] px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-foreground hover:opacity-90 transition"
                 >
-                  Story <ArrowRight className="h-3 w-3" />
+                  Profile
                 </Link>
               </div>
             </div>
@@ -259,9 +254,9 @@ function ShopByCategory() {
           }
         />
       </Reveal>
-      <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="mt-10 grid grid-cols-3 gap-6 sm:grid-cols-5 md:grid-cols-7 lg:grid-cols-9 justify-center">
         {categories.map((c, i) => (
-          <Reveal key={c.slug} delay={(i % 5) * 60}>
+          <Reveal key={c.slug} delay={i * 50}>
             <CategoryTile category={c} />
           </Reveal>
         ))}
@@ -383,13 +378,14 @@ function FeaturedFarmers() {
 }
 
 function Trending() {
-  const items = trendingProducts();
+  // Take exactly 5 products for a clean single-row presentation
+  const items = trendingProducts().slice(0, 5);
   return (
     <section className="container-prj mt-24">
       <Reveal>
         <SectionHeader
           eyebrow="Trending"
-          title="What people are buying."
+          title="Trending Products"
           action={
             <Link
               to="/shop"
@@ -400,9 +396,9 @@ function Trending() {
           }
         />
       </Reveal>
-      <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
         {items.map((p, i) => (
-          <Reveal key={p.slug} delay={(i % 4) * 90}>
+          <Reveal key={p.slug} delay={(i % 5) * 80}>
             <ProductCard product={p} />
           </Reveal>
         ))}

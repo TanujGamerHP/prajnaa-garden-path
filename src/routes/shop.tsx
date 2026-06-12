@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Search, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,8 +7,15 @@ import { MarketingLayout } from "@/components/marketing/layout";
 import { ProductCard } from "@/components/store/product-card";
 import { allProducts } from "@/lib/mock/products";
 import { categories } from "@/lib/mock/categories";
+import { z } from "zod";
+
+const shopSearchSchema = z.object({
+  q: z.string().optional().catch(""),
+  cat: z.string().optional().catch("all"),
+});
 
 export const Route = createFileRoute("/shop")({
+  validateSearch: shopSearchSchema,
   head: () => ({
     meta: [
       { title: "Shop all — Prajnaa Farm" },
@@ -29,8 +36,16 @@ export const Route = createFileRoute("/shop")({
 });
 
 function ShopPage() {
-  const [q, setQ] = useState("");
-  const [cat, setCat] = useState("all");
+  const search = Route.useSearch();
+  const [q, setQ] = useState(search.q || "");
+  const [cat, setCat] = useState(search.cat || "all");
+
+  // Sync state if URL changes
+  useEffect(() => {
+    if (search.q !== undefined) setQ(search.q);
+    if (search.cat !== undefined) setCat(search.cat);
+  }, [search.q, search.cat]);
+
   const [sort, setSort] = useState<"featured" | "price-asc" | "price-desc" | "rating">("featured");
 
   const { data: dbProducts = [], isLoading } = useQuery({
