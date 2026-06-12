@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, Check, ShoppingCart, MapPin, CreditCard, ChevronRight } from "lucide-react";
 import { MarketingLayout } from "@/components/marketing/layout";
@@ -42,18 +42,30 @@ function CheckoutPage() {
   const [payment, setPayment] = useState<"UPI" | "Card" | "COD">("UPI");
   const [placing, setPlacing] = useState(false);
 
-  // Prefilled defaults for demo
+  // Prefilled defaults for demo (removed mock/dummy data to ensure clean, blank form)
   const [address, setAddress] = useState<FormAddress>({
-    name: "Meera Sharma",
-    phone: "+91 98765 43210",
-    email: "meera@example.com",
-    address1: "42, Indiranagar 1st Stage",
+    name: "",
+    phone: "",
+    email: "",
+    address1: "",
     address2: "",
-    landmark: "Near Metro Station",
-    city: "Bengaluru",
-    state: "Karnataka",
-    pincode: "560038",
+    landmark: "",
+    city: "",
+    state: "",
+    pincode: "",
   });
+
+  // Prefill name, email, and phone with the authenticated user's actual profile details if available
+  useEffect(() => {
+    if (user) {
+      setAddress((prev) => ({
+        ...prev,
+        name: prev.name || user.name || "",
+        phone: prev.phone || user.phone || "",
+        email: prev.email || user.email || "",
+      }));
+    }
+  }, [user]);
 
   const handleInputChange = (key: keyof FormAddress, val: string) => {
     setAddress((prev) => ({ ...prev, [key]: val }));

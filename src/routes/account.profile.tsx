@@ -26,7 +26,7 @@ type Profile = {
 
 const schema = z.object({
   full_name: z.string().trim().min(2, "Enter your full name").max(80),
-  avatar_url: z.string().trim().url().or(z.literal("")).optional(),
+  avatar_url: z.string().trim().or(z.literal("")).optional(),
 });
 
 function ProfilePage() {
@@ -47,9 +47,7 @@ function ProfilePage() {
       .then(({ data }: any) => {
         const p = data as Profile;
         setProfile(p ?? null);
-        if (p?.avatar_url) {
-          setAvatarUrl(p.avatar_url);
-        }
+        setAvatarUrl(p?.avatar_url || "");
       });
   }, [user]);
 
@@ -65,10 +63,56 @@ function ProfilePage() {
       const compressedFile = await compressImage(file);
       // Convert to Base64 data URL directly — no Firebase Storage needed
       const base64Url = await fileToBase64(compressedFile);
+      
+      // Save directly to the database
+      const { error } = await supabase
+        .from("profiles")
+        .upsert({
+          id: user.id,
+          email: user.email,
+          full_name: profile?.full_name || null,
+          phone: profile?.phone || null,
+          avatar_url: base64Url,
+        });
+      if (error) throw error;
+
       setAvatarUrl(base64Url);
-      toast.success("Profile photo uploaded!");
+      if (profile) {
+        setProfile({ ...profile, avatar_url: base64Url });
+      }
+      await refreshUserProfile();
+      toast.success("Profile photo uploaded and saved!");
     } catch (err: any) {
-      toast.error(err?.message ?? "Upload failed");
+      toast.error(err?.message ?? "Upload and save failed");
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    if (!user) return;
+    setUploadingAvatar(true);
+    try {
+      // Save directly to the database
+      const { error } = await supabase
+        .from("profiles")
+        .upsert({
+          id: user.id,
+          email: user.email,
+          full_name: profile?.full_name || null,
+          phone: profile?.phone || null,
+          avatar_url: null,
+        });
+      if (error) throw error;
+
+      setAvatarUrl("");
+      if (profile) {
+        setProfile({ ...profile, avatar_url: null });
+      }
+      await refreshUserProfile();
+      toast.success("Profile photo removed!");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Removal failed");
     } finally {
       setUploadingAvatar(false);
     }
@@ -188,7 +232,7 @@ function ProfilePage() {
                 {avatarUrl && (
                   <button
                     type="button"
-                    onClick={() => setAvatarUrl("")}
+                    onClick={handleRemoveAvatar}
                     className="font-subhead inline-flex h-9 items-center justify-center rounded-full border border-destructive bg-destructive/5 px-4 text-xs font-medium text-destructive hover:bg-destructive/10 transition-colors"
                   >
                     Remove
