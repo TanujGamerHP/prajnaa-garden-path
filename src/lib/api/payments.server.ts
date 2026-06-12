@@ -2,15 +2,24 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import crypto from "crypto";
 import Razorpay from "razorpay";
+import { applyRateLimit } from "./rate-limiter.server";
 
 // Server RPC to generate a secure Razorpay Order ID
 export const createRazorpayOrder = createServerFn({ method: "POST" })
   .inputValidator(
-    z.object({
-      amount: z.number().min(1, "Amount must be greater than zero"),
-    })
+    z
+      .object({
+        amount: z
+          .number()
+          .min(1, "Amount must be greater than zero")
+          .max(1000000, "Amount exceeds transaction limit"),
+      })
+      .strict()
   )
   .handler(async ({ data }) => {
+    // Apply sensible rate limits: max 15 checkout attempts per minute per IP
+    applyRateLimit(null, 15, 60000);
+
     const keyId = process.env.VITE_RAZORPAY_KEY_ID;
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
 
@@ -31,7 +40,7 @@ export const createRazorpayOrder = createServerFn({ method: "POST" })
       const options = {
         amount: Math.round(data.amount * 100),
         currency: "INR",
-        receipt: `rcpt_${Math.random().toString(36).substring(2, 15)}`,
+        receipt: `rcpt_${crypto.randomBytes(6).toString("hex")}`, // Secure random generation
       };
 
       const order = await razorpay.orders.create(options);
@@ -51,13 +60,18 @@ export const createRazorpayOrder = createServerFn({ method: "POST" })
 // Server RPC to verify the payment signature using HMAC SHA256
 export const verifyRazorpayPayment = createServerFn({ method: "POST" })
   .inputValidator(
-    z.object({
-      razorpay_order_id: z.string(),
-      razorpay_payment_id: z.string(),
-      razorpay_signature: z.string(),
-    })
+    z
+      .object({
+        razorpay_order_id: z.string().min(1).max(100),
+        razorpay_payment_id: z.string().min(1).max(100),
+        razorpay_signature: z.string().min(1).max(256),
+      })
+      .strict()
   )
   .handler(async ({ data }) => {
+    // Apply sensible rate limits: max 30 verification checks per minute per IP
+    applyRateLimit(null, 30, 60000);
+
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
 
     if (!keySecret) {
@@ -72,7 +86,11 @@ export const verifyRazorpayPayment = createServerFn({ method: "POST" })
         .update(payload)
         .digest("hex");
 
-      const success = expectedSignature === data.razorpay_signature;
+      // Constant-time comparison to prevent timing attacks
+      const success = crypto.timingSafeEqual(
+        Buffer.from(expectedSignature, "utf-8"),
+        Buffer.from(data.razorpay_signature, "utf-8")
+      );
 
       if (!success) {
         console.warn("[Razorpay Server] Signature verification failed.");
