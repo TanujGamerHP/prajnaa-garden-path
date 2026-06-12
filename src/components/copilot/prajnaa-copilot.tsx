@@ -26,7 +26,7 @@ export function PrajnaaCopilot() {
       setMessages([
         {
           role: "model",
-          content: `Hello! Welcome to **Prajnaa Farm Customer Copilot**. 🌱\n\nI am your platform guide and shopping assistant. I can help you:\n- **Discover and compare organic products** (e.g. *"Recommend immunity products"* or *"Show Himachal products"*)\n- **Learn about our farmers** (e.g. *"Tell me about local farmers"*)\n- **Track your orders** (e.g. *"Where is my order?"*)\n- **Understand shipping and returns** (e.g. *"What is the refund policy?"*)\n- **Register as a farmer partner** (e.g. *"How can I sell here?"*)\n\nHow can I help you today?`,
+          content: `Welcome to **Prajnaa Marketplace**! 🌱\n\nI am your platform guide and shopping assistant. I can help you:\n- **Discover and compare organic products** (e.g. *"Recommend immunity products"* or *"Show Himachal products"*)\n- **Learn about our farmers** (e.g. *"Tell me about local farmers"*)\n- **Track your orders** (e.g. *"Where is my order?"*)\n- **Understand shipping and returns** (e.g. *"What is the refund policy?"*)\n- **Register as a farmer partner** (e.g. *"How can I sell here?"*)\n\nHow can I help you today?`,
         },
       ]);
       setUnreadCount(1);
@@ -250,7 +250,7 @@ export function PrajnaaCopilot() {
       <button
         onClick={toggleChat}
         className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer group hover:shadow-primary/30"
-        title="Prajnaa AI Customer Copilot"
+        title="Prajnaa AI Assistant"
       >
         {isOpen ? (
           <X className="h-6 w-6 transition-transform duration-300 rotate-90" />
@@ -278,10 +278,10 @@ export function PrajnaaCopilot() {
                 <Sparkles className="h-5 w-5 text-accent" />
               </div>
               <div>
-                <h3 className="font-display text-sm font-bold tracking-wide">Prajnaa Customer AI</h3>
+                <h3 className="font-display text-sm font-bold tracking-wide">Prajnaa Marketplace</h3>
                 <span className="text-[10px] text-primary-foreground/75 flex items-center gap-1.5 font-medium">
                   <span className="h-1.5 w-1.5 rounded-full bg-success animate-ping" />
-                  RAG Assistant · Active
+                  AI Assistant · Active
                 </span>
               </div>
             </div>

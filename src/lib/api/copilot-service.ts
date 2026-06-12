@@ -123,7 +123,7 @@ function handleLocalResponse(query: string, context: SearchContext): string {
   // 1. Greetings (including short/colloquial forms like 'hlo')
   const greetingWords = ["hi", "hello", "hey", "hlo", "helo", "hllo", "yo", "namaste", "pranam", "hola", "greetings", "good morning", "good afternoon", "sup"];
   if (greetingWords.some(w => queryLower === w || queryLower.startsWith(w + " ") || queryLower.startsWith(w + "!") || queryLower.startsWith(w + "?"))) {
-    return `Hello! Welcome to **Prajnaa Farm Customer Copilot**. 🌱\n\nI am your platform guide and shopping assistant. I can help you:\n- **Discover and compare organic products** (e.g. try asking: *"Recommend immunity products"* or *"Show Himachal products"*)\n- **Learn about our farmers** (e.g. *"Tell me about local farmers"*)\n- **Track your orders** (if logged in, ask: *"Where is my order?"*)\n- **Understand shipping and returns** (e.g. *"What is the refund policy?"*)\n- **Register as a farmer partner** (e.g. *"How can I sell here?"*)\n\nHow can I help you today?`;
+    return `Welcome to **Prajnaa Marketplace**! 🌱\n\nI am your platform guide and shopping assistant. I can help you:\n- **Discover and compare organic products** (e.g. try asking: *"Recommend immunity products"* or *"Show Himachal products"*)\n- **Learn about our farmers** (e.g. *"Tell me about local farmers"*)\n- **Track your orders** (if logged in, ask: *"Where is my order?"*)\n- **Understand shipping and returns** (e.g. *"What is the refund policy?"*)\n- **Register as a farmer partner** (e.g. *"How can I sell here?"*)\n\nHow can I help you today?`;
   }
 
   // Brand-relevancy out-of-bounds restriction check
@@ -315,7 +315,7 @@ export async function askPrajnaaCopilot(
     contextStr += "Register CTA link: [Become Farmer Partner](/become-a-seller)\n\n";
 
     // System prompt configuration
-    const systemPrompt = `You are "Prajnaa AI Customer Copilot", a highly empathetic, conversational, and human-friendly AI assistant for Prajnaa Farm.
+    const systemPrompt = `You are the "Prajnaa AI Assistant", a highly empathetic, conversational, and human-friendly AI assistant for Prajnaa Farm.
 Your tone must be warm, polite, and customer-centric, behaving like a premium platform expert.
 
 You have access to live database context about products, farmers, policies, and orders (supplied below).
