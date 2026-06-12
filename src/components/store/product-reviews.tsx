@@ -145,18 +145,8 @@ export function ProductReviews({ productSlug }: { productSlug: string }) {
       if (loadedReviews.length === 0) {
         setReviews(mockFallbackReviews);
       } else {
-        // If there are less than 3, pad with mock reviews to keep layout full
-        if (loadedReviews.length < 3) {
-          const padded = [...loadedReviews];
-          mockFallbackReviews.forEach((mock) => {
-            if (padded.length < 3) {
-              padded.push(mock);
-            }
-          });
-          setReviews(padded);
-        } else {
-          setReviews(loadedReviews);
-        }
+        // Show ONLY database reviews (no default/mock data padding to ensure fresh custom reviews)
+        setReviews(loadedReviews);
       }
     } catch (err: any) {
       console.error("Error loading reviews:", err);
@@ -408,7 +398,7 @@ export function ProductReviews({ productSlug }: { productSlug: string }) {
               </Link>
             </div>
           )}
-          {reviews.length > 3 && (
+          {reviews.length > 0 && (
             <button
               onClick={() => setShowAllModal(true)}
               className="font-subhead inline-flex h-11 items-center justify-center rounded-full border border-border bg-background px-6 text-sm font-medium hover:bg-secondary transition-all cursor-pointer"

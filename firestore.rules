@@ -65,6 +65,12 @@ service cloud.firestore {
       allow create, update: if request.auth != null || isAdmin();
       allow delete: if isAdmin();
     }
+
+    match /product_reviews/{reviewId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && (resource.data.user_id == request.auth.uid || isAdmin());
+    }
     
     // Global fallback for any other collections
     match /{document=**} {

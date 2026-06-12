@@ -13,6 +13,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/hooks/use-auth";
 import { initSentry, captureException } from "@/lib/sentry";
+import { PrajnaaCopilot } from "@/components/copilot/prajnaa-copilot";
 
 if (typeof window !== "undefined") {
   initSentry();
@@ -151,6 +152,7 @@ function RootComponent() {
       <AuthProvider>
         <Outlet />
         <Toaster richColors position="top-center" />
+        <PrajnaaCopilot />
       </AuthProvider>
     </QueryClientProvider>
   );
