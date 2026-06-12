@@ -63,6 +63,8 @@ function AdminDashboard() {
   const publishedProducts = data.products.filter((p: any) => p.status === "published").length;
   const totalCustomers = data.customers.length;
   // Calculate dynamic sales and payouts from orders
+  const deliveredOrders = data.orders.filter((o: any) => o.status === "delivered");
+  
   // Platform Lifetime Revenue: delivered counts as positive, returned counts as deduction
   const lifetimeSales = data.orders.reduce((sum: number, o: any) => {
     if (o.status !== "delivered" && o.status !== "returned") {
@@ -189,7 +191,7 @@ function AdminDashboard() {
         <StatCard
           label="Total Revenue"
           value={inr(lifetimeSales)}
-          delta={`${activeOrders.length} active orders`}
+          delta={`${deliveredOrders.length} delivered orders`}
         />
         <StatCard
           label="Paid Sales"
