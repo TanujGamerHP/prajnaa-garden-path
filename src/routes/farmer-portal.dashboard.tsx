@@ -93,54 +93,68 @@ function FarmerDashboard() {
   const lowStock = products.filter((p: any) => p.stock < 10);
   const nextPayout = payouts.find((p: any) => p.status !== "paid");
   
-  // Calculate lifetime earnings dynamically from non-cancelled orders, deducting 10% admin commission
-  const lifetime = orders
-    .filter((o: any) => o.status !== "cancelled")
-    .reduce((sum: number, o: any) => {
-      const farmerItems = o.items?.filter((i: any) => i.farmer_slug === farmerSlug) || [];
-      const orderFarmerTotal = farmerItems.reduce((acc: number, item: any) => {
-        const basePrice = item.farmer_base_price || Number(item.price || 0) / 1.10;
-        return acc + basePrice * Number(item.qty || 1);
-      }, 0);
-      return sum + orderFarmerTotal;
+  // Calculate lifetime earnings dynamically from delivered and returned orders, deducting 10% admin commission
+  const lifetime = orders.reduce((sum: number, o: any) => {
+    if (o.status !== "delivered" && o.status !== "returned") {
+      return sum;
+    }
+    const farmerItems = o.items?.filter((i: any) => i.farmer_slug === farmerSlug) || [];
+    const orderFarmerTotal = farmerItems.reduce((acc: number, item: any) => {
+      const basePrice = item.farmer_base_price || Number(item.price || 0) / 1.10;
+      return acc + basePrice * Number(item.qty || 1);
     }, 0);
+    if (o.status === "delivered") {
+      return sum + orderFarmerTotal;
+    } else { // returned
+      return sum - orderFarmerTotal;
+    }
+  }, 0);
 
   const pendingPackingCount = orders.filter((o: any) => 
     o.items.some((i: any) => i.farmer_slug === farmerSlug && (i.status === "pending" || i.status === "confirmed"))
   ).length;
 
-  // Group earnings by month/date for BarChart
+  // Group earnings by month/date for BarChart (real-time only)
   const earningsByMonth = new Map<string, number>();
   
-  // Set default months to make the chart look nice and active
-  const sampleMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
-  const defaultMonthlyEarnings = [15000, 18500, 22000, 29000, 34000, Math.max(42000, lifetime)];
-  sampleMonths.forEach((m, idx) => {
-    earningsByMonth.set(m, defaultMonthlyEarnings[idx]);
-  });
+  // Set last 6 months with 0 by default to ensure a clean baseline chart
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const currentMonthIdx = new Date().getMonth();
+  for (let i = 5; i >= 0; i--) {
+    const idx = (currentMonthIdx - i + 12) % 12;
+    earningsByMonth.set(monthNames[idx], 0);
+  }
 
   // Calculate actual earnings per month from real orders
-  const activeOrdersForChart = orders.filter((o: any) => o.status !== "cancelled");
-  if (activeOrdersForChart.length > 0) {
-    activeOrdersForChart.forEach((o: any) => {
-      const date = new Date(o.created_at);
-      const mStr = date.toLocaleDateString("en-US", { month: "short" }); // e.g. "Jun"
-      
-      const farmerItems = o.items?.filter((i: any) => i.farmer_slug === farmerSlug) || [];
-      const orderFarmerTotal = farmerItems.reduce((acc: number, item: any) => {
-        const basePrice = item.farmer_base_price || Number(item.price || 0) / 1.10;
-        return acc + basePrice * Number(item.qty || 1);
-      }, 0);
-      
-      const current = earningsByMonth.get(mStr) ?? 0;
+  orders.forEach((o: any) => {
+    if (o.status !== "delivered" && o.status !== "returned") {
+      return;
+    }
+    const date = new Date(o.created_at);
+    const mStr = date.toLocaleDateString("en-US", { month: "short" }); // e.g. "Jun"
+    
+    if (!earningsByMonth.has(mStr)) {
+      return;
+    }
+
+    const farmerItems = o.items?.filter((i: any) => i.farmer_slug === farmerSlug) || [];
+    const orderFarmerTotal = farmerItems.reduce((acc: number, item: any) => {
+      const basePrice = item.farmer_base_price || Number(item.price || 0) / 1.10;
+      return acc + basePrice * Number(item.qty || 1);
+    }, 0);
+    
+    const current = earningsByMonth.get(mStr) ?? 0;
+    if (o.status === "delivered") {
       earningsByMonth.set(mStr, current + orderFarmerTotal);
-    });
-  }
+    } else if (o.status === "returned") {
+      earningsByMonth.set(mStr, current - orderFarmerTotal);
+    }
+  });
 
   const barChartData = Array.from(earningsByMonth.entries()).map(([month, earnings]) => ({
     month,
     earnings: Math.round(earnings),
-  })).slice(-6); // Take the last 6 months
+  }));
 
   return (
     <div className="space-y-8 animate-fade-up">

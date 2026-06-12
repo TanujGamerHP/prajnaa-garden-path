@@ -62,29 +62,40 @@ function AdminDashboard() {
   const pendingFarmers = data.farmers.filter((f: any) => f.status === "pending").length;
   const publishedProducts = data.products.filter((p: any) => p.status === "published").length;
   const totalCustomers = data.customers.length;
+  // Calculate dynamic sales and payouts from orders
+  // Platform Lifetime Revenue: delivered counts as positive, returned counts as deduction
+  const lifetimeSales = data.orders.reduce((sum: number, o: any) => {
+    if (o.status !== "delivered" && o.status !== "returned") {
+      return sum;
+    }
+    const amount = Number(o.total || 0);
+    if (o.status === "delivered") {
+      return sum + amount;
+    } else { // returned
+      return sum - amount;
+    }
+  }, 0);
   
-  // Calculate dynamic sales and payouts from orders (excluding cancelled orders)
-  const activeOrders = data.orders.filter((o: any) => o.status !== "cancelled");
-  
-  // Platform Lifetime Revenue
-  const lifetimeSales = activeOrders.reduce((s: number, o: any) => s + Number(o.total || 0), 0);
-  
-  // Completed/Paid Revenue
-  const paidSales = activeOrders
-    .filter((o: any) => o.payment_status === "paid")
+  // Completed/Paid Revenue from delivered orders
+  const paidSales = data.orders
+    .filter((o: any) => o.status === "delivered" && o.payment_status === "paid")
     .reduce((s: number, o: any) => s + Number(o.total || 0), 0);
     
   // Pending Revenue (COD orders or pending payment orders)
-  const pendingSales = activeOrders
-    .filter((o: any) => o.payment_status === "pending" || o.payment_status === "failed")
+  const pendingSales = data.orders
+    .filter((o: any) => o.status !== "cancelled" && o.status !== "returned" && (o.payment_status === "pending" || o.payment_status === "failed"))
     .reduce((s: number, o: any) => s + Number(o.total || 0), 0);
 
-  // top farmers by real-time order earnings
+  // top farmers by real-time delivered order earnings (deducting returned)
   const earningsByFarmer = new Map<string, number>();
-  activeOrders.forEach((o: any) => {
+  data.orders.forEach((o: any) => {
+    if (o.status !== "delivered" && o.status !== "returned") {
+      return;
+    }
+    const factor = o.status === "delivered" ? 1 : -1;
     (o.items || []).forEach((item: any) => {
       const farmerId = item.farmer_id || "farmer_1";
-      const itemRevenue = Number(item.price || 0) * Number(item.qty || 1);
+      const itemRevenue = Number(item.price || 0) * Number(item.qty || 1) * factor;
       earningsByFarmer.set(
         farmerId,
         (earningsByFarmer.get(farmerId) ?? 0) + itemRevenue
@@ -98,25 +109,33 @@ function AdminDashboard() {
     .sort((a, b) => b.total - a.total)
     .slice(0, 5);
 
-  // 1. Map active orders to a daily/weekly sales log for AreaChart
+  // 1. Map active orders to a daily/weekly sales log for AreaChart (real-time only)
   const salesByDate = new Map<string, number>();
-  // populate default days first to make the chart look nice
-  const sampleDays = ["01 May", "08 May", "15 May", "22 May", "29 May"];
-  sampleDays.forEach((day, index) => {
-    salesByDate.set(day, 12000 + index * 4500 + (index % 2 === 0 ? 3000 : -2000));
-  });
 
-  // add actual data if available
-  if (activeOrders.length > 0) {
-    activeOrders.slice(-10).forEach((o: any) => {
-      const dateStr = new Date(o.created_at).toLocaleDateString("en-IN", { month: "short", day: "numeric" });
-      salesByDate.set(dateStr, (salesByDate.get(dateStr) ?? 0) + Number(o.total || 0));
-    });
-  }
+  data.orders.forEach((o: any) => {
+    if (o.status !== "delivered" && o.status !== "returned") {
+      return;
+    }
+    const dateStr = new Date(o.created_at).toLocaleDateString("en-IN", { month: "short", day: "numeric" });
+    const orderTotal = Number(o.total || 0);
+    const factor = o.status === "delivered" ? 1 : -1;
+    salesByDate.set(dateStr, (salesByDate.get(dateStr) ?? 0) + (orderTotal * factor));
+  });
 
   const chartData = [...salesByDate.entries()]
     .map(([date, sales]) => ({ date, sales }))
-    .slice(-7); // Take last 7 data points
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  // If there are no data points, initialize it with the last 5 days at 0 so the chart axis looks clean
+  if (chartData.length === 0) {
+    const today = new Date();
+    for (let i = 4; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      const dateStr = d.toLocaleDateString("en-IN", { month: "short", day: "numeric" });
+      chartData.push({ date: dateStr, sales: 0 });
+    }
+  }
 
   // 2. Map category counts for Donut/PieChart
   const byCat = new Map<string, number>();
