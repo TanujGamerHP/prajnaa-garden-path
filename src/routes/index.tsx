@@ -466,7 +466,7 @@ function Seasonal() {
               <p className="font-subhead text-xs uppercase tracking-[0.18em] text-accent">
                 In season now
               </p>
-              <h2 className="font-display mt-3 text-4xl font-semibold leading-[1.05] md:text-5xl">
+              <h2 className="font-display mt-3 text-4xl font-semibold leading-[1.05] md:text-5xl text-primary-foreground">
                 Seasonal produce, at its&nbsp;peak.
               </h2>
               <p className="mt-3 max-w-md text-sm opacity-85">
