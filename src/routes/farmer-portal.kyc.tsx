@@ -41,13 +41,19 @@ function KycPage() {
 
   if (!farmer) return null;
 
-  const verified = docs.filter((d: any) => d.status === "verified").length;
+  const isApproved = farmer.status === "approved";
+  const verified = isApproved
+    ? docs.length
+    : docs.filter((d: any) => d.status === "verified").length;
   const requiredKeys = DOC_TYPES.filter((d) => d.required).map((d) => d.key);
-  const verifiedRequired = requiredKeys.filter((k) =>
-    docs.some((d: any) => d.doc_type === k && d.status === "verified"),
-  ).length;
-  const overallStatus =
-    verifiedRequired === requiredKeys.length
+  const verifiedRequired = isApproved
+    ? requiredKeys.length
+    : requiredKeys.filter((k) =>
+        docs.some((d: any) => d.doc_type === k && d.status === "verified"),
+      ).length;
+  const overallStatus = isApproved
+    ? "verified"
+    : verifiedRequired === requiredKeys.length
       ? "verified"
       : docs.some((d: any) => d.status === "rejected")
         ? "action_needed"
@@ -147,6 +153,7 @@ function KycPage() {
               farmerId={farmer.id}
               userId={farmer.user_id}
               readOnly={farmer.status === "pending" || farmer.status === "approved"}
+              isApproved={isApproved}
               onChange={() => qc.invalidateQueries({ queryKey: ["farmer-docs", farmerId] })}
             />
           );
@@ -211,7 +218,7 @@ function KycPage() {
                     {new Date(d.created_at).toLocaleDateString()}
                   </td>
                   <td>
-                    <StatusBadge status={d.status} />
+                    <StatusBadge status={isApproved ? "verified" : d.status} />
                   </td>
                   <td className="text-muted-foreground">
                     {d.verified_at ? new Date(d.verified_at).toLocaleDateString() : "—"}
@@ -236,6 +243,7 @@ function DocSection({
   userId,
   onChange,
   readOnly,
+  isApproved,
 }: {
   docType: string;
   label: string;
@@ -245,6 +253,7 @@ function DocSection({
   userId: string;
   onChange: () => void;
   readOnly?: boolean;
+  isApproved?: boolean;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -308,7 +317,7 @@ function DocSection({
           </div>
           {latest ? (
             <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-              <StatusBadge status={latest.status} />
+              <StatusBadge status={isApproved ? "verified" : latest.status} />
               <span>Uploaded {new Date(latest.created_at).toLocaleDateString()}</span>
               {latest.file_url && (
                 <a
