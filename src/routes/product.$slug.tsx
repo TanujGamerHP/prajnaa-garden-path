@@ -8,7 +8,7 @@ import { MarketingLayout } from "@/components/marketing/layout";
 import { ProductCard } from "@/components/store/product-card";
 import { productBySlug, productsByCategory } from "@/lib/mock/products";
 import { farmerBySlug } from "@/lib/mock/farmers";
-import { productReviews } from "@/lib/mock/reviews";
+import { ProductReviews } from "@/components/store/product-reviews";
 import { inr } from "@/lib/format";
 import { useCart } from "@/lib/cart-store";
 
@@ -86,6 +86,23 @@ export const Route = createFileRoute("/product/$slug")({
             rating: 4.8,
             reviews: 0,
           })) as any;
+      }
+    }
+
+    if (product) {
+      const { data: dbReviews } = await supabase
+        .from("product_reviews")
+        .select("rating")
+        .eq("product_slug", product.slug);
+
+      const reviewsCount = dbReviews?.length || 0;
+      if (reviewsCount > 0) {
+        const avgRating = Number((dbReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviewsCount).toFixed(1));
+        product.rating = avgRating;
+        product.reviews = reviewsCount;
+      } else {
+        product.rating = 4.8;
+        product.reviews = 3;
       }
     }
 
@@ -371,25 +388,8 @@ function ProductPage() {
           </div>
         </div>
 
-        {/* Reviews */}
-        <section className="mt-20">
-          <h2 className="font-display text-2xl font-semibold">Reviews</h2>
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
-            {productReviews.map((r) => (
-              <figure key={r.id} className="rounded-2xl border border-border bg-background p-5">
-                <div className="flex items-center gap-0.5 text-accent">
-                  {Array.from({ length: r.rating }).map((_, i) => (
-                    <Star key={i} className="h-3.5 w-3.5 fill-accent" />
-                  ))}
-                </div>
-                <blockquote className="mt-3 text-sm text-foreground/85">"{r.text}"</blockquote>
-                <figcaption className="font-subhead mt-4 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
-                  {r.author} · {r.location}
-                </figcaption>
-              </figure>
-            ))}
-          </div>
-        </section>
+        {/* Reviews Section */}
+        <ProductReviews productSlug={product.slug} />
 
         {/* Related */}
         {related.length > 0 && (
