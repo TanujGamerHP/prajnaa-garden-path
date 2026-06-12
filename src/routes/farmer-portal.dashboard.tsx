@@ -98,6 +98,13 @@ function FarmerDashboard() {
     if (o.status !== "delivered" && o.status !== "returned") {
       return sum;
     }
+    if (!o.created_at) {
+      return sum;
+    }
+    const date = new Date(o.created_at);
+    if (isNaN(date.getTime())) {
+      return sum;
+    }
     const farmerItems = o.items?.filter((i: any) => i.farmer_slug === farmerSlug) || [];
     const orderFarmerTotal = farmerItems.reduce((acc: number, item: any) => {
       const basePrice = item.farmer_base_price || Number(item.price || 0) / 1.10;
@@ -130,7 +137,13 @@ function FarmerDashboard() {
     if (o.status !== "delivered" && o.status !== "returned") {
       return;
     }
+    if (!o.created_at) {
+      return;
+    }
     const date = new Date(o.created_at);
+    if (isNaN(date.getTime())) {
+      return;
+    }
     const mStr = date.toLocaleDateString("en-US", { month: "short" }); // e.g. "Jun"
     
     if (!earningsByMonth.has(mStr)) {

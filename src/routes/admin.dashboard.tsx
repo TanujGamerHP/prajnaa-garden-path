@@ -109,22 +109,37 @@ function AdminDashboard() {
     .sort((a, b) => b.total - a.total)
     .slice(0, 5);
 
-  // 1. Map active orders to a daily/weekly sales log for AreaChart (real-time only)
+  // 1. Map active orders to a daily/weekly sales log for AreaChart (real-time only, chronological splits)
   const salesByDate = new Map<string, number>();
 
   data.orders.forEach((o: any) => {
     if (o.status !== "delivered" && o.status !== "returned") {
       return;
     }
-    const dateStr = new Date(o.created_at).toLocaleDateString("en-IN", { month: "short", day: "numeric" });
+    if (!o.created_at) {
+      return;
+    }
+    const date = new Date(o.created_at);
+    if (isNaN(date.getTime())) {
+      return;
+    }
+    // Format key as YYYY-MM-DD so it sorts correctly alphabetically/chronologically
+    const key = date.toISOString().split("T")[0];
     const orderTotal = Number(o.total || 0);
     const factor = o.status === "delivered" ? 1 : -1;
-    salesByDate.set(dateStr, (salesByDate.get(dateStr) ?? 0) + (orderTotal * factor));
+    salesByDate.set(key, (salesByDate.get(key) ?? 0) + (orderTotal * factor));
   });
 
+  // Sort and format for display
   const chartData = [...salesByDate.entries()]
-    .map(([date, sales]) => ({ date, sales }))
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    .map(([dateStr, sales]) => ({ dateStr, sales }))
+    .sort((a, b) => a.dateStr.localeCompare(b.dateStr))
+    .map(({ dateStr, sales }) => {
+      const parts = dateStr.split("-");
+      const date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+      const formattedDate = date.toLocaleDateString("en-IN", { month: "short", day: "numeric" });
+      return { date: formattedDate, sales };
+    });
 
   // If there are no data points, initialize it with the last 5 days at 0 so the chart axis looks clean
   if (chartData.length === 0) {
@@ -132,22 +147,22 @@ function AdminDashboard() {
     for (let i = 4; i >= 0; i--) {
       const d = new Date(today);
       d.setDate(today.getDate() - i);
-      const dateStr = d.toLocaleDateString("en-IN", { month: "short", day: "numeric" });
-      chartData.push({ date: dateStr, sales: 0 });
+      const formattedDate = d.toLocaleDateString("en-IN", { month: "short", day: "numeric" });
+      chartData.push({ date: formattedDate, sales: 0 });
     }
   }
 
   // 2. Map category counts for Donut/PieChart
   const byCat = new Map<string, number>();
   data.products
-    .filter((p: any) => p.status === "published")
+    .filter((p: any) => p.status === "published" && p.category)
     .forEach((p: any) => byCat.set(p.category, (byCat.get(p.category) ?? 0) + 1));
   
   const topCats = [...byCat.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4);
   const colors = ["#0F3D2E", "#B47A46", "#8FBC8F", "#D2B48C"];
   
   const pieData = topCats.map(([cat, n], i) => ({
-    name: cat.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase()),
+    name: String(cat || "Other").replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase()),
     value: n,
     color: colors[i % colors.length]
   }));
