@@ -14,6 +14,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/hooks/use-auth";
 import { initSentry, captureException } from "@/lib/sentry";
 import { PrajnaaCopilot } from "@/components/copilot/prajnaa-copilot";
+import { FarmerCopilot } from "@/components/copilot/farmer-copilot";
 
 if (typeof window !== "undefined") {
   initSentry();
@@ -153,6 +154,7 @@ function RootComponent() {
         <Outlet />
         <Toaster richColors position="top-center" />
         <PrajnaaCopilot />
+        <FarmerCopilot />
       </AuthProvider>
     </QueryClientProvider>
   );
