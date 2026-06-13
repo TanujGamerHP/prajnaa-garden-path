@@ -102,6 +102,13 @@ function FarmerPortalShell() {
           (item) => item.to === "/farmer-portal/dashboard" || item.to === "/farmer-portal/kyc",
         );
 
+  const isMissingDetails =
+    !farmer.portrait_url ||
+    !farmer.kishan_pehchan_patra?.trim() ||
+    !farmer.khasra_numbers?.trim() ||
+    farmer.cultivated_area === null ||
+    farmer.cultivated_area === undefined;
+
   return (
     <DashboardShell
       title="Farmer Portal"
@@ -130,6 +137,26 @@ function FarmerPortalShell() {
               </Link>
             )}
           </div>
+        </div>
+      )}
+
+      {farmer.status === "approved" && isMissingDetails && (
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-warning/40 bg-warning/5 p-5 backdrop-blur-sm shadow-sm">
+          <div className="flex items-start gap-3.5">
+            <AlertCircle className="mt-0.5 h-5 w-5 text-warning shrink-0" />
+            <div className="text-sm">
+              <p className="font-semibold text-warning">Action Required: Complete your profile credentials</p>
+              <p className="text-muted-foreground mt-1">
+                Prajnaa Marketplace now requires a Profile Picture, Kishan Pehchan Patra (Farmer ID), and detailed Land details (Khasra numbers, cultivated area) for all active farmers. Please complete your profile to keep your account fully compliant.
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/farmer-portal/profile"
+            className="font-subhead inline-flex shrink-0 items-center justify-center rounded-full bg-warning/20 px-5 py-2 text-xs font-semibold text-warning hover:bg-warning/35 transition"
+          >
+            Update Profile
+          </Link>
         </div>
       )}
       <Outlet />
