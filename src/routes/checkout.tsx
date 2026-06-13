@@ -143,7 +143,7 @@ function CheckoutPage() {
       .join(", ");
 
     // Resolve farmer_id and farmer_slug for each item dynamically from the database
-    const slugs = items.map((item) => item.slug);
+    const slugs = items.map((item) => (item as any).baseSlug || item.slug);
     const { data: dbProducts } = await supabase
       .from("farmer_products")
       .select("slug, farmer_id")
@@ -155,7 +155,8 @@ function CheckoutPage() {
       : { data: [] };
 
     const orderItems = items.map((item) => {
-      const dbProd = dbProducts?.find((p: any) => p.slug === item.slug);
+      const baseSlug = (item as any).baseSlug || item.slug;
+      const dbProd = dbProducts?.find((p: any) => p.slug === baseSlug);
       const dbFarmer = dbProd ? dbFarmers?.find((f: any) => f.id === dbProd.farmer_id) : null;
 
       let farmerSlug = dbFarmer?.slug || "lakshmi-devi";
