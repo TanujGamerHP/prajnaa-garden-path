@@ -920,6 +920,35 @@ function FarmerDetail({
   const [prodImages, setProdImages] = useState<string[]>([]);
   const [prodSaving, setProdSaving] = useState(false);
   const [prodUploadingImage, setProdUploadingImage] = useState(false);
+  const [prodVariants, setProdVariants] = useState<{ unit: string; price: string; stock: string; image: string }[]>([]);
+  const [prodHasVariants, setProdHasVariants] = useState(false);
+  const [prodUploadingVariantIdx, setProdUploadingVariantIdx] = useState<number | null>(null);
+
+  const handleAdminVariantImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, idx: number) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be under 5 MB");
+      return;
+    }
+    setProdUploadingVariantIdx(idx);
+    try {
+      const compressedFile = await compressImage(file);
+      const base64Url = await fileToBase64(compressedFile);
+      setProdVariants((prev) => {
+        const newVariants = [...prev];
+        if (newVariants[idx]) {
+          newVariants[idx] = { ...newVariants[idx], image: base64Url };
+        }
+        return newVariants;
+      });
+      toast.success("Variant image uploaded successfully");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Upload failed");
+    } finally {
+      setProdUploadingVariantIdx(null);
+    }
+  };
 
   const { data: docs = [] } = useQuery({
     queryKey: ["admin-farmer-docs", farmer.id],
@@ -956,6 +985,8 @@ function FarmerDetail({
     setProdStock("0");
     setProdDescription("");
     setProdImages([]);
+    setProdVariants([]);
+    setProdHasVariants(false);
     setIsProductModalOpen(true);
   };
 
@@ -968,6 +999,13 @@ function FarmerDetail({
     setProdStock(String(prod.stock || "0"));
     setProdDescription(prod.description || "");
     setProdImages(prod.images || []);
+    setProdVariants((prod.variants || []).map((v: any) => ({
+      unit: v.unit,
+      price: String(v.price),
+      stock: String(v.stock),
+      image: v.image || "",
+    })));
+    setProdHasVariants(!!prod.variants && prod.variants.length > 0);
     setIsProductModalOpen(true);
   };
 
@@ -1010,6 +1048,28 @@ function FarmerDetail({
       return;
     }
 
+    if (prodHasVariants) {
+      if (prodVariants.length === 0) {
+        toast.error("Please add at least one pack size/variant.");
+        return;
+      }
+      for (let i = 0; i < prodVariants.length; i++) {
+        const v = prodVariants[i];
+        if (!v.unit.trim()) {
+          toast.error(`Variant #${i + 1} is missing a Unit/Size.`);
+          return;
+        }
+        if (!v.price || isNaN(Number(v.price)) || Number(v.price) <= 0) {
+          toast.error(`Variant #${i + 1} has an invalid price.`);
+          return;
+        }
+        if (!v.stock || isNaN(Number(v.stock)) || Number(v.stock) < 0) {
+          toast.error(`Variant #${i + 1} has an invalid stock.`);
+          return;
+        }
+      }
+    }
+
     setProdSaving(true);
     try {
       const slug = editProduct
@@ -1028,6 +1088,14 @@ function FarmerDetail({
         slug,
         status: editProduct ? editProduct.status : "published", // default to published for admin adds
         created_at: editProduct ? editProduct.created_at : new Date().toISOString(),
+        variants: prodHasVariants
+          ? prodVariants.map((v) => ({
+              unit: v.unit.trim(),
+              price: Number(v.price),
+              stock: parseInt(v.stock, 10),
+              image: v.image || "",
+            }))
+          : null,
       };
 
       if (editProduct) {
@@ -1629,6 +1697,155 @@ function FarmerDetail({
                   className="font-subhead mt-1.5 w-full rounded-xl border border-border bg-background p-3 text-sm outline-none focus:border-primary"
                   placeholder="Tell customers about this product, its origin, taste, health benefits..."
                 />
+              </div>
+
+              {/* Variants Selector */}
+              <div className="border border-dashed border-[#f0e6d2] rounded-2xl p-4 bg-[#fdfbf7] space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground block">
+                      Multiple Pack Sizes (Variants)
+                    </span>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      Enable this if this product is sold in different weights or volumes.
+                    </p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={prodHasVariants}
+                      onChange={(e) => {
+                        setProdHasVariants(e.target.checked);
+                        if (e.target.checked && prodVariants.length === 0) {
+                          setProdVariants([
+                            {
+                              unit: prodUnit || "200 g",
+                              price: prodPrice || "",
+                              stock: prodStock || "0",
+                              image: "",
+                            },
+                          ]);
+                        }
+                      }}
+                      className="sr-only peer"
+                    />
+                    <div className="w-9 h-5 bg-secondary peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                  </label>
+                </div>
+
+                {prodHasVariants && (
+                  <div className="mt-3 space-y-3">
+                    {prodVariants.map((vItem, idx) => (
+                      <div
+                        key={idx}
+                        className="grid gap-2 grid-cols-4 items-end rounded-xl border border-border bg-background p-3 relative text-xs"
+                      >
+                        <div>
+                          <label className="block text-[10px] font-semibold text-muted-foreground uppercase">Size</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. 100 g"
+                            value={vItem.unit}
+                            onChange={(e) => {
+                              const newV = [...prodVariants];
+                              newV[idx] = { ...newV[idx], unit: e.target.value };
+                              setProdVariants(newV);
+                            }}
+                            className="font-subhead mt-1 h-8 w-full rounded-lg border border-border bg-background px-2 text-xs outline-none focus:border-primary"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-semibold text-muted-foreground uppercase">Price</label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            placeholder="Price"
+                            value={vItem.price}
+                            onChange={(e) => {
+                              const newV = [...prodVariants];
+                              newV[idx] = { ...newV[idx], price: e.target.value };
+                              setProdVariants(newV);
+                            }}
+                            className="font-subhead mt-1 h-8 w-full rounded-lg border border-border bg-background px-2 text-xs outline-none focus:border-primary"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-semibold text-muted-foreground uppercase">Stock</label>
+                          <input
+                            type="number"
+                            placeholder="Stock"
+                            value={vItem.stock}
+                            onChange={(e) => {
+                              const newV = [...prodVariants];
+                              newV[idx] = { ...newV[idx], stock: e.target.value };
+                              setProdVariants(newV);
+                            }}
+                            className="font-subhead mt-1 h-8 w-full rounded-lg border border-border bg-background px-2 text-xs outline-none focus:border-primary"
+                          />
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="flex-1">
+                            <label className="block text-[10px] font-semibold text-muted-foreground uppercase">Photo</label>
+                            {vItem.image ? (
+                              <div className="relative h-8 rounded-lg overflow-hidden border border-border group">
+                                <img src={vItem.image} className="h-full w-full object-cover" />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const newV = [...prodVariants];
+                                    newV[idx] = { ...newV[idx], image: "" };
+                                    setProdVariants(newV);
+                                  }}
+                                  className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-[9px] transition cursor-pointer"
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                            ) : (
+                              <label className="flex h-8 items-center justify-center border border-dashed border-border rounded-lg cursor-pointer hover:bg-secondary/40 transition text-muted-foreground bg-background text-[10px]">
+                                {prodUploadingVariantIdx === idx ? (
+                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                ) : (
+                                  <span>Upload</span>
+                                )}
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => handleAdminVariantImageUpload(e, idx)}
+                                  className="hidden"
+                                  disabled={prodUploadingVariantIdx !== null}
+                                />
+                              </label>
+                            )}
+                          </div>
+                          {prodVariants.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setProdVariants(prodVariants.filter((_, i) => i !== idx));
+                              }}
+                              className="h-8 w-8 rounded-lg border border-destructive/20 text-destructive hover:bg-destructive/10 flex items-center justify-center cursor-pointer shrink-0 mt-5"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setProdVariants([
+                          ...prodVariants,
+                          { unit: "", price: "", stock: "0", image: "" },
+                        ]);
+                      }}
+                      className="font-subhead inline-flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1.5 text-[10px] font-semibold hover:bg-secondary transition cursor-pointer"
+                    >
+                      <Plus className="h-3 w-3" /> Add Size
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div>

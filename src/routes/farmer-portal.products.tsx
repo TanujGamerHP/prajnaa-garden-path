@@ -20,6 +20,14 @@ const productSchema = z.object({
   stock: z.string().regex(/^\d+$/, "Whole number"),
   unit: z.string().min(1).max(20),
   images: z.array(z.string()).optional(),
+  variants: z.array(
+    z.object({
+      unit: z.string().min(1).max(30),
+      price: z.string().regex(/^\d+(\.\d{1,2})?$/, "Valid price"),
+      stock: z.string().regex(/^\d+$/, "Whole number"),
+      image: z.string().optional().or(z.literal("")),
+    })
+  ).optional().nullable(),
 });
 
 type FormState = z.infer<typeof productSchema>;
@@ -31,6 +39,7 @@ const empty: FormState = {
   stock: "0",
   unit: "kg",
   images: [],
+  variants: [],
 };
 
 function ProductsPage() {
@@ -42,6 +51,34 @@ function ProductsPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [uploadingImage, setUploadingImage] = useState<string | null>(null); // 'thumbnail' | 'additional' | null
+  const [hasVariants, setHasVariants] = useState(false);
+  const [uploadingVariantIdx, setUploadingVariantIdx] = useState<number | null>(null);
+
+  const handleVariantImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, idx: number) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be under 5 MB");
+      return;
+    }
+    setUploadingVariantIdx(idx);
+    try {
+      const compressedFile = await compressImage(file);
+      const base64Url = await fileToBase64(compressedFile);
+      setForm((prev) => {
+        const newVariants = [...(prev.variants || [])];
+        if (newVariants[idx]) {
+          newVariants[idx] = { ...newVariants[idx], image: base64Url };
+        }
+        return { ...prev, variants: newVariants };
+      });
+      toast.success("Variant image uploaded successfully");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Upload failed");
+    } finally {
+      setUploadingVariantIdx(null);
+    }
+  };
 
   const handleImageUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -110,6 +147,14 @@ function ProductsPage() {
         unit: input.unit,
         images: input.images || [],
         status: farmer.status === "approved" ? "published" : "draft",
+        variants: hasVariants
+          ? (input.variants || []).map((v) => ({
+              unit: v.unit.trim(),
+              price: Number(v.price),
+              stock: parseInt(v.stock, 10),
+              image: v.image || "",
+            }))
+          : null,
       } as const;
       if (input.id) {
         const { error } = await supabase.from("farmer_products").update(payload).eq("id", input.id);
@@ -126,6 +171,7 @@ function ProductsPage() {
       setEditing(null);
       setForm(empty);
       setUploadedImages([]);
+      setHasVariants(false);
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Save failed"),
   });
@@ -154,6 +200,30 @@ function ProductsPage() {
       setErrors(errs);
       return;
     }
+
+    if (hasVariants) {
+      const vList = form.variants || [];
+      if (vList.length === 0) {
+        toast.error("Please add at least one pack size/variant.");
+        return;
+      }
+      for (let i = 0; i < vList.length; i++) {
+        const v = vList[i];
+        if (!v.unit.trim()) {
+          toast.error(`Variant #${i + 1} is missing a Unit/Size.`);
+          return;
+        }
+        if (!v.price || isNaN(Number(v.price)) || Number(v.price) <= 0) {
+          toast.error(`Variant #${i + 1} has an invalid price.`);
+          return;
+        }
+        if (!v.stock || isNaN(Number(v.stock)) || Number(v.stock) < 0) {
+          toast.error(`Variant #${i + 1} has an invalid stock.`);
+          return;
+        }
+      }
+    }
+
     setErrors({});
     upsertMut.mutate({ ...res.data, id: editing ?? undefined });
   };
@@ -170,7 +240,14 @@ function ProductsPage() {
       stock: String(p.stock),
       unit: p.unit,
       images: pImages,
+      variants: (p.variants || []).map((v: any) => ({
+        unit: v.unit,
+        price: String(v.price),
+        stock: String(v.stock),
+        image: v.image || "",
+      })),
     });
+    setHasVariants(!!p.variants && p.variants.length > 0);
     setShowForm(true);
   };
 
@@ -369,6 +446,163 @@ function ProductsPage() {
                 className="font-subhead mt-1.5 w-full rounded-xl border border-border bg-background p-3.5 text-sm outline-none focus:border-primary"
               />
             </label>
+
+            {/* Variants Selector */}
+            <div className="md:col-span-2 border border-dashed border-[#f0e6d2] rounded-2xl p-5 bg-[#fdfbf7] mt-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="font-display text-sm font-semibold text-foreground">
+                    Multiple Pack Sizes (Variants)
+                  </span>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Enable this if this product is sold in different weights, volumes, or packaging options.
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={hasVariants}
+                    onChange={(e) => {
+                      setHasVariants(e.target.checked);
+                      if (e.target.checked && (!form.variants || form.variants.length === 0)) {
+                        // Initialize with 1 default variant copying base details
+                        setForm({
+                          ...form,
+                          variants: [
+                            {
+                              unit: form.unit || "200 g",
+                              price: form.price || "",
+                              stock: form.stock || "0",
+                              image: "",
+                            },
+                          ],
+                        });
+                      }
+                    }}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-secondary peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                </label>
+              </div>
+
+              {hasVariants && (
+                <div className="mt-4 space-y-4">
+                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Pack Sizes & Custom Pricing
+                  </div>
+                  {(form.variants || []).map((vItem, idx) => (
+                    <div
+                      key={idx}
+                      className="grid gap-3 sm:grid-cols-4 items-end rounded-xl border border-border bg-background p-4 relative"
+                    >
+                      <F
+                        label="Pack Size / Unit"
+                        placeholder="e.g. 100 g, 500 ml"
+                        v={vItem.unit}
+                        on={(v) => {
+                          const newV = [...(form.variants || [])];
+                          newV[idx] = { ...newV[idx], unit: v };
+                          setForm({ ...form, variants: newV });
+                        }}
+                      />
+                      <F
+                        label="Price (INR)"
+                        placeholder="e.g. 150"
+                        v={vItem.price}
+                        type="number"
+                        step="0.01"
+                        on={(v) => {
+                          const newV = [...(form.variants || [])];
+                          newV[idx] = { ...newV[idx], price: v };
+                          setForm({ ...form, variants: newV });
+                        }}
+                      />
+                      <F
+                        label="Stock"
+                        placeholder="e.g. 50"
+                        v={vItem.stock}
+                        type="number"
+                        on={(v) => {
+                          const newV = [...(form.variants || [])];
+                          newV[idx] = { ...newV[idx], stock: v };
+                          setForm({ ...form, variants: newV });
+                        }}
+                      />
+                      <div className="flex items-center gap-2">
+                        {/* Variant image uploader */}
+                        <div className="flex-1">
+                          <span className="font-subhead text-[10px] uppercase tracking-[0.14em] text-muted-foreground block mb-1">
+                            Variant Photo
+                          </span>
+                          {vItem.image ? (
+                            <div className="relative h-11 rounded-xl overflow-hidden border border-border group">
+                              <img src={vItem.image} className="h-full w-full object-cover" />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newV = [...(form.variants || [])];
+                                  newV[idx] = { ...newV[idx], image: "" };
+                                  setForm({ ...form, variants: newV });
+                                }}
+                                className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-[10px] transition cursor-pointer"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          ) : (
+                            <label className="flex h-11 items-center justify-center border border-dashed border-border rounded-xl cursor-pointer hover:bg-secondary/40 transition text-muted-foreground bg-background">
+                              {uploadingVariantIdx === idx ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <span className="text-[10px] font-semibold">Upload</span>
+                              )}
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => handleVariantImageUpload(e, idx)}
+                                className="hidden"
+                                disabled={uploadingVariantIdx !== null}
+                              />
+                            </label>
+                          )}
+                        </div>
+
+                        {/* Remove Variant Button */}
+                        {(form.variants || []).length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newV = (form.variants || []).filter((_, i) => i !== idx);
+                              setForm({ ...form, variants: newV });
+                            }}
+                            className="h-11 w-11 rounded-xl border border-destructive/20 text-destructive hover:bg-destructive/10 flex items-center justify-center cursor-pointer shrink-0"
+                            title="Remove pack size"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setForm({
+                        ...form,
+                        variants: [
+                          ...(form.variants || []),
+                          { unit: "", price: "", stock: "0", image: "" },
+                        ],
+                      });
+                    }}
+                    className="font-subhead inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-4 py-2 text-xs font-semibold hover:bg-secondary transition cursor-pointer"
+                  >
+                    <Plus className="h-3.5 w-3.5" /> Add another size
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
           <div className="mt-6 flex gap-3">
             <button

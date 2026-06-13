@@ -57,6 +57,15 @@ export const Route = createFileRoute("/product/$slug")({
           rating: 4.8,
           reviews: 0,
           description: dbProduct.description || "",
+          variants: dbProduct.variants
+            ? dbProduct.variants.map((v: any) => ({
+                unit: v.unit,
+                price: Math.ceil(Number(v.price || 0) * 1.10),
+                mrp: Math.ceil(Number(v.price || 0) * 1.10 * 1.25),
+                stock: Number(v.stock || 0),
+                image: v.image || "",
+              }))
+            : null,
         } as any;
 
         farmer = dbFarmer ? {
@@ -172,6 +181,7 @@ interface PackSizeOption {
   price: number;
   mrp: number;
   badge?: string;
+  image?: string;
 }
 
 interface BenefitItem {
@@ -180,76 +190,24 @@ interface BenefitItem {
 }
 
 function getPackSizes(product: any): PackSizeOption[] {
+  if (product.variants && product.variants.length > 0) {
+    return product.variants.map((v: any) => ({
+      label: v.unit,
+      price: v.price,
+      mrp: v.mrp || Math.ceil(v.price * 1.25),
+      badge: v.stock === 0 ? "Out of Stock" : undefined,
+      image: v.image || "",
+    }));
+  }
+
   const basePrice = product.price;
-  const weightLower = (product.weight || "").toLowerCase();
-  
-  // If it's ghee, honey, oil, juice or similar liquids
-  const isLiquid =
-    weightLower.includes("ml") ||
-    weightLower.includes("litre") ||
-    weightLower.includes("ltr") ||
-    product.name.toLowerCase().includes("ghee") ||
-    product.name.toLowerCase().includes("oil") ||
-    product.name.toLowerCase().includes("honey") ||
-    product.name.toLowerCase().includes("juice");
-  
-  if (isLiquid) {
-    const baseMrp1 = Math.ceil(basePrice * 1.35);
-    const baseMrp2 = Math.ceil(basePrice * 2.5);
-    return [
-      {
-        label: "500 ml",
-        price: basePrice,
-        mrp: baseMrp1,
-      },
-      {
-        label: "1 Litre Pack",
-        price: Math.ceil(basePrice * 1.85),
-        mrp: baseMrp2,
-        badge: "Best Seller",
-      }
-    ];
-  }
-  
-  // If it ends with g or kg (e.g. 100g, 200g, 500g, 1kg)
-  const isGrams = weightLower.includes("g") && !weightLower.includes("kg");
-  const isKg = weightLower.includes("kg");
-  
-  if (isGrams || isKg || product.category === "dry-fruits" || product.category === "nuts" || product.category === "seeds" || product.category === "spices" || product.category === "masalas" || product.category === "salts") {
-    const price200g = isKg ? Math.ceil(basePrice * 0.25) : basePrice;
-    const mrp200g = Math.ceil(price200g * 1.25);
-    
-    const price500g = Math.ceil(price200g * 2.2);
-    const mrp500g = Math.ceil(price500g * 1.35);
-    
-    return [
-      {
-        label: "200 g",
-        price: price200g,
-        mrp: mrp200g,
-      },
-      {
-        label: "500 g",
-        price: price500g,
-        mrp: mrp500g,
-        badge: "Best Seller",
-      }
-    ];
-  }
-  
-  // Default fallback
+  const baseMrp = product.mrp || Math.ceil(basePrice * 1.25);
   return [
     {
-      label: "1 Pack",
+      label: product.weight || "Base Unit",
       price: basePrice,
-      mrp: Math.ceil(basePrice * 1.2),
+      mrp: baseMrp,
     },
-    {
-      label: "Pack of 2",
-      price: Math.ceil(basePrice * 1.8),
-      mrp: Math.ceil(basePrice * 2.4),
-      badge: "Super Saver",
-    }
   ];
 }
 
@@ -322,6 +280,16 @@ function ProductPage() {
     setActiveImage(images[0]);
     setSelectedSizeIdx(0);
   }, [product]);
+
+  // Swap product image if the selected variant has a custom image
+  useEffect(() => {
+    const currentVariant = packSizes[selectedSizeIdx];
+    if (currentVariant && currentVariant.image) {
+      setActiveImage(currentVariant.image);
+    } else {
+      setActiveImage(images[0]);
+    }
+  }, [selectedSizeIdx, packSizes, images]);
 
   useEffect(() => {
     if (!user) return;
@@ -425,55 +393,57 @@ function ProductPage() {
             </p>
 
             {/* Pack Size Selector */}
-            <div className="mt-6">
-              <h3 className="font-display text-sm font-semibold uppercase tracking-wider text-muted-foreground">Select Pack Size</h3>
-              <div className="mt-3 flex flex-wrap gap-3">
-                {packSizes.map((opt, idx) => {
-                  const isActive = selectedSizeIdx === idx;
-                  const saveAmount = opt.mrp - opt.price;
-                  return (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => setSelectedSizeIdx(idx)}
-                      className={`relative flex flex-col w-36 overflow-hidden rounded-2xl border transition-all text-left cursor-pointer ${
-                        isActive
-                          ? "border-[#1b8a4f] shadow-md scale-[1.02]"
-                          : "border-border hover:border-muted-foreground/50 hover:shadow-sm"
-                      }`}
-                    >
-                      {opt.badge && (
-                        <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-[#dca842] px-2.5 py-0.5 text-[8px] font-bold text-white uppercase tracking-wider shadow-sm z-10 whitespace-nowrap">
-                          {opt.badge}
-                        </span>
-                      )}
-                      <div
-                        className={`px-3 py-1.5 text-center text-xs font-bold font-subhead transition-colors ${
-                          isActive ? "bg-[#1b8a4f] text-white" : "bg-[#f2eadc] text-foreground/80"
+            {packSizes.length > 1 && (
+              <div className="mt-6">
+                <h3 className="font-display text-sm font-semibold uppercase tracking-wider text-muted-foreground">Select Pack Size</h3>
+                <div className="mt-3 flex flex-wrap gap-3">
+                  {packSizes.map((opt, idx) => {
+                    const isActive = selectedSizeIdx === idx;
+                    const saveAmount = opt.mrp - opt.price;
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setSelectedSizeIdx(idx)}
+                        className={`relative flex flex-col w-36 overflow-hidden rounded-2xl border transition-all text-left cursor-pointer ${
+                          isActive
+                            ? "border-[#1b8a4f] shadow-md scale-[1.02]"
+                            : "border-border hover:border-muted-foreground/50 hover:shadow-sm"
                         }`}
                       >
-                        {opt.label}
-                      </div>
-                      <div className="flex flex-col items-center justify-center bg-[#faf8f5] p-2.5 text-center flex-1 w-full">
-                        <div className="flex flex-wrap items-center gap-1 justify-center">
-                          <span className="font-semibold text-sm text-foreground">{inr(opt.price)}</span>
-                          {opt.mrp > opt.price && (
-                            <span className="text-[10px] text-muted-foreground line-through">
-                              {inr(opt.mrp)}
+                        {opt.badge && (
+                          <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-[#dca842] px-2.5 py-0.5 text-[8px] font-bold text-white uppercase tracking-wider shadow-sm z-10 whitespace-nowrap">
+                            {opt.badge}
+                          </span>
+                        )}
+                        <div
+                          className={`px-3 py-1.5 text-center text-xs font-bold font-subhead transition-colors ${
+                            isActive ? "bg-[#1b8a4f] text-white" : "bg-[#f2eadc] text-foreground/80"
+                          }`}
+                        >
+                          {opt.label}
+                        </div>
+                        <div className="flex flex-col items-center justify-center bg-[#faf8f5] p-2.5 text-center flex-1 w-full">
+                          <div className="flex flex-wrap items-center gap-1 justify-center">
+                            <span className="font-semibold text-sm text-foreground">{inr(opt.price)}</span>
+                            {opt.mrp > opt.price && (
+                              <span className="text-[10px] text-muted-foreground line-through">
+                                {inr(opt.mrp)}
+                              </span>
+                            )}
+                          </div>
+                          {saveAmount > 0 && (
+                            <span className="mt-1.5 inline-block rounded-full bg-black px-2 py-0.5 text-[9px] font-bold text-white font-subhead">
+                              Save {inr(saveAmount)}/-
                             </span>
                           )}
                         </div>
-                        {saveAmount > 0 && (
-                          <span className="mt-1.5 inline-block rounded-full bg-black px-2 py-0.5 text-[9px] font-bold text-white font-subhead">
-                            Save {inr(saveAmount)}/-
-                          </span>
-                        )}
-                      </div>
-                    </button>
-                  );
-                })}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Key Benefits */}
             <div className="mt-6 border-t border-border pt-5">
