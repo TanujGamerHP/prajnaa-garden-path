@@ -189,17 +189,6 @@ function ProductsPage() {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    const updatedForm = { ...form, images: uploadedImages };
-    const res = productSchema.safeParse(updatedForm);
-    if (!res.success) {
-      const errs: Record<string, string> = {};
-      res.error.issues.forEach((i) => {
-        errs[i.path[0] as string] = i.message;
-      });
-      toast.error("Form validation failed. Please check all fields.");
-      setErrors(errs);
-      return;
-    }
 
     if (hasVariants) {
       const vList = form.variants || [];
@@ -222,6 +211,27 @@ function ProductsPage() {
           return;
         }
       }
+    }
+
+    let formToValidate = { ...form };
+    if (hasVariants && form.variants && form.variants.length > 0) {
+      const firstVariant = form.variants[0];
+      const totalStock = form.variants.reduce((sum, v) => sum + (parseInt(v.stock, 10) || 0), 0);
+      formToValidate.price = firstVariant.price;
+      formToValidate.stock = String(totalStock);
+      formToValidate.unit = firstVariant.unit;
+    }
+
+    const updatedForm = { ...formToValidate, images: uploadedImages };
+    const res = productSchema.safeParse(updatedForm);
+    if (!res.success) {
+      const errs: Record<string, string> = {};
+      res.error.issues.forEach((i) => {
+        errs[i.path[0] as string] = i.message;
+      });
+      toast.error("Form validation failed. Please check all fields.");
+      setErrors(errs);
+      return;
     }
 
     setErrors({});
@@ -296,159 +306,9 @@ function ProductsPage() {
                 { value: "masalas", label: "Masalas" },
               ]}
             />
-            <F
-              label="Price (INR)"
-              v={form.price}
-              on={(v) => setForm({ ...form, price: v })}
-              err={errors.price}
-              type="number"
-              step="0.01"
-            />
-            <F
-              label="Stock"
-              v={form.stock}
-              on={(v) => setForm({ ...form, stock: v })}
-              err={errors.stock}
-              type="number"
-            />
-            <Sel
-              label="Unit"
-              v={form.unit}
-              on={(v) => setForm({ ...form, unit: v })}
-              opts={["kg", "g", "piece", "dozen", "litre", "bunch"]}
-            />
-            <div className="md:col-span-2 border border-dashed border-border rounded-2xl p-4 bg-secondary/15 mt-2">
-              <span className="font-display text-sm font-semibold text-foreground">
-                Product photos
-              </span>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Upload photos of your product. The first photo acts as the main thumbnail.
-              </p>
-
-              <div className="mt-4 grid gap-6 sm:grid-cols-2">
-                {/* Thumbnail upload slot */}
-                <div className="space-y-2">
-                  <span className="font-subhead text-[10px] uppercase tracking-[0.14em] text-muted-foreground block">
-                    Thumbnail Photo (Main)
-                  </span>
-                  {uploadedImages[0] ? (
-                    <div className="relative group h-40 w-full rounded-2xl overflow-hidden border border-border">
-                      <img
-                        src={uploadedImages[0]}
-                        alt="Thumbnail"
-                        className="h-full w-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveImage(0)}
-                          className="rounded-full bg-destructive p-2 text-destructive-foreground hover:bg-destructive/90 transition-transform hover:scale-105"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <label className="flex flex-col items-center justify-center h-40 w-full rounded-2xl border-2 border-dashed border-border hover:border-primary cursor-pointer transition-colors bg-background">
-                      {uploadingImage === "thumbnail" ? (
-                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                      ) : (
-                        <>
-                          <Upload className="h-5 w-5 text-muted-foreground" />
-                          <span className="mt-2 text-xs font-medium text-muted-foreground">
-                            Upload Thumbnail
-                          </span>
-                        </>
-                      )}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleImageUpload(e, true)}
-                        className="hidden"
-                        disabled={uploadingImage !== null}
-                      />
-                    </label>
-                  )}
-                </div>
-
-                {/* Additional upload slots */}
-                <div className="space-y-2">
-                  <span className="font-subhead text-[10px] uppercase tracking-[0.14em] text-muted-foreground block">
-                    Additional Photos (Max 3)
-                  </span>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[1, 2, 3].map((slotIdx) => {
-                      const imgUrl = uploadedImages[slotIdx];
-                      return (
-                        <div
-                          key={slotIdx}
-                          className="h-28 rounded-xl overflow-hidden border border-border bg-background relative group flex items-center justify-center"
-                        >
-                          {imgUrl ? (
-                            <>
-                              <img
-                                src={imgUrl}
-                                alt={`Additional ${slotIdx}`}
-                                className="h-full w-full object-cover"
-                              />
-                              <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                <button
-                                  type="button"
-                                  onClick={() => handleRemoveImage(slotIdx)}
-                                  className="rounded-full bg-destructive p-1.5 text-destructive-foreground hover:bg-destructive/90 transition-transform"
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                </button>
-                              </div>
-                            </>
-                          ) : // Show the upload interface only on the active next slot
-                          slotIdx === uploadedImages.length ||
-                            (slotIdx === 1 && uploadedImages.length === 0) ? (
-                            <label className="flex flex-col items-center justify-center h-full w-full cursor-pointer hover:bg-secondary/40 transition-colors">
-                              {uploadingImage === "additional" ? (
-                                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                              ) : (
-                                <>
-                                  <Plus className="h-4 w-4 text-muted-foreground" />
-                                  <span className="mt-1 text-[10px] font-medium text-muted-foreground">
-                                    Add
-                                  </span>
-                                </>
-                              )}
-                              <input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => handleImageUpload(e, false)}
-                                className="hidden"
-                                disabled={uploadingImage !== null}
-                              />
-                            </label>
-                          ) : (
-                            <span className="text-[10px] text-muted-foreground/40 font-subhead uppercase tracking-wider">
-                              Empty
-                            </span>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            </div>
-            <label className="md:col-span-2 block">
-              <span className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-                Description
-              </span>
-              <textarea
-                rows={4}
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                className="font-subhead mt-1.5 w-full rounded-xl border border-border bg-background p-3.5 text-sm outline-none focus:border-primary"
-              />
-            </label>
 
             {/* Variants Selector */}
-            <div className="md:col-span-2 border border-dashed border-[#f0e6d2] rounded-2xl p-5 bg-[#fdfbf7] mt-4">
+            <div className="md:col-span-2 border border-dashed border-[#f0e6d2] rounded-2xl p-5 bg-[#fdfbf7] mt-1">
               <div className="flex items-center justify-between">
                 <div>
                   <span className="font-display text-sm font-semibold text-foreground">
@@ -603,6 +463,163 @@ function ProductsPage() {
                 </div>
               )}
             </div>
+
+            {!hasVariants && (
+              <>
+                <F
+                  label="Price (INR)"
+                  v={form.price}
+                  on={(v) => setForm({ ...form, price: v })}
+                  err={errors.price}
+                  type="number"
+                  step="0.01"
+                />
+                <F
+                  label="Stock"
+                  v={form.stock}
+                  on={(v) => setForm({ ...form, stock: v })}
+                  err={errors.stock}
+                  type="number"
+                />
+                <Sel
+                  label="Unit"
+                  v={form.unit}
+                  on={(v) => setForm({ ...form, unit: v })}
+                  opts={["kg", "g", "piece", "dozen", "litre", "bunch"]}
+                />
+              </>
+            )}
+            <div className="md:col-span-2 border border-dashed border-border rounded-2xl p-4 bg-secondary/15 mt-2">
+              <span className="font-display text-sm font-semibold text-foreground">
+                Product photos
+              </span>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Upload photos of your product. The first photo acts as the main thumbnail.
+              </p>
+
+              <div className="mt-4 grid gap-6 sm:grid-cols-2">
+                {/* Thumbnail upload slot */}
+                <div className="space-y-2">
+                  <span className="font-subhead text-[10px] uppercase tracking-[0.14em] text-muted-foreground block">
+                    Thumbnail Photo (Main)
+                  </span>
+                  {uploadedImages[0] ? (
+                    <div className="relative group h-40 w-full rounded-2xl overflow-hidden border border-border">
+                      <img
+                        src={uploadedImages[0]}
+                        alt="Thumbnail"
+                        className="h-full w-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(0)}
+                          className="rounded-full bg-destructive p-2 text-destructive-foreground hover:bg-destructive/90 transition-transform hover:scale-105"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <label className="flex flex-col items-center justify-center h-40 w-full rounded-2xl border-2 border-dashed border-border hover:border-primary cursor-pointer transition-colors bg-background">
+                      {uploadingImage === "thumbnail" ? (
+                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                      ) : (
+                        <>
+                          <Upload className="h-5 w-5 text-muted-foreground" />
+                          <span className="mt-2 text-xs font-medium text-muted-foreground">
+                            Upload Thumbnail
+                          </span>
+                        </>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleImageUpload(e, true)}
+                        className="hidden"
+                        disabled={uploadingImage !== null}
+                      />
+                    </label>
+                  )}
+                </div>
+
+                {/* Additional upload slots */}
+                <div className="space-y-2">
+                  <span className="font-subhead text-[10px] uppercase tracking-[0.14em] text-muted-foreground block">
+                    Additional Photos (Max 3)
+                  </span>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[1, 2, 3].map((slotIdx) => {
+                      const imgUrl = uploadedImages[slotIdx];
+                      return (
+                        <div
+                          key={slotIdx}
+                          className="h-28 rounded-xl overflow-hidden border border-border bg-background relative group flex items-center justify-center"
+                        >
+                          {imgUrl ? (
+                            <>
+                              <img
+                                src={imgUrl}
+                                alt={`Additional ${slotIdx}`}
+                                className="h-full w-full object-cover"
+                              />
+                              <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveImage(slotIdx)}
+                                  className="rounded-full bg-destructive p-1.5 text-destructive-foreground hover:bg-destructive/90 transition-transform"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </button>
+                              </div>
+                            </>
+                          ) : // Show the upload interface only on the active next slot
+                          slotIdx === uploadedImages.length ||
+                            (slotIdx === 1 && uploadedImages.length === 0) ? (
+                            <label className="flex flex-col items-center justify-center h-full w-full cursor-pointer hover:bg-secondary/40 transition-colors">
+                              {uploadingImage === "additional" ? (
+                                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                              ) : (
+                                <>
+                                  <Plus className="h-4 w-4 text-muted-foreground" />
+                                  <span className="mt-1 text-[10px] font-medium text-muted-foreground">
+                                    Add
+                                  </span>
+                                </>
+                              )}
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => handleImageUpload(e, false)}
+                                className="hidden"
+                                disabled={uploadingImage !== null}
+                              />
+                            </label>
+                          ) : (
+                            <span className="text-[10px] text-muted-foreground/40 font-subhead uppercase tracking-wider">
+                              Empty
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <label className="md:col-span-2 block">
+              <span className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                Description
+              </span>
+              <textarea
+                rows={4}
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                className="font-subhead mt-1.5 w-full rounded-xl border border-border bg-background p-3.5 text-sm outline-none focus:border-primary"
+              />
+            </label>
+
+
           </div>
           <div className="mt-6 flex gap-3">
             <button

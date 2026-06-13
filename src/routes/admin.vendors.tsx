@@ -1039,14 +1039,10 @@ function FarmerDetail({
       toast.error("Product name is required");
       return;
     }
-    if (!prodPrice.trim() || isNaN(Number(prodPrice))) {
-      toast.error("Valid price is required");
-      return;
-    }
-    if (!prodStock.trim() || isNaN(Number(prodStock))) {
-      toast.error("Valid stock quantity is required");
-      return;
-    }
+
+    let finalPrice = prodPrice;
+    let finalStock = prodStock;
+    let finalUnit = prodUnit;
 
     if (prodHasVariants) {
       if (prodVariants.length === 0) {
@@ -1068,6 +1064,20 @@ function FarmerDetail({
           return;
         }
       }
+      const firstVariant = prodVariants[0];
+      const totalStock = prodVariants.reduce((sum, v) => sum + (parseInt(v.stock, 10) || 0), 0);
+      finalPrice = firstVariant.price;
+      finalStock = String(totalStock);
+      finalUnit = firstVariant.unit;
+    } else {
+      if (!prodPrice.trim() || isNaN(Number(prodPrice))) {
+        toast.error("Valid price is required");
+        return;
+      }
+      if (!prodStock.trim() || isNaN(Number(prodStock))) {
+        toast.error("Valid stock quantity is required");
+        return;
+      }
     }
 
     setProdSaving(true);
@@ -1080,9 +1090,9 @@ function FarmerDetail({
         farmer_id: farmer.id,
         name: prodName.trim(),
         category: prodCategory,
-        price: Number(prodPrice),
-        stock: Number(prodStock),
-        unit: prodUnit.trim(),
+        price: Number(finalPrice),
+        stock: Number(finalStock),
+        unit: finalUnit.trim(),
         description: prodDescription.trim(),
         images: prodImages,
         slug,
@@ -1619,7 +1629,7 @@ function FarmerDetail({
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div>
+                <div className="col-span-2">
                   <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Category *
                   </label>
@@ -1639,64 +1649,6 @@ function FarmerDetail({
                     <option value="masalas">Masalas</option>
                   </select>
                 </div>
-
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Pricing Unit *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={prodUnit}
-                    onChange={(e) => setProdUnit(e.target.value)}
-                    className="font-subhead mt-1.5 h-10 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus:border-primary"
-                    placeholder="e.g. kg, g, pack, bottle"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Price (INR) *
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    required
-                    value={prodPrice}
-                    onChange={(e) => setProdPrice(e.target.value)}
-                    className="font-subhead mt-1.5 h-10 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus:border-primary"
-                    placeholder="e.g. 250"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Stock Quantity *
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    value={prodStock}
-                    onChange={(e) => setProdStock(e.target.value)}
-                    className="font-subhead mt-1.5 h-10 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus:border-primary"
-                    placeholder="e.g. 50"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Description
-                </label>
-                <textarea
-                  value={prodDescription}
-                  onChange={(e) => setProdDescription(e.target.value)}
-                  rows={3}
-                  className="font-subhead mt-1.5 w-full rounded-xl border border-border bg-background p-3 text-sm outline-none focus:border-primary"
-                  placeholder="Tell customers about this product, its origin, taste, health benefits..."
-                />
               </div>
 
               {/* Variants Selector */}
@@ -1846,6 +1798,70 @@ function FarmerDetail({
                     </button>
                   </div>
                 )}
+              </div>
+
+              {!prodHasVariants && (
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2">
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        Pricing Unit *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={prodUnit}
+                        onChange={(e) => setProdUnit(e.target.value)}
+                        className="font-subhead mt-1.5 h-10 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus:border-primary"
+                        placeholder="e.g. kg, g, pack, bottle"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        Price (INR) *
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        required
+                        value={prodPrice}
+                        onChange={(e) => setProdPrice(e.target.value)}
+                        className="font-subhead mt-1.5 h-10 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus:border-primary"
+                        placeholder="e.g. 250"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        Stock Quantity *
+                      </label>
+                      <input
+                        type="number"
+                        required
+                        value={prodStock}
+                        onChange={(e) => setProdStock(e.target.value)}
+                        className="font-subhead mt-1.5 h-10 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus:border-primary"
+                        placeholder="e.g. 50"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Description
+                </label>
+                <textarea
+                  value={prodDescription}
+                  onChange={(e) => setProdDescription(e.target.value)}
+                  rows={3}
+                  className="font-subhead mt-1.5 w-full rounded-xl border border-border bg-background p-3 text-sm outline-none focus:border-primary"
+                  placeholder="Tell customers about this product, its origin, taste, health benefits..."
+                />
               </div>
 
               <div>
