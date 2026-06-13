@@ -15,6 +15,7 @@ import { AuthProvider } from "@/hooks/use-auth";
 import { initSentry, captureException } from "@/lib/sentry";
 import { PrajnaaCopilot } from "@/components/copilot/prajnaa-copilot";
 import { FarmerCopilot } from "@/components/copilot/farmer-copilot";
+import { useTrafficTracker } from "@/hooks/use-traffic-tracker";
 
 if (typeof window !== "undefined") {
   initSentry();
@@ -148,6 +149,7 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  useTrafficTracker();
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>

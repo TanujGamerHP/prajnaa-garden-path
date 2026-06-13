@@ -12,6 +12,7 @@ import {
   Settings,
   Loader2,
   ShieldOff,
+  Activity,
 } from "lucide-react";
 import { DashboardShell, type NavItem } from "@/components/dashboard/shell";
 import { useAuth } from "@/hooks/use-auth";
@@ -27,6 +28,7 @@ const nav: NavItem[] = [
   { to: "/admin/orders", label: "Orders", icon: <ShoppingBag className="h-4 w-4" /> },
   { to: "/admin/customers", label: "Customers", icon: <UserCog className="h-4 w-4" /> },
   { to: "/admin/settlements", label: "Settlements", icon: <Wallet className="h-4 w-4" /> },
+  { to: "/admin/traffic", label: "Live Traffic", icon: <Activity className="h-4 w-4" /> },
   { to: "/admin/coupons", label: "Coupons", icon: <Ticket className="h-4 w-4" /> },
   { to: "/admin/banners", label: "Banners", icon: <Image className="h-4 w-4" /> },
   { to: "/admin/settings", label: "Admin settings", icon: <Settings className="h-4 w-4" /> },
