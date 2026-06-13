@@ -13,10 +13,13 @@ import {
   Plus,
   Trash2,
   Edit,
+  Upload,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { slugify } from "@/lib/farmer/use-farmer";
+import { compressImage } from "@/lib/image-compress";
+import { fileToBase64 } from "@/lib/file-to-base64";
 
 export const Route = createFileRoute("/admin/vendors")({ component: AdminVendors });
 
@@ -749,6 +752,19 @@ function FarmerDetail({
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
 
+  // Product modal states
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const [editProduct, setEditProduct] = useState<any | null>(null);
+  const [prodName, setProdName] = useState("");
+  const [prodCategory, setProdCategory] = useState("dry-fruits");
+  const [prodPrice, setProdPrice] = useState("");
+  const [prodUnit, setProdUnit] = useState("kg");
+  const [prodStock, setProdStock] = useState("0");
+  const [prodDescription, setProdDescription] = useState("");
+  const [prodImages, setProdImages] = useState<string[]>([]);
+  const [prodSaving, setProdSaving] = useState(false);
+  const [prodUploadingImage, setProdUploadingImage] = useState(false);
+
   const { data: docs = [] } = useQuery({
     queryKey: ["admin-farmer-docs", farmer.id],
     queryFn: async () => {
@@ -761,6 +777,150 @@ function FarmerDetail({
       return data ?? [];
     },
   });
+
+  const { data: products = [], refetch: refetchProducts } = useQuery({
+    queryKey: ["admin-farmer-products", farmer.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("farmer_products")
+        .select("*")
+        .eq("farmer_id", farmer.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const openAddProduct = () => {
+    setEditProduct(null);
+    setProdName("");
+    setProdCategory("dry-fruits");
+    setProdPrice("");
+    setProdUnit("kg");
+    setProdStock("0");
+    setProdDescription("");
+    setProdImages([]);
+    setIsProductModalOpen(true);
+  };
+
+  const openEditProduct = (prod: any) => {
+    setEditProduct(prod);
+    setProdName(prod.name || "");
+    setProdCategory(prod.category || "dry-fruits");
+    setProdPrice(String(prod.price || ""));
+    setProdUnit(prod.unit || "kg");
+    setProdStock(String(prod.stock || "0"));
+    setProdDescription(prod.description || "");
+    setProdImages(prod.images || []);
+    setIsProductModalOpen(true);
+  };
+
+  const handleProductImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be under 5 MB");
+      return;
+    }
+    setProdUploadingImage(true);
+    try {
+      const compressedFile = await compressImage(file);
+      const base64Url = await fileToBase64(compressedFile);
+      setProdImages((prev) => [...prev, base64Url]);
+      toast.success("Image uploaded successfully");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Upload failed");
+    } finally {
+      setProdUploadingImage(false);
+    }
+  };
+
+  const handleRemoveProductImage = (index: number) => {
+    setProdImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSaveProduct = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!prodName.trim()) {
+      toast.error("Product name is required");
+      return;
+    }
+    if (!prodPrice.trim() || isNaN(Number(prodPrice))) {
+      toast.error("Valid price is required");
+      return;
+    }
+    if (!prodStock.trim() || isNaN(Number(prodStock))) {
+      toast.error("Valid stock quantity is required");
+      return;
+    }
+
+    setProdSaving(true);
+    try {
+      const slug = editProduct
+        ? editProduct.slug
+        : slugify(prodName.trim()) + "-" + Math.random().toString(36).slice(2, 6);
+
+      const payload = {
+        farmer_id: farmer.id,
+        name: prodName.trim(),
+        category: prodCategory,
+        price: Number(prodPrice),
+        stock: Number(prodStock),
+        unit: prodUnit.trim(),
+        description: prodDescription.trim(),
+        images: prodImages,
+        slug,
+        status: editProduct ? editProduct.status : "published", // default to published for admin adds
+        created_at: editProduct ? editProduct.created_at : new Date().toISOString(),
+      };
+
+      if (editProduct) {
+        const { error } = await supabase
+          .from("farmer_products")
+          .update(payload)
+          .eq("id", editProduct.id);
+        if (error) throw error;
+        toast.success("Product updated successfully");
+      } else {
+        const { error } = await supabase.from("farmer_products").insert(payload);
+        if (error) throw error;
+        toast.success("Product added successfully");
+      }
+
+      setIsProductModalOpen(false);
+      refetchProducts();
+      qc.invalidateQueries({ queryKey: ["admin-products"] }); // Sync global admin product list too
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed to save product");
+    } finally {
+      setProdSaving(false);
+    }
+  };
+
+  const handleDeleteProduct = async (prod: any) => {
+    if (!confirm(`Are you sure you want to permanently delete "${prod.name}"?`)) return;
+    try {
+      const { error } = await supabase.from("farmer_products").delete().eq("id", prod.id);
+      if (error) throw error;
+      toast.success("Product deleted successfully");
+      refetchProducts();
+      qc.invalidateQueries({ queryKey: ["admin-products"] }); // Sync global list
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed to delete product");
+    }
+  };
+
+  const toggleProductStatus = async (prod: any, status: "published" | "archived" | "draft") => {
+    try {
+      const { error } = await supabase.from("farmer_products").update({ status }).eq("id", prod.id);
+      if (error) throw error;
+      toast.success(`Product marked as ${status}`);
+      refetchProducts();
+      qc.invalidateQueries({ queryKey: ["admin-products"] }); // Sync global list
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed to update product status");
+    }
+  };
 
   const updateStatus = async (status: "approved" | "rejected" | "suspended" | "pending") => {
     setBusy(status);
@@ -957,6 +1117,100 @@ function FarmerDetail({
       </div>
 
       <div className="border-t border-border px-6 py-5">
+        <div className="flex items-center justify-between">
+          <p className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+            Farmer's Products ({products.length})
+          </p>
+          <button
+            onClick={openAddProduct}
+            className="font-subhead inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1.5 text-[10px] font-semibold text-primary-foreground hover:opacity-90"
+          >
+            <Plus className="h-3 w-3" /> Add Product
+          </button>
+        </div>
+
+        {products.length === 0 ? (
+          <p className="mt-3 text-sm text-muted-foreground">No products listed by this farmer yet.</p>
+        ) : (
+          <ul className="mt-3 space-y-2.5">
+            {products.map((p: any) => (
+              <li
+                key={p.id}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border p-3 text-sm"
+              >
+                <div className="flex items-center gap-3">
+                  {p.images?.[0] ? (
+                    <img
+                      src={p.images[0]}
+                      alt={p.name}
+                      className="h-10 w-10 rounded-lg object-cover border border-border"
+                    />
+                  ) : (
+                    <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center border border-border">
+                      <span className="text-[9px] text-muted-foreground">No img</span>
+                    </div>
+                  )}
+                  <div>
+                    <p className="font-medium text-foreground">{p.name}</p>
+                    <p className="font-subhead text-[10px] text-muted-foreground capitalize">
+                      {p.category.replace(/-/g, " ")} · ₹{p.price}/{p.unit} · {p.stock} {p.unit} in stock
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span
+                    className={`font-subhead rounded-full px-2 py-0.5 text-[9px] capitalize ${
+                      p.status === "published"
+                        ? "bg-success/15 text-success"
+                        : p.status === "draft"
+                          ? "bg-warning/15 text-warning"
+                          : "bg-secondary text-muted-foreground"
+                    }`}
+                  >
+                    {p.status}
+                  </span>
+                  
+                  {p.status !== "published" && (
+                    <button
+                      onClick={() => toggleProductStatus(p, "published")}
+                      className="font-subhead rounded-full border border-border px-2 py-0.5 text-[9px] hover:bg-secondary cursor-pointer"
+                      title="Publish Product"
+                    >
+                      Publish
+                    </button>
+                  )}
+                  {p.status === "published" && (
+                    <button
+                      onClick={() => toggleProductStatus(p, "archived")}
+                      className="font-subhead rounded-full border border-border px-2 py-0.5 text-[9px] hover:bg-secondary cursor-pointer"
+                      title="Archive Product"
+                    >
+                      Archive
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() => openEditProduct(p)}
+                    className="grid h-7 w-7 place-items-center rounded-full border border-border hover:bg-secondary text-muted-foreground hover:text-foreground cursor-pointer"
+                    title="Edit Details"
+                  >
+                    <Edit className="h-3 w-3" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteProduct(p)}
+                    className="grid h-7 w-7 place-items-center rounded-full border border-border text-destructive hover:bg-destructive/10 cursor-pointer"
+                    title="Delete Product"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="border-t border-border px-6 py-5">
         <label className="block">
           <span className="font-subhead text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
             Rejection reason (if rejecting)
@@ -1088,6 +1342,182 @@ function FarmerDetail({
                 Close
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Product Add/Edit Modal */}
+      {isProductModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm overflow-y-auto">
+          <div className="relative w-full max-w-lg rounded-2xl border border-border bg-background shadow-2xl animate-scale-up my-8">
+            <div className="flex items-center justify-between border-b border-border px-6 py-4">
+              <h3 className="font-display text-base font-semibold text-foreground">
+                {editProduct ? `Edit Product: ${editProduct.name}` : "Add New Product"}
+              </h3>
+              <button
+                onClick={() => setIsProductModalOpen(false)}
+                className="grid h-8 w-8 place-items-center rounded-full border border-border text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveProduct} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Product Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={prodName}
+                  onChange={(e) => setProdName(e.target.value)}
+                  className="font-subhead mt-1.5 h-10 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus:border-primary"
+                  placeholder="e.g. Organic Kashmiri Saffron"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Category *
+                  </label>
+                  <select
+                    value={prodCategory}
+                    onChange={(e) => setProdCategory(e.target.value)}
+                    className="font-subhead mt-1.5 h-10 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus:border-primary capitalize cursor-pointer"
+                  >
+                    <option value="dry-fruits">Dry Fruits</option>
+                    <option value="nuts">Nuts</option>
+                    <option value="seeds">Seeds</option>
+                    <option value="spices">Spices</option>
+                    <option value="herbs">Herbs</option>
+                    <option value="plants">Plants</option>
+                    <option value="pickles">Pickles</option>
+                    <option value="salts">Salts</option>
+                    <option value="masalas">Masalas</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Pricing Unit *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={prodUnit}
+                    onChange={(e) => setProdUnit(e.target.value)}
+                    className="font-subhead mt-1.5 h-10 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus:border-primary"
+                    placeholder="e.g. kg, g, pack, bottle"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Price (INR) *
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    required
+                    value={prodPrice}
+                    onChange={(e) => setProdPrice(e.target.value)}
+                    className="font-subhead mt-1.5 h-10 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus:border-primary"
+                    placeholder="e.g. 250"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Stock Quantity *
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    value={prodStock}
+                    onChange={(e) => setProdStock(e.target.value)}
+                    className="font-subhead mt-1.5 h-10 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus:border-primary"
+                    placeholder="e.g. 50"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Description
+                </label>
+                <textarea
+                  value={prodDescription}
+                  onChange={(e) => setProdDescription(e.target.value)}
+                  rows={3}
+                  className="font-subhead mt-1.5 w-full rounded-xl border border-border bg-background p-3 text-sm outline-none focus:border-primary"
+                  placeholder="Tell customers about this product, its origin, taste, health benefits..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
+                  Product Images
+                </label>
+                <div className="flex flex-wrap gap-2.5">
+                  {prodImages.map((img, i) => (
+                    <div key={i} className="relative h-16 w-16 border border-border rounded-xl overflow-hidden group">
+                      <img src={img} className="h-full w-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveProductImage(i)}
+                        className="absolute top-1 right-1 grid h-5 w-5 place-items-center rounded-full bg-black/60 text-white hover:bg-black/80 text-[10px] transition cursor-pointer"
+                        title="Remove image"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                  
+                  <label className="flex h-16 w-16 flex-col items-center justify-center border border-dashed border-border rounded-xl cursor-pointer bg-secondary/10 hover:bg-secondary/30 transition text-muted-foreground">
+                    {prodUploadingImage ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Upload className="h-4 w-4" />
+                        <span className="text-[9px] mt-1">Upload</span>
+                      </>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleProductImageUpload}
+                      disabled={prodUploadingImage}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-1.5">
+                  Recommended size: Square aspect ratio (1:1), less than 5 MB.
+                </p>
+              </div>
+
+              <div className="border-t border-border pt-4 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsProductModalOpen(false)}
+                  className="font-subhead rounded-full border border-border px-4 py-2 text-xs font-medium hover:bg-secondary transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={prodSaving}
+                  className="font-subhead inline-flex items-center gap-1.5 rounded-full bg-primary px-5 py-2 text-xs font-medium text-primary-foreground disabled:opacity-55 transition cursor-pointer"
+                >
+                  {prodSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                  {editProduct ? "Update Product" : "Add Product"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
