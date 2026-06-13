@@ -14,6 +14,7 @@ import {
   Trash2,
   Edit,
   Upload,
+  User,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -58,6 +59,13 @@ function AdminVendors() {
   const [upiId, setUpiId] = useState("");
   const [headline, setHeadline] = useState("");
   const [story, setStory] = useState("");
+  const [portraitUrl, setPortraitUrl] = useState("");
+  const [kishanPehchanPatra, setKishanPehchanPatra] = useState("");
+  const [landAreaUnit, setLandAreaUnit] = useState("acres");
+  const [khasraNumbers, setKhasraNumbers] = useState("");
+  const [cultivatedArea, setCultivatedArea] = useState("");
+  const [cultivatorType, setCultivatorType] = useState("Owner");
+  const [uploadingPortrait, setUploadingPortrait] = useState(false);
   const [farmerStatus, setFarmerStatus] = useState<Tab>("approved");
 
   // Fetch all users list
@@ -125,12 +133,18 @@ function AdminVendors() {
     setEmail("");
     setAadhaarLast4("");
     setPanNumber("");
+    setPortraitUrl("");
+    setKishanPehchanPatra("");
     setFarmName("");
     setVillage("");
     setDistrict("");
     setState("");
     setPincode("");
     setFarmSize("");
+    setLandAreaUnit("acres");
+    setKhasraNumbers("");
+    setCultivatedArea("");
+    setCultivatorType("Owner");
     setYearsFarming("");
     setFarmingMethod("organic");
     setCrops("");
@@ -153,12 +167,18 @@ function AdminVendors() {
     setEmail(f.email || "");
     setAadhaarLast4(f.aadhaar_last4 || "");
     setPanNumber(f.pan_number || "");
+    setPortraitUrl(f.portrait_url || "");
+    setKishanPehchanPatra(f.kishan_pehchan_patra || "");
     setFarmName(f.farm_name || "");
     setVillage(f.village || "");
     setDistrict(f.district || "");
     setState(f.state || "");
     setPincode(f.pincode || "");
     setFarmSize(f.farm_size_acres?.toString() || "");
+    setLandAreaUnit(f.land_area_unit || "acres");
+    setKhasraNumbers(f.khasra_numbers || "");
+    setCultivatedArea(f.cultivated_area?.toString() || "");
+    setCultivatorType(f.cultivator_type || "Owner");
     setYearsFarming(f.years_farming?.toString() || "");
     setFarmingMethod(f.farming_method || "organic");
     setCrops((f.crops ?? []).join(", "));
@@ -171,6 +191,30 @@ function AdminVendors() {
     setStory(f.story || "");
     setFarmerStatus(f.status || "approved");
     setIsOpen(true);
+  };
+
+  const handleAdminPortraitUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be under 5 MB");
+      return;
+    }
+    setUploadingPortrait(true);
+    try {
+      const compressedFile = await compressImage(file);
+      const base64Url = await fileToBase64(compressedFile);
+      setPortraitUrl(base64Url);
+      toast.success("Profile picture uploaded successfully");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Upload failed");
+    } finally {
+      setUploadingPortrait(false);
+    }
+  };
+
+  const handleAdminRemovePortrait = () => {
+    setPortraitUrl("");
   };
 
   const deleteFarmer = async (farmer: any) => {
@@ -258,6 +302,8 @@ function AdminVendors() {
         email: email.trim() || null,
         aadhaar_last4: aadhaarLast4.trim() || null,
         pan_number: panNumber.toUpperCase().trim() || null,
+        portrait_url: portraitUrl.trim() || null,
+        kishan_pehchan_patra: kishanPehchanPatra.trim(),
         farm_name: farmName.trim(),
         slug: slugify(farmName),
         village: village.trim(),
@@ -265,6 +311,10 @@ function AdminVendors() {
         state: state.trim(),
         pincode: pincode.trim() || null,
         farm_size_acres: farmSize ? Number(farmSize) : null,
+        land_area_unit: landAreaUnit,
+        khasra_numbers: khasraNumbers.trim(),
+        cultivated_area: cultivatedArea ? Number(cultivatedArea) : null,
+        cultivator_type: cultivatorType,
         years_farming: yearsFarming ? parseInt(yearsFarming, 10) : null,
         farming_method: farmingMethod,
         crops: crops
@@ -516,6 +566,59 @@ function AdminVendors() {
                       className="font-subhead mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
                     />
                   </div>
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground">Kishan Pehchan Patra / Farmer ID *</label>
+                    <input
+                      type="text"
+                      required
+                      value={kishanPehchanPatra}
+                      onChange={(e) => setKishanPehchanPatra(e.target.value)}
+                      placeholder="e.g. HP-FARM-987654"
+                      className="font-subhead mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div className="sm:col-span-2 space-y-2">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Farmer Profile Picture *
+                    </label>
+                    <div className="flex items-center gap-4">
+                      {portraitUrl ? (
+                        <div className="relative h-16 w-16 rounded-full border border-border overflow-hidden">
+                          <img src={portraitUrl} className="h-full w-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={handleAdminRemovePortrait}
+                            className="absolute inset-0 bg-black/40 text-white flex items-center justify-center opacity-0 hover:opacity-100 transition duration-200 cursor-pointer"
+                            title="Remove photo"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="h-16 w-16 rounded-full bg-secondary flex items-center justify-center border border-border text-muted-foreground">
+                          <User className="h-6 w-6" />
+                        </div>
+                      )}
+                      
+                      <label className="flex h-9 items-center justify-center border border-dashed border-border rounded-xl cursor-pointer bg-secondary/10 px-3 text-xs hover:bg-secondary/30 transition text-muted-foreground font-subhead font-medium gap-1.5">
+                        {uploadingPortrait ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <>
+                            <Upload className="h-3.5 w-3.5" />
+                            <span>Upload Photo</span>
+                          </>
+                        )}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleAdminPortraitUpload}
+                          disabled={uploadingPortrait}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -570,19 +673,72 @@ function AdminVendors() {
                       className="font-subhead mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
                     />
                   </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="col-span-2">
+                      <label className="block text-xs font-medium text-muted-foreground">Total Land Area *</label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        required
+                        value={farmSize}
+                        onChange={(e) => setFarmSize(e.target.value)}
+                        className="font-subhead mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-muted-foreground">Unit *</label>
+                      <select
+                        value={landAreaUnit}
+                        onChange={(e) => setLandAreaUnit(e.target.value)}
+                        className="font-subhead mt-1 w-full rounded-xl border border-border bg-background px-2 py-2 text-sm outline-none focus:border-primary cursor-pointer"
+                      >
+                        <option value="acres">Acres</option>
+                        <option value="hectares">Hectares</option>
+                        <option value="bighas">Bighas</option>
+                      </select>
+                    </div>
+                  </div>
                   <div>
-                    <label className="block text-xs font-medium text-muted-foreground">Farm Size (acres)</label>
+                    <label className="block text-xs font-medium text-muted-foreground">Cultivated Area *</label>
                     <input
-                      type="text"
-                      value={farmSize}
-                      onChange={(e) => setFarmSize(e.target.value)}
+                      type="number"
+                      step="0.1"
+                      required
+                      value={cultivatedArea}
+                      onChange={(e) => setCultivatedArea(e.target.value)}
+                      placeholder="Cultivated Area"
                       className="font-subhead mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-muted-foreground">Years Farming</label>
+                    <label className="block text-xs font-medium text-muted-foreground">Khasra Number(s) *</label>
+                    <input
+                      type="text"
+                      required
+                      value={khasraNumbers}
+                      onChange={(e) => setKhasraNumbers(e.target.value)}
+                      placeholder="e.g. 122/4, 125/2"
+                      className="font-subhead mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground">Cultivator Type *</label>
+                    <select
+                      value={cultivatorType}
+                      onChange={(e) => setCultivatorType(e.target.value)}
+                      className="font-subhead mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary cursor-pointer"
+                    >
+                      <option value="Owner">Owner</option>
+                      <option value="Tenant">Tenant</option>
+                      <option value="Sharecropper">Sharecropper</option>
+                      <option value="Leased">Leased</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground">Years Farming *</label>
                     <input
                       type="number"
+                      required
                       value={yearsFarming}
                       onChange={(e) => setYearsFarming(e.target.value)}
                       className="font-subhead mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
@@ -994,12 +1150,25 @@ function FarmerDetail({
     <>
     <div className="rounded-2xl border border-border bg-background">
       <div className="border-b border-border px-6 py-4">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h3 className="font-display text-xl font-semibold text-foreground">{farmer.full_name}</h3>
-            <p className="font-subhead text-xs text-muted-foreground">
-              {farmer.farm_name} · {farmer.village}, {farmer.state}
-            </p>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-4">
+            {farmer.portrait_url ? (
+              <img
+                src={farmer.portrait_url}
+                alt={farmer.full_name}
+                className="h-14 w-14 rounded-full object-cover border-2 border-primary/20 shadow-sm"
+              />
+            ) : (
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-secondary border border-border text-muted-foreground">
+                <User className="h-6 w-6" />
+              </div>
+            )}
+            <div>
+              <h3 className="font-display text-xl font-semibold text-foreground">{farmer.full_name}</h3>
+              <p className="font-subhead text-xs text-muted-foreground">
+                {farmer.farm_name} · {farmer.village}, {farmer.state}
+              </p>
+            </div>
           </div>
           <span
             className={`font-subhead rounded-full px-3 py-1 text-xs capitalize ${
@@ -1025,9 +1194,13 @@ function FarmerDetail({
           v={farmer.aadhaar_last4 ? `xxxx-xxxx-${farmer.aadhaar_last4}` : "—"}
         />
         <Row k="PAN" v={farmer.pan_number} />
+        <Row k="Kishan Pehchan Patra (Farmer ID)" v={farmer.kishan_pehchan_patra} />
         <Row k="PIN" v={farmer.pincode} />
-        <Row k="Method" v={farmer.farming_method} />
-        <Row k="Farm size" v={farmer.farm_size_acres ? `${farmer.farm_size_acres} acres` : "—"} />
+        <Row k="Farming Method" v={farmer.farming_method} />
+        <Row k="Cultivator Type" v={farmer.cultivator_type || "—"} />
+        <Row k="Total Farm Size" v={farmer.farm_size_acres ? `${farmer.farm_size_acres} ${farmer.land_area_unit || "acres"}` : "—"} />
+        <Row k="Cultivated Area" v={farmer.cultivated_area ? `${farmer.cultivated_area} ${farmer.land_area_unit || "acres"}` : "—"} />
+        <Row k="Khasra Number(s)" v={farmer.khasra_numbers || "—"} />
         <Row k="Years farming" v={farmer.years_farming?.toString()} />
         <Row k="Bank" v={farmer.bank_name} />
         <Row
@@ -1038,7 +1211,7 @@ function FarmerDetail({
               : "—"
           }
         />
-        <Row k="UPI" v={farmer.upi_id} />
+        <Row k="UPI ID" v={farmer.upi_id} />
         <Row k="Crops" v={(farmer.crops ?? []).join(", ")} />
       </div>
 

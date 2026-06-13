@@ -3,12 +3,14 @@ import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { z } from "zod";
-import { ArrowLeft, ArrowRight, Loader2, Check, Search } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, Check, Search, Upload, X, User } from "lucide-react";
 import { MarketingLayout } from "@/components/marketing/layout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useFarmerProfile, slugify, farmerKey } from "@/lib/farmer/use-farmer";
 import { formatPhoneNumber } from "./auth.login";
+import { compressImage } from "@/lib/image-compress";
+import { fileToBase64 } from "@/lib/file-to-base64";
 
 export const Route = createFileRoute("/become-a-seller/register")({
   head: () => ({
@@ -103,12 +105,18 @@ type Form = {
   email: string;
   aadhaar_number: string; // validated as full 12 digits on frontend, last 4 digits saved in DB
   pan_number: string;
+  portrait_url: string;
+  kishan_pehchan_patra: string;
   farm_name: string;
   village: string;
   district: string;
   state: string;
   pincode: string;
   farm_size_acres: string;
+  land_area_unit: string;
+  khasra_numbers: string;
+  cultivated_area: string;
+  cultivator_type: string;
   years_farming: string;
   farming_method: string;
   crops: string;
@@ -127,12 +135,18 @@ const empty: Form = {
   email: "",
   aadhaar_number: "",
   pan_number: "",
+  portrait_url: "",
+  kishan_pehchan_patra: "",
   farm_name: "",
   village: "",
   district: "",
   state: "",
   pincode: "",
   farm_size_acres: "",
+  land_area_unit: "acres",
+  khasra_numbers: "",
+  cultivated_area: "",
+  cultivator_type: "Owner",
   years_farming: "",
   farming_method: "natural",
   crops: "",
@@ -170,6 +184,12 @@ const schemas = [
         /^[A-Z]{5}[0-9]{4}[A-Z]$/,
         "Strict PAN format required: 5 letters, 4 digits, 1 letter (e.g. ABCDE1234F)",
       ),
+    portrait_url: z.string().min(1, "Farmer profile picture is required"),
+    kishan_pehchan_patra: z
+      .string()
+      .trim()
+      .min(4, "Kishan Pehchan Patra / Farmer ID is required")
+      .max(50),
   }),
   z.object({
     farm_name: z.string().trim().min(2, "Farm name is required").max(120),
@@ -182,7 +202,13 @@ const schemas = [
       .regex(/^\d{6}$/, "Pincode must be exactly 6 digits"),
     farm_size_acres: z
       .string()
-      .regex(/^\d+(\.\d+)?$/, "Enter farm size in acres (digits/decimals)"),
+      .regex(/^\d+(\.\d+)?$/, "Enter farm size (digits/decimals)"),
+    land_area_unit: z.string().min(1, "Land area unit is required"),
+    khasra_numbers: z.string().trim().min(2, "Khasra number(s) are required"),
+    cultivated_area: z
+      .string()
+      .regex(/^\d+(\.\d+)?$/, "Enter cultivated area (digits/decimals)"),
+    cultivator_type: z.string().min(1, "Cultivator type is required"),
     years_farming: z.string().regex(/^\d{1,2}$/, "Enter farming experience in years"),
     farming_method: z.string().min(2),
     crops: z.string().trim().min(2, "List at least one crop"),
@@ -198,7 +224,7 @@ const schemas = [
       .trim()
       .regex(
         /^[A-Z]{4}0[A-Z0-9]{6}$/,
-        "IFSC must be 11 characters: 4 letters, 0, 6 alphanumeric (e.g. SBIN0001234)",
+        "IFSC must be 11 characters: 4 letters, 0, 6 alphanumeric (e.g. IFSC SBIN0001234)",
       ),
     bank_name: z
       .string()
@@ -227,6 +253,31 @@ function RegisterPage() {
   const [form, setForm] = useState<Form>(empty);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [uploadingPortrait, setUploadingPortrait] = useState(false);
+
+  const handlePortraitUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be under 5 MB");
+      return;
+    }
+    setUploadingPortrait(true);
+    try {
+      const compressedFile = await compressImage(file);
+      const base64Url = await fileToBase64(compressedFile);
+      setForm((prev) => ({ ...prev, portrait_url: base64Url }));
+      toast.success("Profile picture uploaded successfully");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Upload failed");
+    } finally {
+      setUploadingPortrait(false);
+    }
+  };
+
+  const handleRemovePortrait = () => {
+    setForm((prev) => ({ ...prev, portrait_url: "" }));
+  };
 
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/auth/login", replace: true });
@@ -240,12 +291,18 @@ function RegisterPage() {
         email: existing.email ?? user?.email ?? "",
         aadhaar_number: existing.aadhaar_last4 ? `**** **** ${existing.aadhaar_last4}` : "",
         pan_number: existing.pan_number ?? "",
+        portrait_url: existing.portrait_url ?? "",
+        kishan_pehchan_patra: existing.kishan_pehchan_patra ?? "",
         farm_name: existing.farm_name ?? "",
         village: existing.village ?? "",
         district: existing.district ?? "",
         state: existing.state ?? "",
         pincode: existing.pincode ?? "",
         farm_size_acres: existing.farm_size_acres?.toString() ?? "",
+        land_area_unit: existing.land_area_unit ?? "acres",
+        khasra_numbers: existing.khasra_numbers ?? "",
+        cultivated_area: existing.cultivated_area?.toString() ?? "",
+        cultivator_type: existing.cultivator_type ?? "Owner",
         years_farming: existing.years_farming?.toString() ?? "",
         farming_method: existing.farming_method ?? "natural",
         crops: (existing.crops ?? []).join(", "),
@@ -350,6 +407,8 @@ function RegisterPage() {
         email: form.email.trim(),
         aadhaar_last4: last4,
         pan_number: form.pan_number.toUpperCase(),
+        portrait_url: form.portrait_url.trim() || null,
+        kishan_pehchan_patra: form.kishan_pehchan_patra.trim(),
         farm_name: form.farm_name.trim(),
         slug: slugify(form.farm_name),
         village: form.village.trim(),
@@ -357,6 +416,10 @@ function RegisterPage() {
         state: form.state.trim(),
         pincode: form.pincode,
         farm_size_acres: Number(form.farm_size_acres),
+        land_area_unit: form.land_area_unit,
+        khasra_numbers: form.khasra_numbers.trim(),
+        cultivated_area: form.cultivated_area ? Number(form.cultivated_area) : null,
+        cultivator_type: form.cultivator_type,
         years_farming: parseInt(form.years_farming, 10),
         farming_method: form.farming_method,
         crops: form.crops
@@ -531,6 +594,58 @@ function RegisterPage() {
                 error={errors.pan_number}
                 placeholder="ABCDE1234F"
               />
+              <Field
+                label="Kishan Pehchan Patra / Farmer ID *"
+                value={form.kishan_pehchan_patra}
+                onChange={set("kishan_pehchan_patra")}
+                error={errors.kishan_pehchan_patra}
+                placeholder="e.g. HP-FARM-987654"
+              />
+              <div className="md:col-span-2 space-y-2">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Farmer Profile Picture *
+                </label>
+                <div className="flex items-center gap-4">
+                  {form.portrait_url ? (
+                    <div className="relative h-20 w-20 rounded-full border border-border overflow-hidden">
+                      <img src={form.portrait_url} className="h-full w-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={handleRemovePortrait}
+                        className="absolute inset-0 bg-black/40 text-white flex items-center justify-center opacity-0 hover:opacity-100 transition duration-200 cursor-pointer"
+                        title="Remove photo"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="h-20 w-20 rounded-full bg-secondary flex items-center justify-center border border-border text-muted-foreground">
+                      <User className="h-8 w-8" />
+                    </div>
+                  )}
+                  
+                  <label className="flex h-10 items-center justify-center border border-dashed border-border rounded-xl cursor-pointer bg-secondary/10 px-4 text-xs hover:bg-secondary/30 transition text-muted-foreground font-subhead font-medium gap-2">
+                    {uploadingPortrait ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Upload className="h-4 w-4" />
+                        <span>Upload Profile Pic</span>
+                      </>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePortraitUpload}
+                      disabled={uploadingPortrait}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+                {errors.portrait_url && (
+                  <p className="text-xs text-destructive mt-1">{errors.portrait_url}</p>
+                )}
+              </div>
             </div>
           )}
           {step === 1 && (
@@ -568,16 +683,50 @@ function RegisterPage() {
                 error={errors.pincode}
                 placeholder="6-digit code"
               />
+              <div className="grid grid-cols-3 gap-2">
+                <div className="col-span-2">
+                  <Field
+                    label="Total Land Area *"
+                    type="number"
+                    step="0.1"
+                    value={form.farm_size_acres}
+                    onChange={set("farm_size_acres")}
+                    error={errors.farm_size_acres}
+                  />
+                </div>
+                <div>
+                  <Select
+                    label="Area Unit *"
+                    value={form.land_area_unit}
+                    onChange={set("land_area_unit")}
+                    options={["acres", "hectares", "bighas"]}
+                  />
+                </div>
+              </div>
               <Field
-                label="Farm size (acres)"
+                label="Cultivated Area *"
                 type="number"
                 step="0.1"
-                value={form.farm_size_acres}
-                onChange={set("farm_size_acres")}
-                error={errors.farm_size_acres}
+                value={form.cultivated_area}
+                onChange={set("cultivated_area")}
+                error={errors.cultivated_area}
+                placeholder="Area currently cultivated"
               />
               <Field
-                label="Years farming"
+                label="Khasra Number(s) *"
+                value={form.khasra_numbers}
+                onChange={set("khasra_numbers")}
+                error={errors.khasra_numbers}
+                placeholder="e.g. 122/4, 125/2 (comma-separated)"
+              />
+              <Select
+                label="Cultivator Type *"
+                value={form.cultivator_type}
+                onChange={set("cultivator_type")}
+                options={["Owner", "Tenant", "Sharecropper", "Leased"]}
+              />
+              <Field
+                label="Years farming *"
                 type="number"
                 value={form.years_farming}
                 onChange={set("years_farming")}
@@ -668,7 +817,10 @@ function RegisterPage() {
           {step === 4 && (
             <div className="space-y-4 text-sm">
               <Row k="Name" v={form.full_name} />
+              <Row k="Farmer ID / Kishan Pehchan Patra" v={form.kishan_pehchan_patra} />
               <Row k="Farm" v={`${form.farm_name} · ${form.village}, ${form.state}`} />
+              <Row k="Land Details" v={`${form.farm_size_acres} ${form.land_area_unit} (${form.cultivator_type}) · Khasra: ${form.khasra_numbers}`} />
+              <Row k="Cultivated Area" v={`${form.cultivated_area} ${form.land_area_unit}`} />
               <Row k="Method" v={form.farming_method} />
               <Row k="Crops" v={form.crops} />
               <Row k="Bank" v={`${form.bank_name} · ****${form.bank_account_number.slice(-4)}`} />
