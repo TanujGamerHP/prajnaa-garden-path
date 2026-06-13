@@ -10,9 +10,13 @@ import {
   ShieldCheck,
   ShieldAlert,
   Eye,
+  Plus,
+  Trash2,
+  Edit,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { slugify } from "@/lib/farmer/use-farmer";
 
 export const Route = createFileRoute("/admin/vendors")({ component: AdminVendors });
 
@@ -22,6 +26,65 @@ function AdminVendors() {
   const [tab, setTab] = useState<Tab>("pending");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const qc = useQueryClient();
+
+  // Modal State
+  const [isOpen, setIsOpen] = useState(false);
+  const [editFarmer, setEditFarmer] = useState<any | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  // Form Fields State
+  const [linkUserId, setLinkUserId] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [aadhaarLast4, setAadhaarLast4] = useState("");
+  const [panNumber, setPanNumber] = useState("");
+  const [farmName, setFarmName] = useState("");
+  const [village, setVillage] = useState("");
+  const [district, setDistrict] = useState("");
+  const [state, setState] = useState("");
+  const [pincode, setPincode] = useState("");
+  const [farmSize, setFarmSize] = useState("");
+  const [yearsFarming, setYearsFarming] = useState("");
+  const [farmingMethod, setFarmingMethod] = useState("organic");
+  const [crops, setCrops] = useState("");
+  const [bankName, setBankName] = useState("");
+  const [bankAccountName, setBankAccountName] = useState("");
+  const [bankAccountNumber, setBankAccountNumber] = useState("");
+  const [bankIfsc, setBankIfsc] = useState("");
+  const [upiId, setUpiId] = useState("");
+  const [headline, setHeadline] = useState("");
+  const [story, setStory] = useState("");
+  const [farmerStatus, setFarmerStatus] = useState<Tab>("approved");
+
+  // Fetch all users list
+  const { data: usersList = [] } = useQuery({
+    queryKey: ["admin-users-list"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, full_name, email, phone");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  // Fetch existing farmer profiles to filter
+  const { data: allFarmerProfiles = [] } = useQuery({
+    queryKey: ["admin-all-farmer-profiles-ids"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("farmer_profiles")
+        .select("user_id");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const existingFarmerUserIds = new Set(allFarmerProfiles.map((f: any) => f.user_id));
+  const eligibleUsers = usersList.filter(
+    (u: any) => !existingFarmerUserIds.has(u.id) || (editFarmer && u.id === editFarmer.user_id)
+  );
 
   const { data: farmers = [], isLoading } = useQuery({
     queryKey: ["admin-farmers", tab],
@@ -51,13 +114,231 @@ function AdminVendors() {
 
   const selected = farmers.find((f: any) => f.id === selectedId);
 
+  const openAdd = () => {
+    setEditFarmer(null);
+    setLinkUserId("");
+    setFullName("");
+    setPhone("");
+    setEmail("");
+    setAadhaarLast4("");
+    setPanNumber("");
+    setFarmName("");
+    setVillage("");
+    setDistrict("");
+    setState("");
+    setPincode("");
+    setFarmSize("");
+    setYearsFarming("");
+    setFarmingMethod("organic");
+    setCrops("");
+    setBankName("");
+    setBankAccountName("");
+    setBankAccountNumber("");
+    setBankIfsc("");
+    setUpiId("");
+    setHeadline("");
+    setStory("");
+    setFarmerStatus("approved");
+    setIsOpen(true);
+  };
+
+  const openEdit = (f: any) => {
+    setEditFarmer(f);
+    setLinkUserId(f.user_id);
+    setFullName(f.full_name || "");
+    setPhone(f.phone || "");
+    setEmail(f.email || "");
+    setAadhaarLast4(f.aadhaar_last4 || "");
+    setPanNumber(f.pan_number || "");
+    setFarmName(f.farm_name || "");
+    setVillage(f.village || "");
+    setDistrict(f.district || "");
+    setState(f.state || "");
+    setPincode(f.pincode || "");
+    setFarmSize(f.farm_size_acres?.toString() || "");
+    setYearsFarming(f.years_farming?.toString() || "");
+    setFarmingMethod(f.farming_method || "organic");
+    setCrops((f.crops ?? []).join(", "));
+    setBankName(f.bank_name || "");
+    setBankAccountName(f.bank_account_name || "");
+    setBankAccountNumber(f.bank_account_number || "");
+    setBankIfsc(f.bank_ifsc || "");
+    setUpiId(f.upi_id || "");
+    setHeadline(f.headline || "");
+    setStory(f.story || "");
+    setFarmerStatus(f.status || "approved");
+    setIsOpen(true);
+  };
+
+  const deleteFarmer = async (farmer: any) => {
+    if (
+      !confirm(
+        `Are you sure you want to delete ${farmer.full_name}? This will permanently remove their products, payouts, KYC documents, and clear their farmer role. This action is irreversible.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      // 1. Delete associated products
+      await supabase.from("farmer_products").delete().eq("farmer_id", farmer.id);
+
+      // 2. Delete associated documents
+      await supabase.from("farmer_documents").delete().eq("farmer_id", farmer.id);
+
+      // 3. Delete associated payouts
+      await supabase.from("farmer_payouts").delete().eq("farmer_id", farmer.id);
+
+      // 4. Remove farmer role from user_roles
+      await supabase
+        .from("user_roles")
+        .delete()
+        .eq("user_id", farmer.user_id)
+        .eq("role", "farmer");
+
+      // 5. Delete farmer profile
+      const { error } = await supabase.from("farmer_profiles").delete().eq("id", farmer.id);
+      if (error) throw error;
+
+      toast.success("Farmer profile deleted successfully");
+      setSelectedId(null);
+      qc.invalidateQueries({ queryKey: ["admin-farmers"] });
+      qc.invalidateQueries({ queryKey: ["admin-farmer-counts"] });
+      qc.invalidateQueries({ queryKey: ["admin-all-farmer-profiles-ids"] });
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed to delete farmer");
+    }
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!fullName.trim() || !phone.trim() || !farmName.trim() || !village.trim() || !state.trim()) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const targetUserId = editFarmer ? editFarmer.user_id : (linkUserId || crypto.randomUUID());
+
+      // If registering a brand new user
+      if (!editFarmer && !linkUserId) {
+        const { error: profileErr } = await supabase.from("profiles").insert({
+          id: targetUserId,
+          full_name: fullName.trim(),
+          email: email.trim() || null,
+          phone: phone.trim() || null,
+        });
+        if (profileErr) throw profileErr;
+      } else {
+        // Update user profile record to keep aligned
+        await supabase
+          .from("profiles")
+          .update({
+            full_name: fullName.trim(),
+            email: email.trim() || null,
+            phone: phone.trim() || null,
+          })
+          .eq("id", targetUserId);
+      }
+
+      // Assign role if not exists
+      await supabase
+        .from("user_roles")
+        .insert({ user_id: targetUserId, role: "farmer" })
+        .then(() => {}, () => {});
+
+      const payload = {
+        user_id: targetUserId,
+        full_name: fullName.trim(),
+        phone: phone.trim(),
+        email: email.trim() || null,
+        aadhaar_last4: aadhaarLast4.trim() || null,
+        pan_number: panNumber.toUpperCase().trim() || null,
+        farm_name: farmName.trim(),
+        slug: slugify(farmName),
+        village: village.trim(),
+        district: district.trim() || null,
+        state: state.trim(),
+        pincode: pincode.trim() || null,
+        farm_size_acres: farmSize ? Number(farmSize) : null,
+        years_farming: yearsFarming ? parseInt(yearsFarming, 10) : null,
+        farming_method: farmingMethod,
+        crops: crops
+          .split(",")
+          .map((c) => c.trim())
+          .filter(Boolean),
+        bank_name: bankName.trim() || null,
+        bank_account_name: bankAccountName.trim() || null,
+        bank_account_number: bankAccountNumber.trim() || null,
+        bank_ifsc: bankIfsc.toUpperCase().trim() || null,
+        upi_id: upiId.trim() || null,
+        headline: headline.trim() || null,
+        story: story.trim() || null,
+        status: farmerStatus,
+        approved_at: farmerStatus === "approved" ? new Date().toISOString() : null,
+      };
+
+      let error;
+      if (editFarmer) {
+        const { error: err } = await supabase
+          .from("farmer_profiles")
+          .update(payload)
+          .eq("id", editFarmer.id);
+        error = err;
+      } else {
+        const { error: err } = await supabase.from("farmer_profiles").insert(payload);
+        error = err;
+      }
+
+      if (error) throw error;
+
+      toast.success(editFarmer ? "Farmer profile updated" : "Farmer registered successfully");
+      setIsOpen(false);
+      setEditFarmer(null);
+      
+      qc.invalidateQueries({ queryKey: ["admin-farmers"] });
+      qc.invalidateQueries({ queryKey: ["admin-farmer-counts"] });
+      qc.invalidateQueries({ queryKey: ["admin-all-farmer-profiles-ids"] });
+      qc.invalidateQueries({ queryKey: ["admin-users-list"] });
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed to save farmer");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleLinkUserChange = (uid: string) => {
+    setLinkUserId(uid);
+    if (uid) {
+      const selectedUser = eligibleUsers.find((u: any) => u.id === uid);
+      if (selectedUser) {
+        setFullName(selectedUser.full_name || "");
+        setEmail(selectedUser.email || "");
+        setPhone(selectedUser.phone || "");
+      }
+    } else {
+      setFullName("");
+      setEmail("");
+      setPhone("");
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="font-display text-3xl font-semibold">Farmer approvals</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Review registrations, inspect KYC documents, and approve or reject vendors.
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 className="font-display text-3xl font-semibold">Farmer approvals</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Review registrations, inspect KYC documents, and approve or reject vendors.
+          </p>
+        </div>
+        <button
+          onClick={openAdd}
+          className="font-subhead inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:opacity-90 transition cursor-pointer"
+        >
+          <Plus className="h-4 w-4" /> Register Farmer
+        </button>
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -123,6 +404,8 @@ function AdminVendors() {
                 qc.invalidateQueries({ queryKey: ["admin-farmer-counts"] });
                 setSelectedId(null);
               }}
+              onEdit={openEdit}
+              onDelete={deleteFarmer}
             />
           ) : (
             <div className="grid h-full min-h-64 place-items-center rounded-2xl border border-dashed border-border p-8 text-center">
@@ -133,11 +416,336 @@ function AdminVendors() {
           )}
         </div>
       </div>
+
+      {/* Register/Edit Farmer Modal */}
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm overflow-y-auto">
+          <div className="relative w-full max-w-2xl rounded-2xl border border-border bg-background shadow-2xl animate-scale-up my-8">
+            <div className="flex items-center justify-between border-b border-border px-6 py-4">
+              <h3 className="font-display text-lg font-semibold text-foreground">
+                {editFarmer ? `Edit ${editFarmer.full_name}` : "Register New Farmer"}
+              </h3>
+              <button
+                onClick={() => {
+                  setIsOpen(false);
+                  setEditFarmer(null);
+                }}
+                className="grid h-8 w-8 place-items-center rounded-full border border-border text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleSave} className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+              {!editFarmer && (
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Link to User Account
+                  </label>
+                  <select
+                    value={linkUserId}
+                    onChange={(e) => handleLinkUserChange(e.target.value)}
+                    className="font-subhead mt-2 w-full rounded-xl border border-border bg-background p-3 text-sm outline-none focus:border-primary"
+                  >
+                    <option value="">Create brand new user profile</option>
+                    {eligibleUsers.map((u: any) => (
+                      <option key={u.id} value={u.id}>
+                        {u.full_name} ({u.email || u.phone || "No Contact"})
+                      </option>
+                    ))}
+                  </select>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Link this profile to an existing registered user, or create a new user profile record.
+                  </p>
+                </div>
+              )}
+
+              <div className="space-y-4">
+                <h4 className="font-display text-sm font-semibold border-b pb-2 text-primary">Personal Details</h4>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground">Full Name *</label>
+                    <input
+                      type="text"
+                      required
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      className="font-subhead mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground">Phone *</label>
+                    <input
+                      type="text"
+                      required
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="font-subhead mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground">Email</label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="font-subhead mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground">Aadhaar (Last 4 digits)</label>
+                    <input
+                      type="text"
+                      maxLength={4}
+                      value={aadhaarLast4}
+                      onChange={(e) => setAadhaarLast4(e.target.value)}
+                      placeholder="e.g. 1234"
+                      className="font-subhead mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground">PAN Number</label>
+                    <input
+                      type="text"
+                      value={panNumber}
+                      onChange={(e) => setPanNumber(e.target.value)}
+                      placeholder="e.g. ABCDE1234F"
+                      className="font-subhead mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="font-display text-sm font-semibold border-b pb-2 text-primary">Farm Details</h4>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground">Farm Name *</label>
+                    <input
+                      type="text"
+                      required
+                      value={farmName}
+                      onChange={(e) => setFarmName(e.target.value)}
+                      className="font-subhead mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground">Village *</label>
+                    <input
+                      type="text"
+                      required
+                      value={village}
+                      onChange={(e) => setVillage(e.target.value)}
+                      className="font-subhead mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground">District</label>
+                    <input
+                      type="text"
+                      value={district}
+                      onChange={(e) => setDistrict(e.target.value)}
+                      className="font-subhead mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground">State *</label>
+                    <input
+                      type="text"
+                      required
+                      value={state}
+                      onChange={(e) => setState(e.target.value)}
+                      className="font-subhead mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground">Pincode</label>
+                    <input
+                      type="text"
+                      value={pincode}
+                      onChange={(e) => setPincode(e.target.value)}
+                      className="font-subhead mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground">Farm Size (acres)</label>
+                    <input
+                      type="text"
+                      value={farmSize}
+                      onChange={(e) => setFarmSize(e.target.value)}
+                      className="font-subhead mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground">Years Farming</label>
+                    <input
+                      type="number"
+                      value={yearsFarming}
+                      onChange={(e) => setYearsFarming(e.target.value)}
+                      className="font-subhead mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground">Farming Method</label>
+                    <select
+                      value={farmingMethod}
+                      onChange={(e) => setFarmingMethod(e.target.value)}
+                      className="font-subhead mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                    >
+                      <option value="organic">Organic</option>
+                      <option value="natural">Natural</option>
+                      <option value="regenerative">Regenerative</option>
+                      <option value="traditional">Traditional</option>
+                    </select>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-medium text-muted-foreground">Crops (comma-separated)</label>
+                    <input
+                      type="text"
+                      value={crops}
+                      onChange={(e) => setCrops(e.target.value)}
+                      placeholder="e.g. Wheat, Basmati Rice, Mustard"
+                      className="font-subhead mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="font-display text-sm font-semibold border-b pb-2 text-primary">Bank Details</h4>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground">Bank Name</label>
+                    <input
+                      type="text"
+                      value={bankName}
+                      onChange={(e) => setBankName(e.target.value)}
+                      className="font-subhead mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground">Account Holder Name</label>
+                    <input
+                      type="text"
+                      value={bankAccountName}
+                      onChange={(e) => setBankAccountName(e.target.value)}
+                      className="font-subhead mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground">Account Number</label>
+                    <input
+                      type="text"
+                      value={bankAccountNumber}
+                      onChange={(e) => setBankAccountNumber(e.target.value)}
+                      className="font-subhead mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground">IFSC Code</label>
+                    <input
+                      type="text"
+                      value={bankIfsc}
+                      onChange={(e) => setBankIfsc(e.target.value)}
+                      className="font-subhead mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-medium text-muted-foreground">UPI ID</label>
+                    <input
+                      type="text"
+                      value={upiId}
+                      onChange={(e) => setUpiId(e.target.value)}
+                      placeholder="e.g. farmer@upi"
+                      className="font-subhead mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="font-display text-sm font-semibold border-b pb-2 text-primary">Public Profile & Story</h4>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground">One-line Headline</label>
+                    <input
+                      type="text"
+                      value={headline}
+                      onChange={(e) => setHeadline(e.target.value)}
+                      placeholder="e.g. Sowing natural goodness in rural Haryana"
+                      className="font-subhead mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground">Story</label>
+                    <textarea
+                      rows={4}
+                      value={story}
+                      onChange={(e) => setStory(e.target.value)}
+                      placeholder="Tell us about the farmer, their methods, and their values..."
+                      className="font-subhead mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="font-display text-sm font-semibold border-b pb-2 text-primary">Status</h4>
+                <div>
+                  <label className="block text-xs font-medium text-muted-foreground">Farmer Status</label>
+                  <select
+                    value={farmerStatus}
+                    onChange={(e) => setFarmerStatus(e.target.value as Tab)}
+                    className="font-subhead mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                  >
+                    <option value="approved">Approved</option>
+                    <option value="pending">Pending Review</option>
+                    <option value="draft">Draft</option>
+                    <option value="suspended">Suspended</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 border-t border-border pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsOpen(false);
+                    setEditFarmer(null);
+                  }}
+                  className="font-subhead rounded-full border border-border px-5 py-2.5 text-xs font-medium hover:bg-secondary cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="font-subhead inline-flex items-center gap-1.5 rounded-full bg-primary px-6 py-2.5 text-xs font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50 cursor-pointer"
+                >
+                  {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                  {editFarmer ? "Save Changes" : "Register Farmer"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function FarmerDetail({ farmer, onChange }: { farmer: any; onChange: () => void }) {
+function FarmerDetail({
+  farmer,
+  onChange,
+  onEdit,
+  onDelete,
+}: {
+  farmer: any;
+  onChange: () => void;
+  onEdit: (f: any) => void;
+  onDelete: (f: any) => void;
+}) {
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
 
@@ -228,7 +836,7 @@ function FarmerDetail({ farmer, onChange }: { farmer: any; onChange: () => void 
       <div className="border-b border-border px-6 py-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h3 className="font-display text-xl font-semibold">{farmer.full_name}</h3>
+            <h3 className="font-display text-xl font-semibold text-foreground">{farmer.full_name}</h3>
             <p className="font-subhead text-xs text-muted-foreground">
               {farmer.farm_name} · {farmer.village}, {farmer.state}
             </p>
@@ -319,14 +927,14 @@ function FarmerDetail({ farmer, onChange }: { farmer: any; onChange: () => void 
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => viewDoc(d.file_url, d.doc_type?.replace(/_/g, " ") || d.label || "Document")}
-                    className="grid h-7 w-7 place-items-center rounded-full border border-border hover:bg-secondary"
+                    className="grid h-7 w-7 place-items-center rounded-full border border-border hover:bg-secondary cursor-pointer"
                     title="View"
                   >
                     <Eye className="h-3.5 w-3.5" />
                   </button>
                   <button
                     onClick={() => updateDoc(d.id, "verified")}
-                    className="grid h-7 w-7 place-items-center rounded-full border border-border text-success hover:bg-success/10"
+                    className="grid h-7 w-7 place-items-center rounded-full border border-border text-success hover:bg-success/10 cursor-pointer"
                     title="Verify"
                   >
                     <ShieldCheck className="h-3.5 w-3.5" />
@@ -336,7 +944,7 @@ function FarmerDetail({ farmer, onChange }: { farmer: any; onChange: () => void 
                       const n = prompt("Rejection note (optional):") ?? undefined;
                       updateDoc(d.id, "rejected", n || "Document unclear or invalid");
                     }}
-                    className="grid h-7 w-7 place-items-center rounded-full border border-border text-destructive hover:bg-destructive/10"
+                    className="grid h-7 w-7 place-items-center rounded-full border border-border text-destructive hover:bg-destructive/10 cursor-pointer"
                     title="Reject"
                   >
                     <ShieldAlert className="h-3.5 w-3.5" />
@@ -367,7 +975,7 @@ function FarmerDetail({ farmer, onChange }: { farmer: any; onChange: () => void 
             <button
               disabled={busy !== null}
               onClick={() => updateStatus("approved")}
-              className="font-subhead inline-flex items-center gap-1.5 rounded-full bg-success px-5 py-2.5 text-sm font-medium text-success-foreground disabled:opacity-50"
+              className="font-subhead inline-flex items-center gap-1.5 rounded-full bg-success px-5 py-2.5 text-sm font-medium text-success-foreground disabled:opacity-50 cursor-pointer"
             >
               {busy === "approved" ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -381,7 +989,7 @@ function FarmerDetail({ farmer, onChange }: { farmer: any; onChange: () => void 
             <button
               disabled={busy !== null}
               onClick={() => updateStatus("rejected")}
-              className="font-subhead inline-flex items-center gap-1.5 rounded-full border border-destructive bg-destructive/10 px-5 py-2.5 text-sm font-medium text-destructive disabled:opacity-50"
+              className="font-subhead inline-flex items-center gap-1.5 rounded-full border border-destructive bg-destructive/10 px-5 py-2.5 text-sm font-medium text-destructive disabled:opacity-50 cursor-pointer"
             >
               {busy === "rejected" ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -395,11 +1003,26 @@ function FarmerDetail({ farmer, onChange }: { farmer: any; onChange: () => void 
             <button
               disabled={busy !== null}
               onClick={() => updateStatus("suspended")}
-              className="font-subhead inline-flex items-center gap-1.5 rounded-full border border-border px-5 py-2.5 text-sm disabled:opacity-50"
+              className="font-subhead inline-flex items-center gap-1.5 rounded-full border border-border px-5 py-2.5 text-sm disabled:opacity-50 cursor-pointer"
             >
               Suspend
             </button>
           )}
+          
+          <button
+            onClick={() => onEdit(farmer)}
+            className="font-subhead inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-5 py-2.5 text-sm hover:bg-secondary cursor-pointer"
+          >
+            <Edit className="h-3.5 w-3.5" /> Edit Profile
+          </button>
+          
+          <button
+            onClick={() => onDelete(farmer)}
+            className="font-subhead inline-flex items-center gap-1.5 rounded-full border border-destructive bg-destructive/5 px-5 py-2.5 text-sm text-destructive hover:bg-destructive/15 cursor-pointer"
+          >
+            <Trash2 className="h-3.5 w-3.5" /> Delete Farmer
+          </button>
+
           {farmer.slug && farmer.status === "approved" && (
             <a
               href={`/farmer/${farmer.slug}`}
@@ -434,7 +1057,7 @@ function FarmerDetail({ farmer, onChange }: { farmer: any; onChange: () => void 
               </div>
               <button
                 onClick={() => setPreviewUrl(null)}
-                className="grid h-8 w-8 place-items-center rounded-full border border-border text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                className="grid h-8 w-8 place-items-center rounded-full border border-border text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>

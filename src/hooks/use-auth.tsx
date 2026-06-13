@@ -95,6 +95,9 @@ async function mergeUserData(oldUid: string, newUid: string) {
       "payment_methods",
       "product_reviews",
       "recently_viewed",
+      "farmer_profiles",
+      "farmer_documents",
+      "farmer_products",
     ];
     for (const colName of collectionsToMigrate) {
       const q = query(collection(db, colName), where("user_id", "==", oldUid));
