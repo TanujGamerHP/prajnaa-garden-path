@@ -75,6 +75,7 @@ function ShopPage() {
       category: p.category,
       farmerSlug: p.farmer_profiles?.slug || "lakshmi-devi",
       image: p.images?.[0] || "",
+      images: p.images || [],
       price: Math.ceil(Number(p.price || 0) * 1.10), // Adding 10% commission
       weight: p.unit || "unit",
       rating: 4.8,

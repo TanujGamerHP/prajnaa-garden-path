@@ -20,15 +20,27 @@ export function ProductCard({ product }: { product: Product }) {
         params={{ slug: product.slug }}
         className="relative block overflow-hidden rounded-2xl bg-secondary"
       >
-        <div className="aspect-square w-full overflow-hidden">
+        <div className="aspect-square w-full overflow-hidden relative">
           <img
             src={product.image}
             alt={product.name}
             loading="lazy"
             width={800}
             height={800}
-            className="h-full w-full object-contain p-2 transition-transform duration-500 group-hover:scale-[1.04]"
+            className={`h-full w-full object-contain p-2 transition-opacity duration-300 ease-in-out ${
+              product.images && product.images[1] ? "group-hover:md:opacity-0" : ""
+            }`}
           />
+          {product.images && product.images[1] && (
+            <img
+              src={product.images[1]}
+              alt={`${product.name} Raw`}
+              loading="lazy"
+              width={800}
+              height={800}
+              className="absolute inset-0 h-full w-full object-contain p-2 opacity-0 group-hover:md:opacity-100 transition-opacity duration-300 ease-in-out pointer-events-none"
+            />
+          )}
         </div>
         {product.badges?.[0] && (
           <span className="font-subhead absolute left-3 top-3 rounded-full bg-background/90 px-2.5 py-1 text-[10px] uppercase tracking-[0.12em] text-foreground/80 backdrop-blur">

@@ -90,6 +90,7 @@ export const Route = createFileRoute("/product/$slug")({
             category: r.category,
             farmerSlug: dbFarmer?.slug || "unknown",
             image: r.images?.[0] || "",
+            images: r.images || [],
             price: Math.ceil(Number(r.price || 0) * 1.10), // Adding 10% commission
             weight: r.unit || "unit",
             rating: 4.8,

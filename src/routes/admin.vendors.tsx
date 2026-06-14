@@ -1018,7 +1018,14 @@ function FarmerDetail({
   };
 
   const handleRemoveProductImage = (index: number) => {
-    setProdImages((prev) => prev.filter((_, i) => i !== index));
+    setProdImages((prev) => {
+      const next = [...prev];
+      next[index] = "";
+      while (next.length > 0 && !next[next.length - 1]) {
+        next.pop();
+      }
+      return next;
+    });
   };
 
   const handleSaveProduct = async (e: React.FormEvent) => {
@@ -1597,14 +1604,14 @@ function FarmerDetail({
                 }
                 if (prodActiveStep === 3) {
                   if (!prodImages[0]) {
-                    toast.error("Main thumbnail image is required");
+                    toast.error("Main product image is required");
                     return;
                   }
                 }
                 setProdActiveStep((prev) => prev + 1);
               };
 
-              const handleImageUploadStep = async (e: React.ChangeEvent<HTMLInputElement>, isThumbnail: boolean) => {
+              const handleImageUploadStep = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
                 const file = e.target.files?.[0];
                 if (!file) return;
                 if (file.size > 5 * 1024 * 1024) {
@@ -1616,12 +1623,9 @@ function FarmerDetail({
                   const compressedFile = await compressImage(file);
                   const base64Url = await fileToBase64(compressedFile);
                   setProdImages((prev) => {
-                    if (isThumbnail) {
-                      const others = prev.slice(1);
-                      return [base64Url, ...others];
-                    } else {
-                      return [...prev, base64Url];
-                    }
+                    const next = [...prev];
+                    next[index] = base64Url;
+                    return next;
                   });
                   toast.success("Image uploaded successfully");
                 } catch (err: any) {
@@ -1728,21 +1732,21 @@ function FarmerDetail({
                             Product Images *
                           </label>
                           <p className="text-[10px] text-muted-foreground mt-0.5">
-                            Upload photos of your product. The first photo acts as the main thumbnail.
+                            Upload photos of the product. The main image is for the packaged product, and the raw image is for the produce inside.
                           </p>
                         </div>
 
                         <div className="grid gap-4 sm:grid-cols-2">
-                          {/* Thumbnail upload slot */}
+                          {/* Main Image Upload Slot */}
                           <div className="space-y-2.5">
                             <span className="font-subhead text-[10px] uppercase tracking-[0.14em] text-muted-foreground block font-semibold">
-                              Thumbnail Photo (Main) *
+                              Main Product Image (Packaged Product) *
                             </span>
                             {prodImages[0] ? (
                               <div className="relative group h-32 w-full rounded-xl overflow-hidden border border-border">
                                 <img
                                   src={prodImages[0]}
-                                  alt="Thumbnail"
+                                  alt="Main Product"
                                   className="h-full w-full object-cover"
                                 />
                                 <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -1763,14 +1767,14 @@ function FarmerDetail({
                                   <>
                                     <Upload className="h-4 w-4 text-muted-foreground" />
                                     <span className="mt-1.5 text-[10px] font-medium text-muted-foreground">
-                                      Upload Thumbnail
+                                      Upload Main Image
                                     </span>
                                   </>
                                 )}
                                 <input
                                   type="file"
                                   accept="image/*"
-                                  onChange={(e) => handleImageUploadStep(e, true)}
+                                  onChange={(e) => handleImageUploadStep(e, 0)}
                                   className="hidden"
                                   disabled={prodUploadingImage}
                                 />
@@ -1778,67 +1782,49 @@ function FarmerDetail({
                             )}
                           </div>
 
-                          {/* Additional upload slots */}
+                          {/* Raw Image Upload Slot */}
                           <div className="space-y-2.5">
                             <span className="font-subhead text-[10px] uppercase tracking-[0.14em] text-muted-foreground block font-semibold">
-                              Additional Photos (Max 3)
+                              Raw Product Image (Actual Produce)
                             </span>
-                            <div className="grid grid-cols-3 gap-1.5">
-                              {[1, 2, 3].map((slotIdx) => {
-                                const imgUrl = prodImages[slotIdx];
-                                return (
-                                  <div
-                                    key={slotIdx}
-                                    className="h-20 rounded-lg overflow-hidden border border-border bg-background relative group flex items-center justify-center"
+                            {prodImages[1] ? (
+                              <div className="relative group h-32 w-full rounded-xl overflow-hidden border border-border">
+                                <img
+                                  src={prodImages[1]}
+                                  alt="Raw Produce"
+                                  className="h-full w-full object-cover"
+                                />
+                                <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveProductImage(1)}
+                                    className="rounded-full bg-destructive p-1.5 text-destructive-foreground hover:bg-destructive/90 transition-transform hover:scale-105"
                                   >
-                                    {imgUrl ? (
-                                      <>
-                                        <img
-                                          src={imgUrl}
-                                          alt={`Additional ${slotIdx}`}
-                                          className="h-full w-full object-cover"
-                                        />
-                                        <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                          <button
-                                            type="button"
-                                            onClick={() => handleRemoveProductImage(slotIdx)}
-                                            className="rounded-full bg-destructive p-1 text-destructive-foreground hover:bg-destructive/90 transition-transform"
-                                          >
-                                            <Trash2 className="h-3 w-3" />
-                                          </button>
-                                        </div>
-                                      </>
-                                    ) :
-                                    slotIdx === prodImages.length ||
-                                      (slotIdx === 1 && prodImages.length === 0) ? (
-                                      <label className="flex flex-col items-center justify-center h-full w-full cursor-pointer hover:bg-secondary/40 transition-colors">
-                                        {prodUploadingImage ? (
-                                          <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
-                                        ) : (
-                                          <>
-                                            <Plus className="h-3 w-3 text-muted-foreground" />
-                                            <span className="mt-0.5 text-[9px] font-medium text-muted-foreground">
-                                              Add
-                                            </span>
-                                          </>
-                                        )}
-                                        <input
-                                          type="file"
-                                          accept="image/*"
-                                          onChange={(e) => handleImageUploadStep(e, false)}
-                                          className="hidden"
-                                          disabled={prodUploadingImage}
-                                        />
-                                      </label>
-                                    ) : (
-                                      <span className="text-[8px] text-muted-foreground/45 font-subhead uppercase tracking-wider">
-                                        Empty
-                                      </span>
-                                    )}
-                                  </div>
-                                );
-                              })}
-                            </div>
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <label className="flex flex-col items-center justify-center h-32 w-full rounded-xl border border-dashed border-border hover:border-primary cursor-pointer transition-colors bg-background">
+                                {prodUploadingImage ? (
+                                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                                ) : (
+                                  <>
+                                    <Upload className="h-4 w-4 text-muted-foreground" />
+                                    <span className="mt-1.5 text-[10px] font-medium text-muted-foreground">
+                                      Upload Raw Image (Optional)
+                                    </span>
+                                  </>
+                                )}
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => handleImageUploadStep(e, 1)}
+                                  className="hidden"
+                                  disabled={prodUploadingImage}
+                                />
+                              </label>
+                            )}
                           </div>
                         </div>
                       </div>
