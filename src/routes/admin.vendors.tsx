@@ -1087,8 +1087,8 @@ function FarmerDetail({
     });
   };
 
-  const handleSaveProduct = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveProduct = async (e?: React.FormEvent | React.MouseEvent) => {
+    if (e) e.preventDefault();
     if (!prodName.trim()) {
       toast.error("Product name is required");
       return;
@@ -2094,8 +2094,9 @@ function FarmerDetail({
 
                   {/* Stepper Footer Buttons */}
                   <div className="border-t border-border pt-4 flex justify-between items-center">
-                    {prodActiveStep > 1 ? (
+                     {prodActiveStep > 1 ? (
                       <button
+                        key="btn-back"
                         type="button"
                         onClick={() => setProdActiveStep(prodActiveStep - 1)}
                         className="font-subhead rounded-full border border-border px-4 py-2 text-xs font-semibold hover:bg-secondary transition"
@@ -2104,6 +2105,7 @@ function FarmerDetail({
                       </button>
                     ) : (
                       <button
+                        key="btn-cancel"
                         type="button"
                         onClick={() => setIsProductModalOpen(false)}
                         className="font-subhead rounded-full border border-border px-4 py-2 text-xs font-semibold hover:bg-secondary transition"
@@ -2114,6 +2116,7 @@ function FarmerDetail({
 
                     {prodActiveStep < 5 ? (
                       <button
+                        key="btn-next"
                         type="button"
                         onClick={handleNextStep}
                         className="font-subhead rounded-full bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/95 transition"
@@ -2122,7 +2125,9 @@ function FarmerDetail({
                       </button>
                     ) : (
                       <button
-                        type="submit"
+                        key="btn-submit"
+                        type="button"
+                        onClick={handleSaveProduct}
                         disabled={prodSaving}
                         className="font-subhead inline-flex items-center gap-1.5 rounded-full bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-55 transition cursor-pointer"
                       >

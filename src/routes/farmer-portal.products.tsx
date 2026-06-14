@@ -220,8 +220,8 @@ function ProductsPage() {
     },
   });
 
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const submit = (e?: React.FormEvent | React.MouseEvent) => {
+    if (e) e.preventDefault();
 
     const vList = form.variants || [];
     if (vList.length === 0) {
@@ -764,6 +764,7 @@ function ProductsPage() {
             <div className="mt-8 flex items-center justify-between border-t border-border pt-6">
               {activeStep > 1 ? (
                 <button
+                  key="btn-back"
                   type="button"
                   onClick={() => setActiveStep(activeStep - 1)}
                   className="font-subhead rounded-full border border-border px-5 py-2 text-xs font-semibold hover:bg-secondary transition-colors cursor-pointer"
@@ -772,6 +773,7 @@ function ProductsPage() {
                 </button>
               ) : (
                 <button
+                  key="btn-cancel"
                   type="button"
                   onClick={() => {
                     setShowForm(false);
@@ -785,6 +787,7 @@ function ProductsPage() {
 
               {activeStep < 5 ? (
                 <button
+                  key="btn-next"
                   type="button"
                   onClick={handleNextStep}
                   className="font-subhead rounded-full bg-primary px-6 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/95 transition-colors cursor-pointer"
@@ -793,7 +796,9 @@ function ProductsPage() {
                 </button>
               ) : (
                 <button
-                  type="submit"
+                  key="btn-submit"
+                  type="button"
+                  onClick={submit}
                   disabled={upsertMut.isPending}
                   className="font-subhead inline-flex items-center gap-2 rounded-full bg-primary px-6 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-50 hover:bg-primary/95 transition-colors cursor-pointer"
                 >
