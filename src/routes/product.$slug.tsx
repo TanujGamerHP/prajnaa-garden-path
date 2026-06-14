@@ -378,66 +378,41 @@ function ProductPage() {
               <span className="text-muted-foreground">({product.reviews} reviews)</span>
             </div>
 
-            <div className="mt-6 flex items-end gap-3">
-              <span className="font-display text-3xl font-semibold">{inr(selectedPrice)}</span>
-              {selectedMrp > selectedPrice && (
-                <span className="text-base text-muted-foreground line-through">
-                  {inr(selectedMrp)}
-                </span>
-              )}
-              <span className="font-subhead text-sm text-[#1b8a4f] font-bold">/ {selectedUnit}</span>
+            <div className="mt-5 flex items-baseline gap-2">
+              <span className="font-display text-3xl font-semibold text-[#111827]">{inr(selectedPrice)}</span>
+              <span className="font-subhead text-sm text-muted-foreground font-medium">/ {selectedUnit}</span>
             </div>
 
-            <p className="mt-6 max-w-prose text-[15px] leading-relaxed text-foreground/80">
+            <p className="mt-5 max-w-prose text-[15px] leading-relaxed text-foreground/80">
               {product.description}
             </p>
 
             {/* Pack Size Selector */}
-            {packSizes.length > 1 && (
+            {packSizes.length > 0 && (
               <div className="mt-6">
-                <h3 className="font-display text-sm font-semibold uppercase tracking-wider text-muted-foreground">Select Pack Size</h3>
+                <h3 className="font-display text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Available Sizes
+                </h3>
                 <div className="mt-3 flex flex-wrap gap-3">
                   {packSizes.map((opt, idx) => {
                     const isActive = selectedSizeIdx === idx;
-                    const saveAmount = opt.mrp - opt.price;
                     return (
                       <button
                         key={idx}
                         type="button"
                         onClick={() => setSelectedSizeIdx(idx)}
-                        className={`relative flex flex-col w-36 overflow-hidden rounded-2xl border transition-all text-left cursor-pointer ${
+                        className={`flex flex-col w-32 justify-center rounded-xl border p-3.5 transition-all text-center cursor-pointer ${
                           isActive
-                            ? "border-[#1b8a4f] shadow-md scale-[1.02]"
-                            : "border-border hover:border-muted-foreground/50 hover:shadow-sm"
+                            ? "bg-[#0F3D2E] border-[#0F3D2E] text-white shadow-md scale-[1.02]"
+                            : "bg-[#f7f5f0] border-border text-[#111827] hover:border-[#0F3D2E] hover:shadow-sm"
                         }`}
                       >
-                        {opt.badge && (
-                          <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-[#dca842] px-2.5 py-0.5 text-[8px] font-bold text-white uppercase tracking-wider shadow-sm z-10 whitespace-nowrap">
-                            {opt.badge}
-                          </span>
-                        )}
-                        <div
-                          className={`px-3 py-1.5 text-center text-xs font-bold font-subhead transition-colors ${
-                            isActive ? "bg-[#1b8a4f] text-white" : "bg-[#f2eadc] text-foreground/80"
-                          }`}
-                        >
+                        <span className={`text-xs font-bold font-subhead ${isActive ? "text-white" : "text-muted-foreground"}`}>
                           {opt.label}
-                        </div>
-                        <div className="flex flex-col items-center justify-center bg-[#faf8f5] p-2.5 text-center flex-1 w-full">
-                          <div className="flex flex-wrap items-center gap-1 justify-center">
-                            <span className="font-semibold text-sm text-foreground">{inr(opt.price)}</span>
-                            {opt.mrp > opt.price && (
-                              <span className="text-[10px] text-muted-foreground line-through">
-                                {inr(opt.mrp)}
-                              </span>
-                            )}
-                          </div>
-                          {saveAmount > 0 && (
-                            <span className="mt-1.5 inline-block rounded-full bg-black px-2 py-0.5 text-[9px] font-bold text-white font-subhead">
-                              Save {inr(saveAmount)}/-
-                            </span>
-                          )}
-                        </div>
+                        </span>
+                        <span className={`mt-1 text-sm font-semibold ${isActive ? "text-white" : "text-[#111827]"}`}>
+                          {inr(opt.price)}
+                        </span>
                       </button>
                     );
                   })}

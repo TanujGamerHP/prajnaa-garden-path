@@ -920,35 +920,7 @@ function FarmerDetail({
   const [prodImages, setProdImages] = useState<string[]>([]);
   const [prodSaving, setProdSaving] = useState(false);
   const [prodUploadingImage, setProdUploadingImage] = useState(false);
-  const [prodVariants, setProdVariants] = useState<{ unit: string; price: string; stock: string; image: string }[]>([]);
-  const [prodHasVariants, setProdHasVariants] = useState(false);
-  const [prodUploadingVariantIdx, setProdUploadingVariantIdx] = useState<number | null>(null);
-
-  const handleAdminVariantImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, idx: number) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image must be under 5 MB");
-      return;
-    }
-    setProdUploadingVariantIdx(idx);
-    try {
-      const compressedFile = await compressImage(file);
-      const base64Url = await fileToBase64(compressedFile);
-      setProdVariants((prev) => {
-        const newVariants = [...prev];
-        if (newVariants[idx]) {
-          newVariants[idx] = { ...newVariants[idx], image: base64Url };
-        }
-        return newVariants;
-      });
-      toast.success("Variant image uploaded successfully");
-    } catch (err: any) {
-      toast.error(err?.message ?? "Upload failed");
-    } finally {
-      setProdUploadingVariantIdx(null);
-    }
-  };
+  const [prodVariants, setProdVariants] = useState<{ unit: string; price: string; stock: string; image: string }[]>([]);  const [prodActiveStep, setProdActiveStep] = useState(1);
 
   const { data: docs = [] } = useQuery({
     queryKey: ["admin-farmer-docs", farmer.id],
@@ -986,7 +958,7 @@ function FarmerDetail({
     setProdDescription("");
     setProdImages([]);
     setProdVariants([]);
-    setProdHasVariants(false);
+    setProdActiveStep(1);
     setIsProductModalOpen(true);
   };
 
@@ -999,15 +971,31 @@ function FarmerDetail({
     setProdStock(String(prod.stock || "0"));
     setProdDescription(prod.description || "");
     setProdImages(prod.images || []);
-    setProdVariants((prod.variants || []).map((v: any) => ({
-      unit: v.unit,
-      price: String(v.price),
-      stock: String(v.stock),
-      image: v.image || "",
-    })));
-    setProdHasVariants(!!prod.variants && prod.variants.length > 0);
+
+    let parsedVariants: { unit: string; price: string; stock: string; image: string }[] = [];
+    if (prod.variants && prod.variants.length > 0) {
+      parsedVariants = prod.variants.map((v: any) => ({
+        unit: v.unit,
+        price: String(v.price),
+        stock: String(v.stock || 999),
+        image: v.image || "",
+      }));
+    } else {
+      let legacyUnit = prod.unit || "500g";
+      if (legacyUnit === "kg") legacyUnit = "1kg";
+      if (legacyUnit === "g") legacyUnit = "500g";
+      parsedVariants = [{
+        unit: legacyUnit,
+        price: String(prod.price || ""),
+        stock: String(prod.stock || 999),
+        image: "",
+      }];
+    }
+
+    setProdVariants(parsedVariants);
+    setProdActiveStep(1);
     setIsProductModalOpen(true);
-  };
+  };;
 
   const handleProductImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -1040,45 +1028,23 @@ function FarmerDetail({
       return;
     }
 
-    let finalPrice = prodPrice;
-    let finalStock = prodStock;
-    let finalUnit = prodUnit;
-
-    if (prodHasVariants) {
-      if (prodVariants.length === 0) {
-        toast.error("Please add at least one pack size/variant.");
-        return;
-      }
-      for (let i = 0; i < prodVariants.length; i++) {
-        const v = prodVariants[i];
-        if (!v.unit.trim()) {
-          toast.error(`Variant #${i + 1} is missing a Unit/Size.`);
-          return;
-        }
-        if (!v.price || isNaN(Number(v.price)) || Number(v.price) <= 0) {
-          toast.error(`Variant #${i + 1} has an invalid price.`);
-          return;
-        }
-        if (!v.stock || isNaN(Number(v.stock)) || Number(v.stock) < 0) {
-          toast.error(`Variant #${i + 1} has an invalid stock.`);
-          return;
-        }
-      }
-      const firstVariant = prodVariants[0];
-      const totalStock = prodVariants.reduce((sum, v) => sum + (parseInt(v.stock, 10) || 0), 0);
-      finalPrice = firstVariant.price;
-      finalStock = String(totalStock);
-      finalUnit = firstVariant.unit;
-    } else {
-      if (!prodPrice.trim() || isNaN(Number(prodPrice))) {
-        toast.error("Valid price is required");
-        return;
-      }
-      if (!prodStock.trim() || isNaN(Number(prodStock))) {
-        toast.error("Valid stock quantity is required");
+    if (prodVariants.length === 0) {
+      toast.error("Please select at least one weight variant.");
+      return;
+    }
+    for (let i = 0; i < prodVariants.length; i++) {
+      const v = prodVariants[i];
+      if (!v.price || isNaN(Number(v.price)) || Number(v.price) <= 0) {
+        toast.error(`Please enter a valid price for the ${v.unit} variant.`);
         return;
       }
     }
+
+    const firstVariant = prodVariants[0];
+    const totalStock = prodVariants.reduce((sum, v) => sum + (parseInt(v.stock, 10) || 0), 0);
+    const finalPrice = firstVariant.price;
+    const finalStock = String(totalStock);
+    const finalUnit = firstVariant.unit;
 
     setProdSaving(true);
     try {
@@ -1098,14 +1064,12 @@ function FarmerDetail({
         slug,
         status: editProduct ? editProduct.status : "published", // default to published for admin adds
         created_at: editProduct ? editProduct.created_at : new Date().toISOString(),
-        variants: prodHasVariants
-          ? prodVariants.map((v) => ({
-              unit: v.unit.trim(),
-              price: Number(v.price),
-              stock: parseInt(v.stock, 10),
-              image: v.image || "",
-            }))
-          : null,
+        variants: prodVariants.map((v) => ({
+          unit: v.unit.trim(),
+          price: Number(v.price),
+          stock: parseInt(v.stock, 10),
+          image: v.image || "",
+        })),
       };
 
       if (editProduct) {
@@ -1613,317 +1577,420 @@ function FarmerDetail({
               </button>
             </div>
 
-            <form onSubmit={handleSaveProduct} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Product Name *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={prodName}
-                  onChange={(e) => setProdName(e.target.value)}
-                  className="font-subhead mt-1.5 h-10 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus:border-primary"
-                  placeholder="e.g. Organic Kashmiri Saffron"
-                />
-              </div>
+            {(() => {
+              const handleNextStep = () => {
+                if (prodActiveStep === 1) {
+                  if (!prodName.trim()) {
+                    toast.error("Product name is required");
+                    return;
+                  }
+                  if (prodName.trim().length < 2) {
+                    toast.error("Product name must be at least 2 characters");
+                    return;
+                  }
+                }
+                if (prodActiveStep === 2) {
+                  if (!prodCategory) {
+                    toast.error("Category is required");
+                    return;
+                  }
+                }
+                if (prodActiveStep === 3) {
+                  if (!prodImages[0]) {
+                    toast.error("Main thumbnail image is required");
+                    return;
+                  }
+                }
+                setProdActiveStep((prev) => prev + 1);
+              };
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2">
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Category *
-                  </label>
-                  <select
-                    value={prodCategory}
-                    onChange={(e) => setProdCategory(e.target.value)}
-                    className="font-subhead mt-1.5 h-10 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus:border-primary capitalize cursor-pointer"
-                  >
-                    <option value="dry-fruits">Dry Fruits</option>
-                    <option value="nuts">Nuts</option>
-                    <option value="seeds">Seeds</option>
-                    <option value="spices">Spices</option>
-                    <option value="herbs">Herbs</option>
-                    <option value="plants">Plants</option>
-                    <option value="pickles">Pickles</option>
-                    <option value="salts">Salts</option>
-                    <option value="masalas">Masalas</option>
-                  </select>
-                </div>
-              </div>
+              const handleImageUploadStep = async (e: React.ChangeEvent<HTMLInputElement>, isThumbnail: boolean) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                if (file.size > 5 * 1024 * 1024) {
+                  toast.error("Image must be under 5 MB");
+                  return;
+                }
+                setProdUploadingImage(true);
+                try {
+                  const compressedFile = await compressImage(file);
+                  const base64Url = await fileToBase64(compressedFile);
+                  setProdImages((prev) => {
+                    if (isThumbnail) {
+                      const others = prev.slice(1);
+                      return [base64Url, ...others];
+                    } else {
+                      return [...prev, base64Url];
+                    }
+                  });
+                  toast.success("Image uploaded successfully");
+                } catch (err: any) {
+                  toast.error(err?.message ?? "Upload failed");
+                } finally {
+                  setProdUploadingImage(false);
+                }
+              };
 
-              {/* Variants Selector */}
-              <div className="border border-dashed border-[#f0e6d2] rounded-2xl p-4 bg-[#fdfbf7] space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground block">
-                      Multiple Pack Sizes (Variants)
-                    </span>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">
-                      Enable this if this product is sold in different weights or volumes.
-                    </p>
+              const steps = [
+                { number: 1, label: "Title" },
+                { number: 2, label: "Category" },
+                { number: 3, label: "Images" },
+                { number: 4, label: "Description" },
+                { number: 5, label: "Variants" }
+              ];
+
+              return (
+                <form onSubmit={handleSaveProduct} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                  {/* Stepper Progress Bar */}
+                  <div className="mb-6 flex items-center justify-between border-b border-border pb-4 overflow-x-auto">
+                    {steps.map((s, idx) => {
+                      const isCompleted = prodActiveStep > s.number;
+                      const isActive = prodActiveStep === s.number;
+                      return (
+                        <div key={s.number} className="flex flex-1 items-center last:flex-initial shrink-0">
+                          <div className="flex items-center gap-1.5">
+                            <div
+                              className={`flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold transition-colors ${
+                                isActive
+                                  ? "bg-primary text-primary-foreground font-semibold"
+                                  : isCompleted
+                                  ? "bg-primary/20 text-primary border border-primary/30"
+                                  : "bg-secondary text-muted-foreground border border-border"
+                              }`}
+                            >
+                              {s.number}
+                            </div>
+                            <span className="font-subhead text-[9px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">
+                              {s.label}
+                            </span>
+                          </div>
+                          {idx < steps.length - 1 && (
+                            <div
+                              className={`h-0.5 min-w-[1.5rem] mx-2 flex-1 transition-colors ${
+                                isCompleted ? "bg-primary/50" : "bg-border"
+                              }`}
+                            />
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={prodHasVariants}
-                      onChange={(e) => {
-                        setProdHasVariants(e.target.checked);
-                        if (e.target.checked && prodVariants.length === 0) {
-                          setProdVariants([
-                            {
-                              unit: prodUnit || "200 g",
-                              price: prodPrice || "",
-                              stock: prodStock || "0",
-                              image: "",
-                            },
-                          ]);
-                        }
-                      }}
-                      className="sr-only peer"
-                    />
-                    <div className="w-9 h-5 bg-secondary peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
-                  </label>
-                </div>
 
-                {prodHasVariants && (
-                  <div className="mt-3 space-y-3">
-                    {prodVariants.map((vItem, idx) => (
-                      <div
-                        key={idx}
-                        className="grid gap-2 grid-cols-4 items-end rounded-xl border border-border bg-background p-3 relative text-xs"
-                      >
+                  {/* Wizard Step Content */}
+                  <div className="space-y-4">
+                    {prodActiveStep === 1 && (
+                      <div className="space-y-3">
                         <div>
-                          <label className="block text-[10px] font-semibold text-muted-foreground uppercase">Size</label>
+                          <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                            Product Name / Title *
+                          </label>
                           <input
                             type="text"
-                            placeholder="e.g. 100 g"
-                            value={vItem.unit}
-                            onChange={(e) => {
-                              const newV = [...prodVariants];
-                              newV[idx] = { ...newV[idx], unit: e.target.value };
-                              setProdVariants(newV);
-                            }}
-                            className="font-subhead mt-1 h-8 w-full rounded-lg border border-border bg-background px-2 text-xs outline-none focus:border-primary"
+                            required
+                            value={prodName}
+                            onChange={(e) => setProdName(e.target.value)}
+                            className="font-subhead mt-1.5 h-10 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus:border-primary"
+                            placeholder="e.g. Organic Kashmiri Saffron"
                           />
                         </div>
+                      </div>
+                    )}
+
+                    {prodActiveStep === 2 && (
+                      <div className="space-y-3">
                         <div>
-                          <label className="block text-[10px] font-semibold text-muted-foreground uppercase">Price</label>
-                          <input
-                            type="number"
-                            step="0.01"
-                            placeholder="Price"
-                            value={vItem.price}
-                            onChange={(e) => {
-                              const newV = [...prodVariants];
-                              newV[idx] = { ...newV[idx], price: e.target.value };
-                              setProdVariants(newV);
-                            }}
-                            className="font-subhead mt-1 h-8 w-full rounded-lg border border-border bg-background px-2 text-xs outline-none focus:border-primary"
-                          />
+                          <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                            Category *
+                          </label>
+                          <select
+                            value={prodCategory}
+                            onChange={(e) => setProdCategory(e.target.value)}
+                            className="font-subhead mt-1.5 h-10 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus:border-primary capitalize cursor-pointer"
+                          >
+                            <option value="dry-fruits">Dry Fruits</option>
+                            <option value="nuts">Nuts</option>
+                            <option value="seeds">Seeds</option>
+                            <option value="spices">Spices</option>
+                            <option value="herbs">Herbs</option>
+                            <option value="plants">Plants</option>
+                            <option value="pickles">Pickles</option>
+                            <option value="salts">Salts</option>
+                            <option value="masalas">Masalas</option>
+                          </select>
                         </div>
+                      </div>
+                    )}
+
+                    {prodActiveStep === 3 && (
+                      <div className="space-y-4">
                         <div>
-                          <label className="block text-[10px] font-semibold text-muted-foreground uppercase">Stock</label>
-                          <input
-                            type="number"
-                            placeholder="Stock"
-                            value={vItem.stock}
-                            onChange={(e) => {
-                              const newV = [...prodVariants];
-                              newV[idx] = { ...newV[idx], stock: e.target.value };
-                              setProdVariants(newV);
-                            }}
-                            className="font-subhead mt-1 h-8 w-full rounded-lg border border-border bg-background px-2 text-xs outline-none focus:border-primary"
-                          />
+                          <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                            Product Images *
+                          </label>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">
+                            Upload photos of your product. The first photo acts as the main thumbnail.
+                          </p>
                         </div>
-                        <div className="flex items-center gap-1.5">
-                          <div className="flex-1">
-                            <label className="block text-[10px] font-semibold text-muted-foreground uppercase">Photo</label>
-                            {vItem.image ? (
-                              <div className="relative h-8 rounded-lg overflow-hidden border border-border group">
-                                <img src={vItem.image} className="h-full w-full object-cover" />
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    const newV = [...prodVariants];
-                                    newV[idx] = { ...newV[idx], image: "" };
-                                    setProdVariants(newV);
-                                  }}
-                                  className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-[9px] transition cursor-pointer"
-                                >
-                                  Remove
-                                </button>
+
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          {/* Thumbnail upload slot */}
+                          <div className="space-y-2.5">
+                            <span className="font-subhead text-[10px] uppercase tracking-[0.14em] text-muted-foreground block font-semibold">
+                              Thumbnail Photo (Main) *
+                            </span>
+                            {prodImages[0] ? (
+                              <div className="relative group h-32 w-full rounded-xl overflow-hidden border border-border">
+                                <img
+                                  src={prodImages[0]}
+                                  alt="Thumbnail"
+                                  className="h-full w-full object-cover"
+                                />
+                                <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveProductImage(0)}
+                                    className="rounded-full bg-destructive p-1.5 text-destructive-foreground hover:bg-destructive/90 transition-transform hover:scale-105"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </button>
+                                </div>
                               </div>
                             ) : (
-                              <label className="flex h-8 items-center justify-center border border-dashed border-border rounded-lg cursor-pointer hover:bg-secondary/40 transition text-muted-foreground bg-background text-[10px]">
-                                {prodUploadingVariantIdx === idx ? (
-                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              <label className="flex flex-col items-center justify-center h-32 w-full rounded-xl border border-dashed border-border hover:border-primary cursor-pointer transition-colors bg-background">
+                                {prodUploadingImage ? (
+                                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                                 ) : (
-                                  <span>Upload</span>
+                                  <>
+                                    <Upload className="h-4 w-4 text-muted-foreground" />
+                                    <span className="mt-1.5 text-[10px] font-medium text-muted-foreground">
+                                      Upload Thumbnail
+                                    </span>
+                                  </>
                                 )}
                                 <input
                                   type="file"
                                   accept="image/*"
-                                  onChange={(e) => handleAdminVariantImageUpload(e, idx)}
+                                  onChange={(e) => handleImageUploadStep(e, true)}
                                   className="hidden"
-                                  disabled={prodUploadingVariantIdx !== null}
+                                  disabled={prodUploadingImage}
                                 />
                               </label>
                             )}
                           </div>
-                          {prodVariants.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setProdVariants(prodVariants.filter((_, i) => i !== idx));
-                              }}
-                              className="h-8 w-8 rounded-lg border border-destructive/20 text-destructive hover:bg-destructive/10 flex items-center justify-center cursor-pointer shrink-0 mt-5"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                          )}
+
+                          {/* Additional upload slots */}
+                          <div className="space-y-2.5">
+                            <span className="font-subhead text-[10px] uppercase tracking-[0.14em] text-muted-foreground block font-semibold">
+                              Additional Photos (Max 3)
+                            </span>
+                            <div className="grid grid-cols-3 gap-1.5">
+                              {[1, 2, 3].map((slotIdx) => {
+                                const imgUrl = prodImages[slotIdx];
+                                return (
+                                  <div
+                                    key={slotIdx}
+                                    className="h-20 rounded-lg overflow-hidden border border-border bg-background relative group flex items-center justify-center"
+                                  >
+                                    {imgUrl ? (
+                                      <>
+                                        <img
+                                          src={imgUrl}
+                                          alt={`Additional ${slotIdx}`}
+                                          className="h-full w-full object-cover"
+                                        />
+                                        <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                          <button
+                                            type="button"
+                                            onClick={() => handleRemoveProductImage(slotIdx)}
+                                            className="rounded-full bg-destructive p-1 text-destructive-foreground hover:bg-destructive/90 transition-transform"
+                                          >
+                                            <Trash2 className="h-3 w-3" />
+                                          </button>
+                                        </div>
+                                      </>
+                                    ) :
+                                    slotIdx === prodImages.length ||
+                                      (slotIdx === 1 && prodImages.length === 0) ? (
+                                      <label className="flex flex-col items-center justify-center h-full w-full cursor-pointer hover:bg-secondary/40 transition-colors">
+                                        {prodUploadingImage ? (
+                                          <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+                                        ) : (
+                                          <>
+                                            <Plus className="h-3 w-3 text-muted-foreground" />
+                                            <span className="mt-0.5 text-[9px] font-medium text-muted-foreground">
+                                              Add
+                                            </span>
+                                          </>
+                                        )}
+                                        <input
+                                          type="file"
+                                          accept="image/*"
+                                          onChange={(e) => handleImageUploadStep(e, false)}
+                                          className="hidden"
+                                          disabled={prodUploadingImage}
+                                        />
+                                      </label>
+                                    ) : (
+                                      <span className="text-[8px] text-muted-foreground/45 font-subhead uppercase tracking-wider">
+                                        Empty
+                                      </span>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setProdVariants([
-                          ...prodVariants,
-                          { unit: "", price: "", stock: "0", image: "" },
-                        ]);
-                      }}
-                      className="font-subhead inline-flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1.5 text-[10px] font-semibold hover:bg-secondary transition cursor-pointer"
-                    >
-                      <Plus className="h-3 w-3" /> Add Size
-                    </button>
+                    )}
+
+                    {prodActiveStep === 4 && (
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                            Description
+                          </label>
+                          <textarea
+                            value={prodDescription}
+                            onChange={(e) => setProdDescription(e.target.value)}
+                            rows={4}
+                            className="font-subhead mt-1.5 w-full rounded-xl border border-border bg-background p-3 text-sm outline-none focus:border-primary"
+                            placeholder="Tell customers about this product, its origin, taste, health benefits..."
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {prodActiveStep === 5 && (
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                            Weight Variants & Pricing
+                          </label>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">
+                            Select one or more weight sizes and specify their prices.
+                          </p>
+                        </div>
+
+                        {/* Predefined checkboxes */}
+                        <div className="flex flex-wrap gap-2 p-3 border border-dashed border-[#f0e6d2] rounded-xl bg-[#fdfbf7]">
+                          {["100g", "250g", "500g", "1kg", "2kg", "5kg"].map((unit) => {
+                            const isChecked = prodVariants.some((v) => v.unit === unit);
+                            return (
+                              <label
+                                key={unit}
+                                className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 border text-xs font-semibold transition cursor-pointer select-none ${
+                                  isChecked
+                                    ? "bg-primary border-primary text-primary-foreground font-semibold"
+                                    : "bg-background border-border text-foreground hover:border-muted-foreground/50 hover:bg-secondary/40"
+                                }`}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={isChecked}
+                                  onChange={(e) => {
+                                    const checked = e.target.checked;
+                                    let updated = [...prodVariants];
+                                    if (checked) {
+                                      if (!updated.some((v) => v.unit === unit)) {
+                                        updated.push({ unit, price: "", stock: "999", image: "" });
+                                      }
+                                    } else {
+                                      updated = updated.filter((v) => v.unit !== unit);
+                                    }
+                                    const PREDEFINED_ORDER = ["100g", "250g", "500g", "1kg", "2kg", "5kg"];
+                                    updated.sort((a, b) => PREDEFINED_ORDER.indexOf(a.unit) - PREDEFINED_ORDER.indexOf(b.unit));
+                                    setProdVariants(updated);
+                                  }}
+                                  className="hidden"
+                                />
+                                {unit}
+                              </label>
+                            );
+                          })}
+                        </div>
+
+                        {/* Dynamic Predefined cards */}
+                        <div className="grid gap-3.5 sm:grid-cols-2 mt-3.5">
+                          {prodVariants.map((vItem, idx) => (
+                            <div
+                              key={vItem.unit}
+                              className="flex flex-col gap-2 rounded-xl border border-border bg-background p-3.5 shadow-sm text-xs"
+                            >
+                              <span className="font-display font-bold text-primary text-sm">
+                                {vItem.unit} Variant
+                              </span>
+                              <div className="w-full">
+                                <label className="block text-[10px] font-semibold text-muted-foreground uppercase">
+                                  Price (INR)
+                                </label>
+                                <div className="relative mt-1 flex items-center">
+                                  <span className="absolute left-2.5 text-xs text-muted-foreground">₹</span>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    placeholder="e.g. 120"
+                                    value={vItem.price}
+                                    onChange={(e) => {
+                                      const newV = [...prodVariants];
+                                      if (newV[idx]) {
+                                        newV[idx] = { ...newV[idx], price: e.target.value };
+                                      }
+                                      setProdVariants(newV);
+                                    }}
+                                    className="font-subhead h-9 w-full rounded-lg border border-border bg-background pl-5 pr-2.5 text-xs outline-none focus:border-primary"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
 
-              {!prodHasVariants && (
-                <>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="col-span-2">
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        Pricing Unit *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={prodUnit}
-                        onChange={(e) => setProdUnit(e.target.value)}
-                        className="font-subhead mt-1.5 h-10 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus:border-primary"
-                        placeholder="e.g. kg, g, pack, bottle"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        Price (INR) *
-                      </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        required
-                        value={prodPrice}
-                        onChange={(e) => setProdPrice(e.target.value)}
-                        className="font-subhead mt-1.5 h-10 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus:border-primary"
-                        placeholder="e.g. 250"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        Stock Quantity *
-                      </label>
-                      <input
-                        type="number"
-                        required
-                        value={prodStock}
-                        onChange={(e) => setProdStock(e.target.value)}
-                        className="font-subhead mt-1.5 h-10 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus:border-primary"
-                        placeholder="e.g. 50"
-                      />
-                    </div>
-                  </div>
-                </>
-              )}
-
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Description
-                </label>
-                <textarea
-                  value={prodDescription}
-                  onChange={(e) => setProdDescription(e.target.value)}
-                  rows={3}
-                  className="font-subhead mt-1.5 w-full rounded-xl border border-border bg-background p-3 text-sm outline-none focus:border-primary"
-                  placeholder="Tell customers about this product, its origin, taste, health benefits..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
-                  Product Images
-                </label>
-                <div className="flex flex-wrap gap-2.5">
-                  {prodImages.map((img, i) => (
-                    <div key={i} className="relative h-16 w-16 border border-border rounded-xl overflow-hidden group">
-                      <img src={img} className="h-full w-full object-cover" />
+                  {/* Stepper Footer Buttons */}
+                  <div className="border-t border-border pt-4 flex justify-between items-center">
+                    {prodActiveStep > 1 ? (
                       <button
                         type="button"
-                        onClick={() => handleRemoveProductImage(i)}
-                        className="absolute top-1 right-1 grid h-5 w-5 place-items-center rounded-full bg-black/60 text-white hover:bg-black/80 text-[10px] transition cursor-pointer"
-                        title="Remove image"
+                        onClick={() => setProdActiveStep(prodActiveStep - 1)}
+                        className="font-subhead rounded-full border border-border px-4 py-2 text-xs font-semibold hover:bg-secondary transition"
                       >
-                        <X className="h-3 w-3" />
+                        Back
                       </button>
-                    </div>
-                  ))}
-                  
-                  <label className="flex h-16 w-16 flex-col items-center justify-center border border-dashed border-border rounded-xl cursor-pointer bg-secondary/10 hover:bg-secondary/30 transition text-muted-foreground">
-                    {prodUploadingImage ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
-                      <>
-                        <Upload className="h-4 w-4" />
-                        <span className="text-[9px] mt-1">Upload</span>
-                      </>
+                      <button
+                        type="button"
+                        onClick={() => setIsProductModalOpen(false)}
+                        className="font-subhead rounded-full border border-border px-4 py-2 text-xs font-semibold hover:bg-secondary transition"
+                      >
+                        Cancel
+                      </button>
                     )}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleProductImageUpload}
-                      disabled={prodUploadingImage}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
-                <p className="text-[10px] text-muted-foreground mt-1.5">
-                  Recommended size: Square aspect ratio (1:1), less than 5 MB.
-                </p>
-              </div>
 
-              <div className="border-t border-border pt-4 flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsProductModalOpen(false)}
-                  className="font-subhead rounded-full border border-border px-4 py-2 text-xs font-medium hover:bg-secondary transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={prodSaving}
-                  className="font-subhead inline-flex items-center gap-1.5 rounded-full bg-primary px-5 py-2 text-xs font-medium text-primary-foreground disabled:opacity-55 transition cursor-pointer"
-                >
-                  {prodSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                  {editProduct ? "Update Product" : "Add Product"}
-                </button>
-              </div>
-            </form>
+                    {prodActiveStep < 5 ? (
+                      <button
+                        type="button"
+                        onClick={handleNextStep}
+                        className="font-subhead rounded-full bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/95 transition"
+                      >
+                        Next
+                      </button>
+                    ) : (
+                      <button
+                        type="submit"
+                        disabled={prodSaving}
+                        className="font-subhead inline-flex items-center gap-1.5 rounded-full bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-55 transition cursor-pointer"
+                      >
+                        {prodSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                        {editProduct ? "Update Product" : "Add Product"}
+                      </button>
+                    )}
+                  </div>
+                </form>
+              );
+            })()}
           </div>
         </div>
       )}
