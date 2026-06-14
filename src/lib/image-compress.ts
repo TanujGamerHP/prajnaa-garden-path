@@ -4,7 +4,7 @@
  * and compresses it to JPEG format with a quality parameter.
  * Non-image files (like PDFs) are returned unchanged.
  */
-export async function compressImage(file: File, maxDimension = 1200, quality = 0.8): Promise<File> {
+export async function compressImage(file: File, maxDimension = 900, quality = 0.6): Promise<File> {
   // If the file is not an image (e.g. PDF documents in KYC), return it immediately
   if (!file.type.startsWith("image/")) {
     return file;

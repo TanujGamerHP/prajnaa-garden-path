@@ -54,8 +54,8 @@ function ProfilePage() {
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("Image must be under 10 MB");
+    if (file.size > 15 * 1024 * 1024) {
+      toast.error("Image must be under 15 MB");
       return;
     }
     setUploadingAvatar(true);

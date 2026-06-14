@@ -62,8 +62,8 @@ function ProductsPage() {
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 3 * 1024 * 1024) {
-      toast.error("Image must be under 3 MB");
+    if (file.size > 15 * 1024 * 1024) {
+      toast.error("Image must be under 15 MB");
       return;
     }
     setUploadingVariantIdx(vIdx);
@@ -117,8 +117,8 @@ function ProductsPage() {
   ) => {
     const file = e.target.files?.[0];
     if (!file || !farmer) return;
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image must be under 5 MB");
+    if (file.size > 15 * 1024 * 1024) {
+      toast.error("Image must be under 15 MB");
       return;
     }
     const typeLabel = index === 0 ? "thumbnail" : "additional";

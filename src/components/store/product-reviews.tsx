@@ -195,8 +195,8 @@ export function ProductReviews({ productSlug }: { productSlug: string }) {
     try {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        if (file.size > 8 * 1024 * 1024) {
-          toast.error(`"${file.name}" is over 8MB. Please select smaller files.`);
+        if (file.size > 15 * 1024 * 1024) {
+          toast.error(`"${file.name}" is over 15MB. Please select smaller files.`);
           continue;
         }
 
