@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useFarmerProfile, slugify } from "@/lib/farmer/use-farmer";
-import { compressImage } from "@/lib/image-compress";
+import { compressImage, optimizeBase64Image } from "@/lib/image-compress";
 import { fileToBase64 } from "@/lib/file-to-base64";
 import { inr } from "@/lib/format";
 
@@ -220,7 +220,7 @@ function ProductsPage() {
     },
   });
 
-  const submit = (e?: React.FormEvent | React.MouseEvent) => {
+  const submit = async (e?: React.FormEvent | React.MouseEvent) => {
     if (e) e.preventDefault();
 
     const vList = form.variants || [];
@@ -256,7 +256,39 @@ function ProductsPage() {
     }
 
     setErrors({});
-    upsertMut.mutate({ ...res.data, id: editing ?? undefined });
+    const toastId = toast.loading("Saving changes & optimizing images...");
+    try {
+      // 1. Optimize root images
+      const optimizedImages = await Promise.all(
+        uploadedImages.map((img) => optimizeBase64Image(img))
+      );
+
+      // 2. Optimize variant images
+      const optimizedVariants = await Promise.all(
+        (res.data.variants || []).map(async (v: any) => {
+          const optImages = await Promise.all(
+            (v.images || []).map((img: string) => optimizeBase64Image(img))
+          );
+          return {
+            ...v,
+            images: optImages,
+            image: optImages[0] || v.image || "",
+          };
+        })
+      );
+
+      toast.dismiss(toastId);
+      upsertMut.mutate({
+        ...res.data,
+        images: optimizedImages,
+        variants: optimizedVariants,
+        id: editing ?? undefined,
+      });
+    } catch (err: any) {
+      toast.dismiss(toastId);
+      toast.error("Failed to process images for saving");
+      console.error(err);
+    }
   };
 
   const startEdit = (p: any) => {

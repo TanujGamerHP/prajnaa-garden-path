@@ -19,7 +19,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { slugify } from "@/lib/farmer/use-farmer";
-import { compressImage } from "@/lib/image-compress";
+import { compressImage, optimizeBase64Image } from "@/lib/image-compress";
 import { fileToBase64 } from "@/lib/file-to-base64";
 
 export const Route = createFileRoute("/admin/vendors")({ component: AdminVendors });
@@ -1113,7 +1113,27 @@ function FarmerDetail({
     const finalUnit = firstVariant.unit;
 
     setProdSaving(true);
+    const toastId = toast.loading("Saving changes & optimizing images...");
     try {
+      // 1. Optimize root images
+      const optimizedImages = await Promise.all(
+        prodImages.map((img) => optimizeBase64Image(img))
+      );
+
+      // 2. Optimize variant images
+      const optimizedVariants = await Promise.all(
+        prodVariants.map(async (v) => {
+          const optImages = await Promise.all(
+            (v.images || []).map((img) => optimizeBase64Image(img))
+          );
+          return {
+            ...v,
+            images: optImages,
+            image: optImages[0] || v.image || "",
+          };
+        })
+      );
+
       const slug = editProduct
         ? editProduct.slug
         : slugify(prodName.trim()) + "-" + Math.random().toString(36).slice(2, 6);
@@ -1126,11 +1146,11 @@ function FarmerDetail({
         stock: Number(finalStock),
         unit: finalUnit.trim(),
         description: prodDescription.trim(),
-        images: prodImages,
+        images: optimizedImages,
         slug,
         status: editProduct ? editProduct.status : "published", // default to published for admin adds
         created_at: editProduct ? editProduct.created_at : new Date().toISOString(),
-        variants: prodVariants.map((v) => ({
+        variants: optimizedVariants.map((v) => ({
           unit: v.unit.trim(),
           price: Number(v.price),
           stock: parseInt(v.stock, 10),
@@ -1152,10 +1172,12 @@ function FarmerDetail({
         toast.success("Product added successfully");
       }
 
+      toast.dismiss(toastId);
       setIsProductModalOpen(false);
       refetchProducts();
       qc.invalidateQueries({ queryKey: ["admin-products"] }); // Sync global admin product list too
     } catch (err: any) {
+      toast.dismiss(toastId);
       toast.error(err?.message ?? "Failed to save product");
     } finally {
       setProdSaving(false);
