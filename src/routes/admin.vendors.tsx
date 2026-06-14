@@ -920,12 +920,13 @@ function FarmerDetail({
   const [prodImages, setProdImages] = useState<string[]>([]);
   const [prodSaving, setProdSaving] = useState(false);
   const [prodUploadingImage, setProdUploadingImage] = useState(false);
-  const [prodVariants, setProdVariants] = useState<{ unit: string; price: string; stock: string; image: string }[]>([]);  const [prodActiveStep, setProdActiveStep] = useState(1);
+  const [prodVariants, setProdVariants] = useState<{ unit: string; price: string; stock: string; image: string; images?: string[] }[]>([]);  const [prodActiveStep, setProdActiveStep] = useState(1);
   const [prodUploadingVariantIdx, setProdUploadingVariantIdx] = useState<number | null>(null);
 
   const handleProdVariantImageUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
     vIdx: number,
+    imgIdx: number,
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -941,7 +942,13 @@ function FarmerDetail({
       setProdVariants((prev) => {
         const next = [...prev];
         if (next[vIdx]) {
-          next[vIdx] = { ...next[vIdx], image: base64Url };
+          const nextImages = [...(next[vIdx].images || [])];
+          nextImages[imgIdx] = base64Url;
+          next[vIdx] = {
+            ...next[vIdx],
+            images: nextImages,
+            image: imgIdx === 0 ? base64Url : (next[vIdx].image || nextImages[0] || ""),
+          };
         }
         return next;
       });
@@ -953,11 +960,20 @@ function FarmerDetail({
     }
   };
 
-  const handleProdRemoveVariantImage = (vIdx: number) => {
+  const handleProdRemoveVariantImage = (vIdx: number, imgIdx: number) => {
     setProdVariants((prev) => {
       const next = [...prev];
       if (next[vIdx]) {
-        next[vIdx] = { ...next[vIdx], image: "" };
+        const nextImages = [...(next[vIdx].images || [])];
+        nextImages[imgIdx] = "";
+        while (nextImages.length > 0 && !nextImages[nextImages.length - 1]) {
+          nextImages.pop();
+        }
+        next[vIdx] = {
+          ...next[vIdx],
+          images: nextImages,
+          image: nextImages[0] || "",
+        };
       }
       return next;
     });
@@ -1013,13 +1029,14 @@ function FarmerDetail({
     setProdDescription(prod.description || "");
     setProdImages(prod.images || []);
 
-    let parsedVariants: { unit: string; price: string; stock: string; image: string }[] = [];
+    let parsedVariants: { unit: string; price: string; stock: string; image: string; images: string[] }[] = [];
     if (prod.variants && prod.variants.length > 0) {
       parsedVariants = prod.variants.map((v: any) => ({
         unit: v.unit,
         price: String(v.price),
         stock: String(v.stock || 999),
         image: v.image || "",
+        images: v.images || (v.image ? [v.image] : []),
       }));
     } else {
       let legacyUnit = prod.unit || "500g";
@@ -1030,6 +1047,7 @@ function FarmerDetail({
         price: String(prod.price || ""),
         stock: String(prod.stock || 999),
         image: "",
+        images: [],
       }];
     }
 
@@ -1117,6 +1135,7 @@ function FarmerDetail({
           price: Number(v.price),
           stock: parseInt(v.stock, 10),
           image: v.image || "",
+          images: v.images || [],
         })),
       };
 
@@ -1685,7 +1704,13 @@ function FarmerDetail({
               ];
 
               return (
-                <form onSubmit={handleSaveProduct} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                <form
+                  onSubmit={handleSaveProduct}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") e.preventDefault();
+                  }}
+                  className="p-6 space-y-4 max-h-[70vh] overflow-y-auto"
+                >
                   {/* Stepper Progress Bar */}
                   <div className="mb-6 flex items-center justify-between border-b border-border pb-4 overflow-x-auto">
                     {steps.map((s, idx) => {
@@ -1920,7 +1945,7 @@ function FarmerDetail({
                                     let updated = [...prodVariants];
                                     if (checked) {
                                       if (!updated.some((v) => v.unit === unit)) {
-                                        updated.push({ unit, price: "", stock: "999", image: "" });
+                                        updated.push({ unit, price: "", stock: "999", image: "", images: [] });
                                       }
                                     } else {
                                       updated = updated.filter((v) => v.unit !== unit);
@@ -1942,69 +1967,117 @@ function FarmerDetail({
                           {prodVariants.map((vItem, idx) => (
                             <div
                               key={vItem.unit}
-                              className="flex flex-col gap-2 rounded-xl border border-border bg-background p-3.5 shadow-sm text-xs"
+                              className="flex flex-col gap-3 rounded-xl border border-border bg-background p-3.5 shadow-sm text-xs"
                             >
                               <span className="font-display font-bold text-primary text-sm">
                                 {vItem.unit} Variant
                               </span>
-                              <div className="grid grid-cols-[1fr_64px] gap-3 items-end">
-                                {/* Price Input */}
-                                <div>
-                                  <label className="block text-[10px] font-semibold text-muted-foreground uppercase">
-                                    Price (INR)
-                                  </label>
-                                  <div className="relative mt-1 flex items-center">
-                                    <span className="absolute left-2.5 text-xs text-muted-foreground">₹</span>
-                                    <input
-                                      type="number"
-                                      step="0.01"
-                                      placeholder="e.g. 120"
-                                      value={vItem.price}
-                                      onChange={(e) => {
-                                        const newV = [...prodVariants];
-                                        if (newV[idx]) {
-                                          newV[idx] = { ...newV[idx], price: e.target.value };
-                                        }
-                                        setProdVariants(newV);
-                                      }}
-                                      className="font-subhead h-9 w-full rounded-lg border border-border bg-background pl-5 pr-2.5 text-xs outline-none focus:border-primary"
-                                    />
-                                  </div>
+                              
+                              {/* Price Input */}
+                              <div>
+                                <label className="block text-[10px] font-semibold text-muted-foreground uppercase">
+                                  Price (INR)
+                                </label>
+                                <div className="relative mt-1 flex items-center">
+                                  <span className="absolute left-2.5 text-xs text-muted-foreground">₹</span>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    placeholder="e.g. 120"
+                                    value={vItem.price}
+                                    onChange={(e) => {
+                                      const newV = [...prodVariants];
+                                      if (newV[idx]) {
+                                        newV[idx] = { ...newV[idx], price: e.target.value };
+                                      }
+                                      setProdVariants(newV);
+                                    }}
+                                    className="font-subhead h-9 w-full rounded-lg border border-border bg-background pl-5 pr-2.5 text-xs outline-none focus:border-primary"
+                                  />
                                 </div>
+                              </div>
 
-                                {/* Variant Image Upload */}
-                                <div className="flex flex-col items-center gap-0.5">
-                                  <span className="font-subhead text-[9px] uppercase tracking-[0.12em] text-muted-foreground font-semibold">
-                                    Photo
+                              {/* Variant Packaged and Raw Images */}
+                              <div className="grid grid-cols-2 gap-2.5 pt-2 border-t border-border/60">
+                                {/* Packaged Image Slot */}
+                                <div className="space-y-1">
+                                  <span className="font-subhead text-[9px] uppercase tracking-[0.12em] text-muted-foreground block font-semibold">
+                                    Packaged Photo *
                                   </span>
-                                  {vItem.image ? (
-                                    <div className="relative group h-12 w-12 rounded-lg overflow-hidden border border-border">
+                                  {vItem.images?.[0] || vItem.image ? (
+                                    <div className="relative group h-12 w-full rounded-lg overflow-hidden border border-border">
                                       <img
-                                        src={vItem.image}
-                                        alt="Variant"
+                                        src={vItem.images?.[0] || vItem.image}
+                                        alt="Packaged Variant"
                                         className="h-full w-full object-cover"
                                       />
                                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                         <button
                                           type="button"
-                                          onClick={() => handleProdRemoveVariantImage(idx)}
-                                          className="rounded-full bg-destructive p-0.5 text-destructive-foreground hover:bg-destructive/90 transition-transform"
+                                          onClick={() => handleProdRemoveVariantImage(idx, 0)}
+                                          className="rounded-full bg-destructive p-1 text-destructive-foreground hover:bg-destructive/90 transition-transform"
                                         >
-                                          <Trash2 className="h-2.5 w-2.5" />
+                                          <Trash2 className="h-3 w-3" />
                                         </button>
                                       </div>
                                     </div>
                                   ) : (
-                                    <label className="flex flex-col items-center justify-center h-12 w-12 rounded-lg border border-dashed border-border hover:border-primary cursor-pointer transition-colors bg-secondary/20">
+                                    <label className="flex flex-col items-center justify-center h-12 w-full rounded-lg border border-dashed border-border hover:border-primary cursor-pointer transition-colors bg-secondary/20">
                                       {prodUploadingVariantIdx === idx ? (
-                                        <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+                                        <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
                                       ) : (
-                                        <Upload className="h-3.5 w-3.5 text-muted-foreground" />
+                                        <>
+                                          <Upload className="h-3.5 w-3.5 text-muted-foreground" />
+                                          <span className="mt-0.5 text-[8px] font-medium text-muted-foreground">Upload</span>
+                                        </>
                                       )}
                                       <input
                                         type="file"
                                         accept="image/*"
-                                        onChange={(e) => handleProdVariantImageUpload(e, idx)}
+                                        onChange={(e) => handleProdVariantImageUpload(e, idx, 0)}
+                                        className="hidden"
+                                        disabled={prodUploadingVariantIdx !== null}
+                                      />
+                                    </label>
+                                  )}
+                                </div>
+
+                                {/* Raw Image Slot */}
+                                <div className="space-y-1">
+                                  <span className="font-subhead text-[9px] uppercase tracking-[0.12em] text-muted-foreground block font-semibold">
+                                    Raw Photo
+                                  </span>
+                                  {vItem.images?.[1] ? (
+                                    <div className="relative group h-12 w-full rounded-lg overflow-hidden border border-border">
+                                      <img
+                                        src={vItem.images[1]}
+                                        alt="Raw Variant"
+                                        className="h-full w-full object-cover"
+                                      />
+                                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        <button
+                                          type="button"
+                                          onClick={() => handleProdRemoveVariantImage(idx, 1)}
+                                          className="rounded-full bg-destructive p-1 text-destructive-foreground hover:bg-destructive/90 transition-transform"
+                                        >
+                                          <Trash2 className="h-3 w-3" />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <label className="flex flex-col items-center justify-center h-12 w-full rounded-lg border border-dashed border-border hover:border-primary cursor-pointer transition-colors bg-secondary/20">
+                                      {prodUploadingVariantIdx === idx ? (
+                                        <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+                                      ) : (
+                                        <>
+                                          <Upload className="h-3.5 w-3.5 text-muted-foreground" />
+                                          <span className="mt-0.5 text-[8px] font-medium text-muted-foreground">Upload (Opt)</span>
+                                        </>
+                                      )}
+                                      <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => handleProdVariantImageUpload(e, idx, 1)}
                                         className="hidden"
                                         disabled={prodUploadingVariantIdx !== null}
                                       />

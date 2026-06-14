@@ -26,6 +26,7 @@ const productSchema = z.object({
       price: z.string().regex(/^\d+(\.\d{1,2})?$/, "Valid price"),
       stock: z.string().regex(/^\d+$/, "Whole number"),
       image: z.string().optional().or(z.literal("")),
+      images: z.array(z.string()).optional(),
     })
   ).optional().nullable(),
 });
@@ -57,6 +58,7 @@ function ProductsPage() {
   const handleVariantImageUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
     vIdx: number,
+    imgIdx: number,
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -72,7 +74,13 @@ function ProductsPage() {
       setForm((prev) => {
         const nextVariants = [...(prev.variants || [])];
         if (nextVariants[vIdx]) {
-          nextVariants[vIdx] = { ...nextVariants[vIdx], image: base64Url };
+          const nextImages = [...(nextVariants[vIdx].images || [])];
+          nextImages[imgIdx] = base64Url;
+          nextVariants[vIdx] = {
+            ...nextVariants[vIdx],
+            images: nextImages,
+            image: imgIdx === 0 ? base64Url : (nextVariants[vIdx].image || nextImages[0] || ""),
+          };
         }
         return { ...prev, variants: nextVariants };
       });
@@ -84,11 +92,20 @@ function ProductsPage() {
     }
   };
 
-  const handleRemoveVariantImage = (vIdx: number) => {
+  const handleRemoveVariantImage = (vIdx: number, imgIdx: number) => {
     setForm((prev) => {
       const nextVariants = [...(prev.variants || [])];
       if (nextVariants[vIdx]) {
-        nextVariants[vIdx] = { ...nextVariants[vIdx], image: "" };
+        const nextImages = [...(nextVariants[vIdx].images || [])];
+        nextImages[imgIdx] = "";
+        while (nextImages.length > 0 && !nextImages[nextImages.length - 1]) {
+          nextImages.pop();
+        }
+        nextVariants[vIdx] = {
+          ...nextVariants[vIdx],
+          images: nextImages,
+          image: nextImages[0] || "",
+        };
       }
       return { ...prev, variants: nextVariants };
     });
@@ -169,6 +186,7 @@ function ProductsPage() {
           price: Number(v.price),
           stock: parseInt(v.stock, 10),
           image: v.image || "",
+          images: v.images || [],
         })),
       } as const;
       if (input.id) {
@@ -246,13 +264,14 @@ function ProductsPage() {
     const pImages = p.images ?? [];
     setUploadedImages(pImages);
 
-    let parsedVariants: { unit: string; price: string; stock: string; image: string }[] = [];
+    let parsedVariants: { unit: string; price: string; stock: string; image: string; images: string[] }[] = [];
     if (p.variants && p.variants.length > 0) {
       parsedVariants = p.variants.map((v: any) => ({
         unit: v.unit,
         price: String(v.price),
         stock: String(v.stock || 999),
         image: v.image || "",
+        images: v.images || (v.image ? [v.image] : []),
       }));
     } else {
       let legacyUnit = p.unit || "500g";
@@ -263,6 +282,7 @@ function ProductsPage() {
         price: String(p.price || ""),
         stock: String(p.stock || 999),
         image: "",
+        images: [],
       }];
     }
 
@@ -336,7 +356,13 @@ function ProductsPage() {
         ];
 
         return (
-          <form onSubmit={submit} className="rounded-2xl border border-border bg-background p-6">
+          <form
+            onSubmit={submit}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") e.preventDefault();
+            }}
+            className="rounded-2xl border border-border bg-background p-6"
+          >
             {/* Stepper Progress Bar */}
             <div className="mb-8 flex items-center justify-between border-b border-border pb-6 overflow-x-auto">
               {steps.map((s, idx) => {
@@ -585,7 +611,7 @@ function ProductsPage() {
                               let updated = [...(form.variants || [])];
                               if (checked) {
                                 if (!updated.some((v) => v.unit === unit)) {
-                                  updated.push({ unit, price: "", stock: "999", image: "" });
+                                  updated.push({ unit, price: "", stock: "999", image: "", images: [] });
                                 }
                               } else {
                                 updated = updated.filter((v) => v.unit !== unit);
@@ -607,71 +633,119 @@ function ProductsPage() {
                     {(form.variants || []).map((vItem, idx) => (
                       <div
                         key={vItem.unit}
-                        className="flex flex-col gap-3 rounded-2xl border border-border bg-background p-4 shadow-sm"
+                        className="flex flex-col gap-4 rounded-2xl border border-border bg-background p-4 shadow-sm"
                       >
                         <span className="font-display text-sm font-bold text-primary">
                           {vItem.unit} Variant
                         </span>
-                        <div className="grid grid-cols-[1fr_80px] gap-4 items-end">
-                          {/* Price Input */}
-                          <div>
-                            <label className="block">
-                              <span className="font-subhead text-[10px] uppercase tracking-[0.14em] text-muted-foreground font-semibold">
-                                Price (INR)
-                              </span>
-                              <div className="relative mt-1.5 flex items-center">
-                                <span className="absolute left-3 text-sm text-muted-foreground">₹</span>
-                                <input
-                                  type="number"
-                                  step="0.01"
-                                  placeholder="e.g. 120"
-                                  value={vItem.price}
-                                  onChange={(e) => {
-                                    const newV = [...(form.variants || [])];
-                                    if (newV[idx]) {
-                                      newV[idx] = { ...newV[idx], price: e.target.value };
-                                    }
-                                    setForm({ ...form, variants: newV });
-                                  }}
-                                  className="font-subhead h-11 w-full rounded-xl border border-border bg-background pl-6 pr-3 text-sm outline-none focus:border-primary"
-                                />
-                              </div>
-                            </label>
-                          </div>
-
-                          {/* Image Upload Area */}
-                          <div className="flex flex-col items-center gap-1">
-                            <span className="font-subhead text-[9px] uppercase tracking-[0.12em] text-muted-foreground font-semibold">
-                              Photo
+                        
+                        {/* Price Input */}
+                        <div>
+                          <label className="block">
+                            <span className="font-subhead text-[10px] uppercase tracking-[0.14em] text-muted-foreground font-semibold">
+                              Price (INR)
                             </span>
-                            {vItem.image ? (
-                              <div className="relative group h-14 w-14 rounded-lg overflow-hidden border border-border">
+                            <div className="relative mt-1.5 flex items-center">
+                              <span className="absolute left-3 text-sm text-muted-foreground">₹</span>
+                              <input
+                                type="number"
+                                step="0.01"
+                                placeholder="e.g. 120"
+                                value={vItem.price}
+                                onChange={(e) => {
+                                  const newV = [...(form.variants || [])];
+                                  if (newV[idx]) {
+                                    newV[idx] = { ...newV[idx], price: e.target.value };
+                                  }
+                                  setForm({ ...form, variants: newV });
+                                }}
+                                className="font-subhead h-11 w-full rounded-xl border border-border bg-background pl-6 pr-3 text-sm outline-none focus:border-primary"
+                              />
+                            </div>
+                          </label>
+                        </div>
+
+                        {/* Variant Packaged and Raw Images */}
+                        <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border/60">
+                          {/* Packaged Image Slot */}
+                          <div className="space-y-1">
+                            <span className="font-subhead text-[9px] uppercase tracking-[0.12em] text-muted-foreground block font-semibold">
+                              Packaged Photo *
+                            </span>
+                            {vItem.images?.[0] || vItem.image ? (
+                              <div className="relative group h-16 w-full rounded-xl overflow-hidden border border-border">
                                 <img
-                                  src={vItem.image}
-                                  alt="Variant"
+                                  src={vItem.images?.[0] || vItem.image}
+                                  alt="Packaged Variant"
                                   className="h-full w-full object-cover"
                                 />
                                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                   <button
                                     type="button"
-                                    onClick={() => handleRemoveVariantImage(idx)}
-                                    className="rounded-full bg-destructive p-1 text-destructive-foreground hover:bg-destructive/90 transition-transform"
+                                    onClick={() => handleRemoveVariantImage(idx, 0)}
+                                    className="rounded-full bg-destructive p-1.5 text-destructive-foreground hover:bg-destructive/90 transition-transform"
                                   >
-                                    <Trash2 className="h-3 w-3" />
+                                    <Trash2 className="h-3.5 w-3.5" />
                                   </button>
                                 </div>
                               </div>
                             ) : (
-                              <label className="flex flex-col items-center justify-center h-14 w-14 rounded-lg border border-dashed border-border hover:border-primary cursor-pointer transition-colors bg-secondary/20">
+                              <label className="flex flex-col items-center justify-center h-16 w-full rounded-xl border border-dashed border-border hover:border-primary cursor-pointer transition-colors bg-secondary/20">
                                 {uploadingVariantIdx === idx ? (
-                                  <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+                                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                                 ) : (
-                                  <Upload className="h-3.5 w-3.5 text-muted-foreground" />
+                                  <>
+                                    <Upload className="h-4 w-4 text-muted-foreground" />
+                                    <span className="mt-1 text-[8px] font-medium text-muted-foreground">Upload</span>
+                                  </>
                                 )}
                                 <input
                                   type="file"
                                   accept="image/*"
-                                  onChange={(e) => handleVariantImageUpload(e, idx)}
+                                  onChange={(e) => handleVariantImageUpload(e, idx, 0)}
+                                  className="hidden"
+                                  disabled={uploadingVariantIdx !== null}
+                                />
+                              </label>
+                            )}
+                          </div>
+
+                          {/* Raw Image Slot */}
+                          <div className="space-y-1">
+                            <span className="font-subhead text-[9px] uppercase tracking-[0.12em] text-muted-foreground block font-semibold">
+                              Raw Photo
+                            </span>
+                            {vItem.images?.[1] ? (
+                              <div className="relative group h-16 w-full rounded-xl overflow-hidden border border-border">
+                                <img
+                                  src={vItem.images[1]}
+                                  alt="Raw Variant"
+                                  className="h-full w-full object-cover"
+                                />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveVariantImage(idx, 1)}
+                                    className="rounded-full bg-destructive p-1.5 text-destructive-foreground hover:bg-destructive/90 transition-transform"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <label className="flex flex-col items-center justify-center h-16 w-full rounded-xl border border-dashed border-border hover:border-primary cursor-pointer transition-colors bg-secondary/20">
+                                {uploadingVariantIdx === idx ? (
+                                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                                ) : (
+                                  <>
+                                    <Upload className="h-4 w-4 text-muted-foreground" />
+                                    <span className="mt-1 text-[8px] font-medium text-muted-foreground">Upload (Opt)</span>
+                                  </>
+                                )}
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => handleVariantImageUpload(e, idx, 1)}
                                   className="hidden"
                                   disabled={uploadingVariantIdx !== null}
                                 />

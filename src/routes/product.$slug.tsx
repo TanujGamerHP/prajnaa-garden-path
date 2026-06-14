@@ -64,6 +64,7 @@ export const Route = createFileRoute("/product/$slug")({
                 mrp: Math.ceil(Number(v.price || 0) * 1.10 * 1.25),
                 stock: Number(v.stock || 0),
                 image: v.image || "",
+                images: v.images || [],
               }))
             : null,
         } as any;
@@ -183,6 +184,7 @@ interface PackSizeOption {
   mrp: number;
   badge?: string;
   image?: string;
+  images?: string[];
 }
 
 interface BenefitItem {
@@ -198,6 +200,7 @@ function getPackSizes(product: any): PackSizeOption[] {
       mrp: v.mrp || Math.ceil(v.price * 1.25),
       badge: v.stock === 0 ? "Out of Stock" : undefined,
       image: v.image || "",
+      images: v.images || [],
     }));
   }
 
@@ -259,12 +262,6 @@ function ProductPage() {
   const add = useCart((s) => s.add);
   const { user } = useAuth();
 
-  const images =
-    (product as any).images && (product as any).images.length > 0
-      ? (product as any).images
-      : [product.image];
-  const [activeImage, setActiveImage] = useState(images[0]);
-
   // Dynamic Pack Sizes & Tabs
   const packSizes = getPackSizes(product);
   const [selectedSizeIdx, setSelectedSizeIdx] = useState(0);
@@ -275,22 +272,32 @@ function ProductPage() {
   const selectedMrp = currentSize.mrp;
   const selectedUnit = currentSize.label;
 
+  const images = useMemo(() => {
+    // Show all images EXCEPT the raw image (index 1), which is only for shop/home hover previews.
+    if (currentSize && currentSize.images && currentSize.images.length > 0) {
+      return currentSize.images.filter((_, idx) => idx !== 1);
+    }
+    if (currentSize && currentSize.image) {
+      return [currentSize.image];
+    }
+    if ((product as any).images && (product as any).images.length > 0) {
+      return (product as any).images.filter((_, idx: number) => idx !== 1);
+    }
+    return [product.image];
+  }, [currentSize, product]);
+
+  const [activeImage, setActiveImage] = useState(images[0]);
+
   const benefits = getKeyBenefits(product);
 
   useEffect(() => {
-    setActiveImage(images[0]);
     setSelectedSizeIdx(0);
   }, [product]);
 
-  // Swap product image if the selected variant has a custom image
+  // Sync activeImage when dynamic images array changes
   useEffect(() => {
-    const currentVariant = packSizes[selectedSizeIdx];
-    if (currentVariant && currentVariant.image) {
-      setActiveImage(currentVariant.image);
-    } else {
-      setActiveImage(images[0]);
-    }
-  }, [selectedSizeIdx, packSizes, images]);
+    setActiveImage(images[0]);
+  }, [images]);
 
   useEffect(() => {
     if (!user) return;
