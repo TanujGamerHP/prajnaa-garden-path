@@ -1126,10 +1126,11 @@ function FarmerDetail({
           const optImages = await Promise.all(
             (v.images || []).map((img) => optimizeBase64Image(img))
           );
+          const optImage = v.image ? await optimizeBase64Image(v.image) : "";
           return {
             ...v,
             images: optImages,
-            image: optImages[0] || v.image || "",
+            image: optImage || optImages[0] || "",
           };
         })
       );
