@@ -921,6 +921,47 @@ function FarmerDetail({
   const [prodSaving, setProdSaving] = useState(false);
   const [prodUploadingImage, setProdUploadingImage] = useState(false);
   const [prodVariants, setProdVariants] = useState<{ unit: string; price: string; stock: string; image: string }[]>([]);  const [prodActiveStep, setProdActiveStep] = useState(1);
+  const [prodUploadingVariantIdx, setProdUploadingVariantIdx] = useState<number | null>(null);
+
+  const handleProdVariantImageUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    vIdx: number,
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 3 * 1024 * 1024) {
+      toast.error("Image must be under 3 MB");
+      return;
+    }
+    setProdUploadingVariantIdx(vIdx);
+    try {
+      const compressedFile = await compressImage(file);
+      const base64Url = await fileToBase64(compressedFile);
+
+      setProdVariants((prev) => {
+        const next = [...prev];
+        if (next[vIdx]) {
+          next[vIdx] = { ...next[vIdx], image: base64Url };
+        }
+        return next;
+      });
+      toast.success("Variant image uploaded");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Upload failed");
+    } finally {
+      setProdUploadingVariantIdx(null);
+    }
+  };
+
+  const handleProdRemoveVariantImage = (vIdx: number) => {
+    setProdVariants((prev) => {
+      const next = [...prev];
+      if (next[vIdx]) {
+        next[vIdx] = { ...next[vIdx], image: "" };
+      }
+      return next;
+    });
+  };
 
   const { data: docs = [] } = useQuery({
     queryKey: ["admin-farmer-docs", farmer.id],
@@ -1906,26 +1947,69 @@ function FarmerDetail({
                               <span className="font-display font-bold text-primary text-sm">
                                 {vItem.unit} Variant
                               </span>
-                              <div className="w-full">
-                                <label className="block text-[10px] font-semibold text-muted-foreground uppercase">
-                                  Price (INR)
-                                </label>
-                                <div className="relative mt-1 flex items-center">
-                                  <span className="absolute left-2.5 text-xs text-muted-foreground">₹</span>
-                                  <input
-                                    type="number"
-                                    step="0.01"
-                                    placeholder="e.g. 120"
-                                    value={vItem.price}
-                                    onChange={(e) => {
-                                      const newV = [...prodVariants];
-                                      if (newV[idx]) {
-                                        newV[idx] = { ...newV[idx], price: e.target.value };
-                                      }
-                                      setProdVariants(newV);
-                                    }}
-                                    className="font-subhead h-9 w-full rounded-lg border border-border bg-background pl-5 pr-2.5 text-xs outline-none focus:border-primary"
-                                  />
+                              <div className="grid grid-cols-[1fr_64px] gap-3 items-end">
+                                {/* Price Input */}
+                                <div>
+                                  <label className="block text-[10px] font-semibold text-muted-foreground uppercase">
+                                    Price (INR)
+                                  </label>
+                                  <div className="relative mt-1 flex items-center">
+                                    <span className="absolute left-2.5 text-xs text-muted-foreground">₹</span>
+                                    <input
+                                      type="number"
+                                      step="0.01"
+                                      placeholder="e.g. 120"
+                                      value={vItem.price}
+                                      onChange={(e) => {
+                                        const newV = [...prodVariants];
+                                        if (newV[idx]) {
+                                          newV[idx] = { ...newV[idx], price: e.target.value };
+                                        }
+                                        setProdVariants(newV);
+                                      }}
+                                      className="font-subhead h-9 w-full rounded-lg border border-border bg-background pl-5 pr-2.5 text-xs outline-none focus:border-primary"
+                                    />
+                                  </div>
+                                </div>
+
+                                {/* Variant Image Upload */}
+                                <div className="flex flex-col items-center gap-0.5">
+                                  <span className="font-subhead text-[9px] uppercase tracking-[0.12em] text-muted-foreground font-semibold">
+                                    Photo
+                                  </span>
+                                  {vItem.image ? (
+                                    <div className="relative group h-12 w-12 rounded-lg overflow-hidden border border-border">
+                                      <img
+                                        src={vItem.image}
+                                        alt="Variant"
+                                        className="h-full w-full object-cover"
+                                      />
+                                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        <button
+                                          type="button"
+                                          onClick={() => handleProdRemoveVariantImage(idx)}
+                                          className="rounded-full bg-destructive p-0.5 text-destructive-foreground hover:bg-destructive/90 transition-transform"
+                                        >
+                                          <Trash2 className="h-2.5 w-2.5" />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <label className="flex flex-col items-center justify-center h-12 w-12 rounded-lg border border-dashed border-border hover:border-primary cursor-pointer transition-colors bg-secondary/20">
+                                      {prodUploadingVariantIdx === idx ? (
+                                        <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+                                      ) : (
+                                        <Upload className="h-3.5 w-3.5 text-muted-foreground" />
+                                      )}
+                                      <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => handleProdVariantImageUpload(e, idx)}
+                                        className="hidden"
+                                        disabled={prodUploadingVariantIdx !== null}
+                                      />
+                                    </label>
+                                  )}
                                 </div>
                               </div>
                             </div>

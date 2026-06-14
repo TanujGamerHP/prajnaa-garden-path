@@ -52,6 +52,47 @@ function ProductsPage() {
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [uploadingImage, setUploadingImage] = useState<string | null>(null); // 'thumbnail' | 'additional' | null
   const [activeStep, setActiveStep] = useState(1);
+  const [uploadingVariantIdx, setUploadingVariantIdx] = useState<number | null>(null);
+
+  const handleVariantImageUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    vIdx: number,
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 3 * 1024 * 1024) {
+      toast.error("Image must be under 3 MB");
+      return;
+    }
+    setUploadingVariantIdx(vIdx);
+    try {
+      const compressedFile = await compressImage(file);
+      const base64Url = await fileToBase64(compressedFile);
+
+      setForm((prev) => {
+        const nextVariants = [...(prev.variants || [])];
+        if (nextVariants[vIdx]) {
+          nextVariants[vIdx] = { ...nextVariants[vIdx], image: base64Url };
+        }
+        return { ...prev, variants: nextVariants };
+      });
+      toast.success("Variant image uploaded");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Upload failed");
+    } finally {
+      setUploadingVariantIdx(null);
+    }
+  };
+
+  const handleRemoveVariantImage = (vIdx: number) => {
+    setForm((prev) => {
+      const nextVariants = [...(prev.variants || [])];
+      if (nextVariants[vIdx]) {
+        nextVariants[vIdx] = { ...nextVariants[vIdx], image: "" };
+      }
+      return { ...prev, variants: nextVariants };
+    });
+  };
 
   const handleImageUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -571,29 +612,72 @@ function ProductsPage() {
                         <span className="font-display text-sm font-bold text-primary">
                           {vItem.unit} Variant
                         </span>
-                        <div className="w-full">
-                          <label className="block">
-                            <span className="font-subhead text-[10px] uppercase tracking-[0.14em] text-muted-foreground font-semibold">
-                              Price (INR)
+                        <div className="grid grid-cols-[1fr_80px] gap-4 items-end">
+                          {/* Price Input */}
+                          <div>
+                            <label className="block">
+                              <span className="font-subhead text-[10px] uppercase tracking-[0.14em] text-muted-foreground font-semibold">
+                                Price (INR)
+                              </span>
+                              <div className="relative mt-1.5 flex items-center">
+                                <span className="absolute left-3 text-sm text-muted-foreground">₹</span>
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  placeholder="e.g. 120"
+                                  value={vItem.price}
+                                  onChange={(e) => {
+                                    const newV = [...(form.variants || [])];
+                                    if (newV[idx]) {
+                                      newV[idx] = { ...newV[idx], price: e.target.value };
+                                    }
+                                    setForm({ ...form, variants: newV });
+                                  }}
+                                  className="font-subhead h-11 w-full rounded-xl border border-border bg-background pl-6 pr-3 text-sm outline-none focus:border-primary"
+                                />
+                              </div>
+                            </label>
+                          </div>
+
+                          {/* Image Upload Area */}
+                          <div className="flex flex-col items-center gap-1">
+                            <span className="font-subhead text-[9px] uppercase tracking-[0.12em] text-muted-foreground font-semibold">
+                              Photo
                             </span>
-                            <div className="relative mt-1.5 flex items-center">
-                              <span className="absolute left-3 text-sm text-muted-foreground">₹</span>
-                              <input
-                                type="number"
-                                step="0.01"
-                                placeholder="e.g. 120"
-                                value={vItem.price}
-                                onChange={(e) => {
-                                  const newV = [...(form.variants || [])];
-                                  if (newV[idx]) {
-                                    newV[idx] = { ...newV[idx], price: e.target.value };
-                                  }
-                                  setForm({ ...form, variants: newV });
-                                }}
-                                className="font-subhead h-11 w-full rounded-xl border border-border bg-background pl-6 pr-3 text-sm outline-none focus:border-primary"
-                              />
-                            </div>
-                          </label>
+                            {vItem.image ? (
+                              <div className="relative group h-14 w-14 rounded-lg overflow-hidden border border-border">
+                                <img
+                                  src={vItem.image}
+                                  alt="Variant"
+                                  className="h-full w-full object-cover"
+                                />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveVariantImage(idx)}
+                                    className="rounded-full bg-destructive p-1 text-destructive-foreground hover:bg-destructive/90 transition-transform"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <label className="flex flex-col items-center justify-center h-14 w-14 rounded-lg border border-dashed border-border hover:border-primary cursor-pointer transition-colors bg-secondary/20">
+                                {uploadingVariantIdx === idx ? (
+                                  <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+                                ) : (
+                                  <Upload className="h-3.5 w-3.5 text-muted-foreground" />
+                                )}
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => handleVariantImageUpload(e, idx)}
+                                  className="hidden"
+                                  disabled={uploadingVariantIdx !== null}
+                                />
+                              </label>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))}
