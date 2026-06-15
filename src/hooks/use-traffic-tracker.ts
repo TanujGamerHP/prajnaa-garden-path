@@ -29,33 +29,80 @@ export function useTrafficTracker() {
         let parsedGeo = geoData ? JSON.parse(geoData) : null;
 
         if (!parsedGeo) {
-          // Fetch from public IP geolocation API (no key required, returns JSON)
-          const response = await fetch("https://ipapi.co/json/");
-          if (response.ok) {
-            const data = await response.json();
-            // Safeguard to ensure we received proper details
-            if (data && data.ip) {
-              parsedGeo = {
-                ip: data.ip,
-                country: data.country_name || "Unknown Country",
-                region: data.region || "Unknown Region",
-                city: data.city || "Unknown City",
-                isp: data.org || "Unknown ISP",
-              };
-              sessionStorage.setItem("prajnaa_geo_cache", JSON.stringify(parsedGeo));
+          // 1. Fetch IP & ISP details from ipapi.co (as baseline)
+          let baselineGeo: any = null;
+          try {
+            const response = await fetch("https://ipapi.co/json/");
+            if (response.ok) {
+              const data = await response.json();
+              if (data && data.ip) {
+                baselineGeo = {
+                  ip: data.ip,
+                  country: data.country_name || "Unknown Country",
+                  region: data.region || "Unknown Region",
+                  city: data.city || "Unknown City",
+                  isp: data.org || "Unknown ISP",
+                };
+              }
+            }
+          } catch (e) {
+            console.warn("[Traffic Tracker] Baseline IP fetch failed:", e);
+          }
+
+          if (!baselineGeo) {
+            baselineGeo = {
+              ip: "Unknown IP",
+              country: "Unknown Country",
+              region: "Unknown Region",
+              city: "Unknown City",
+              isp: "Unknown ISP",
+            };
+          }
+
+          // 2. Attempt exact device location using Geolocation API
+          let exactGeo: any = null;
+          if (typeof navigator !== "undefined" && navigator.geolocation) {
+            try {
+              // Wrap navigator.geolocation.getCurrentPosition in a promise with a timeout
+              const position = await new Promise<any>((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject, {
+                  enableHighAccuracy: true,
+                  timeout: 4500, // wait up to 4.5 seconds for user to allow and GPS lock
+                  maximumAge: 600000,
+                });
+              });
+
+              const { latitude, longitude } = position.coords;
+              
+              // 3. Call reverse geocoder API to get exact city/region/country
+              const geoResponse = await fetch(
+                `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+              );
+              
+              if (geoResponse.ok) {
+                const geoData = await geoResponse.json();
+                exactGeo = {
+                  city: geoData.city || geoData.locality || "Unknown City",
+                  region: geoData.principalSubdivision || "Unknown Region",
+                  country: geoData.countryName || "Unknown Country",
+                };
+              }
+            } catch (geoErr) {
+              console.log("[Traffic Tracker] Exact geolocation unavailable or permission denied:", geoErr);
             }
           }
-        }
 
-        // If fetch failed or rate-limited, fallback to generic
-        if (!parsedGeo) {
+          // Merge exact geo if found, else keep IP geolocation details
           parsedGeo = {
-            ip: "Unknown IP",
-            country: "Unknown Country",
-            region: "Unknown Region",
-            city: "Unknown City",
-            isp: "Unknown ISP",
+            ip: baselineGeo.ip,
+            isp: baselineGeo.isp,
+            city: exactGeo ? exactGeo.city : baselineGeo.city,
+            region: exactGeo ? exactGeo.region : baselineGeo.region,
+            country: exactGeo ? exactGeo.country : baselineGeo.country,
           };
+
+          // Cache so we don't query / prompt again in this session
+          sessionStorage.setItem("prajnaa_geo_cache", JSON.stringify(parsedGeo));
         }
 
         // Parse User Agent details
@@ -71,9 +118,24 @@ export function useTrafficTracker() {
           browser = "Edge";
         }
 
+        // Robust Device Type detection (handles Desktop, Mobile, Tablet, iPads in Desktop mode)
         let deviceType = "Desktop";
-        if (/Mobi|Android|iPhone|iPad/i.test(ua)) {
-          deviceType = ua.includes("iPad") || ua.includes("Tablet") ? "Tablet" : "Mobile";
+        const isTouch = ('maxTouchPoints' in navigator && navigator.maxTouchPoints > 0) || 
+                        (typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches);
+        const width = typeof window !== "undefined" ? (window.screen.width || window.innerWidth || 1024) : 1024;
+        
+        if (/Mobi|Android|iPhone|iPad|iPod|Windows Phone|BlackBerry|Opera Mini/i.test(ua)) {
+          if (/iPad|Tablet/i.test(ua) || (isTouch && width >= 768)) {
+            deviceType = "Tablet";
+          } else {
+            deviceType = "Mobile";
+          }
+        } else if (isTouch && width < 1024) {
+          if (width < 768) {
+            deviceType = "Mobile";
+          } else {
+            deviceType = "Tablet";
+          }
         }
 
         // Write log entry to database

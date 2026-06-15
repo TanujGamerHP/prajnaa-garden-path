@@ -267,10 +267,10 @@ function ProductPage() {
   const [selectedSizeIdx, setSelectedSizeIdx] = useState(0);
   const [activeTab, setActiveTab] = useState<"description" | "how-to-use" | "manufacturer">("description");
 
-  const currentSize = packSizes[selectedSizeIdx];
-  const selectedPrice = currentSize.price;
-  const selectedMrp = currentSize.mrp;
-  const selectedUnit = currentSize.label;
+  const currentSize = packSizes[selectedSizeIdx] || packSizes[0] || {};
+  const selectedPrice = currentSize.price || 0;
+  const selectedMrp = currentSize.mrp || 0;
+  const selectedUnit = currentSize.label || "";
 
   const images = useMemo(() => {
     // Show all images EXCEPT the raw image (index 1), which is only for shop/home hover previews.

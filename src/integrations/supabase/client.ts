@@ -598,8 +598,9 @@ export const supabase = {
       const { createUserWithEmailAndPassword, updateProfile } = await import("firebase/auth");
       try {
         const credential = await createUserWithEmailAndPassword(auth, email, password);
-        if (options?.data?.name) {
-          await updateProfile(credential.user, { displayName: options.data.name });
+        const displayName = options?.data?.name || options?.data?.full_name;
+        if (displayName) {
+          await updateProfile(credential.user, { displayName });
         }
         return { data: { user: credential.user }, error: null };
       } catch (err: any) {
